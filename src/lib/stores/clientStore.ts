@@ -1,0 +1,187 @@
+import { create } from 'zustand';
+import { Client, CreateClientRequest, UpdateClientRequest, ClientSearchParams } from '../../types';
+import { clientService } from '../api/services';
+import { PaginatedResponse } from '../api/config';
+
+interface ClientState {
+  // State
+  clients: Client[];
+  selectedClient: Client | null;
+  isLoading: boolean;
+  error: string | null;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  filters: ClientSearchParams;
+
+  // Actions
+  fetchClients: (params?: ClientSearchParams) => Promise<void>;
+  fetchClient: (id: string) => Promise<void>;
+  createClient: (clientData: CreateClientRequest) => Promise<Client>;
+  updateClient: (id: string, clientData: UpdateClientRequest) => Promise<Client>;
+  deleteClient: (id: string) => Promise<void>;
+  setSelectedClient: (client: Client | null) => void;
+  setFilters: (filters: Partial<ClientSearchParams>) => void;
+  clearError: () => void;
+  setLoading: (loading: boolean) => void;
+}
+
+export const useClientStore = create<ClientState>((set, get) => ({
+  // Initial state
+  clients: [],
+  selectedClient: null,
+  isLoading: false,
+  error: null,
+  pagination: {
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0,
+  },
+  filters: {
+    page: 1,
+    limit: 20,
+  },
+
+  // Actions
+  fetchClients: async (params?: ClientSearchParams) => {
+    try {
+      set({ isLoading: true, error: null });
+      
+      const searchParams = { ...get().filters, ...params };
+      const response: PaginatedResponse<Client> = await clientService.getClients(searchParams);
+      
+      set({
+        clients: response.data,
+        pagination: response.pagination,
+        filters: searchParams,
+        isLoading: false,
+      });
+      
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error: error.message || 'Ошибка загрузки клиентов',
+      });
+      throw error;
+    }
+  },
+
+  fetchClient: async (id: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      
+      const client = await clientService.getClient(id);
+      
+      set({
+        selectedClient: client,
+        isLoading: false,
+      });
+      
+      // Update client in clients list if it exists
+      const { clients } = get();
+      const clientIndex = clients.findIndex(c => c.id === id);
+      if (clientIndex !== -1) {
+        const updatedClients = [...clients];
+        updatedClients[clientIndex] = client;
+        set({ clients: updatedClients });
+      }
+      
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error: error.message || 'Ошибка загрузки клиента',
+      });
+      throw error;
+    }
+  },
+
+  createClient: async (clientData: CreateClientRequest) => {
+    try {
+      set({ isLoading: true, error: null });
+      
+      const newClient = await clientService.createClient(clientData);
+      
+      set((state) => ({
+        clients: [newClient, ...state.clients],
+        isLoading: false,
+      }));
+      
+      return newClient;
+      
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error: error.message || 'Ошибка создания клиента',
+      });
+      throw error;
+    }
+  },
+
+  updateClient: async (id: string, clientData: UpdateClientRequest) => {
+    try {
+      set({ isLoading: true, error: null });
+      
+      const updatedClient = await clientService.updateClient(id, clientData);
+      
+      set((state) => ({
+        clients: state.clients.map(client =>
+          client.id === id ? updatedClient : client
+        ),
+        selectedClient: state.selectedClient?.id === id ? updatedClient : state.selectedClient,
+        isLoading: false,
+      }));
+      
+      return updatedClient;
+      
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error: error.message || 'Ошибка обновления клиента',
+      });
+      throw error;
+    }
+  },
+
+  deleteClient: async (id: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      
+      await clientService.deleteClient(id);
+      
+      set((state) => ({
+        clients: state.clients.filter(client => client.id !== id),
+        selectedClient: state.selectedClient?.id === id ? null : state.selectedClient,
+        isLoading: false,
+      }));
+      
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error: error.message || 'Ошибка удаления клиента',
+      });
+      throw error;
+    }
+  },
+
+  setSelectedClient: (client: Client | null) => {
+    set({ selectedClient: client });
+  },
+
+  setFilters: (filters: Partial<ClientSearchParams>) => {
+    set((state) => ({
+      filters: { ...state.filters, ...filters },
+    }));
+  },
+
+  clearError: () => {
+    set({ error: null });
+  },
+
+  setLoading: (loading: boolean) => {
+    set({ isLoading: loading });
+  },
+}));
