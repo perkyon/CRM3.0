@@ -3,6 +3,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import { visualizer } from 'rollup-plugin-visualizer';
+import { sentryVitePlugin } from '@sentry/vite-plugin';
 
   export default defineConfig({
     plugins: [
@@ -12,6 +13,14 @@ import { visualizer } from 'rollup-plugin-visualizer';
         open: true,
         gzipSize: true,
         brotliSize: true,
+      }),
+      sentryVitePlugin({
+        org: 'your-org',
+        project: 'crm-3-0',
+        authToken: process.env.SENTRY_AUTH_TOKEN,
+        sourcemaps: {
+          assets: './build/**',
+        },
       }),
     ],
     resolve: {
