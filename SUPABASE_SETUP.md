@@ -29,18 +29,22 @@
 3. **Проверьте созданные таблицы:**
    - Перейдите в **"Table Editor"**
    - Убедитесь, что созданы все таблицы:
-     - users
-     - clients
-     - projects
-     - contacts
-     - addresses
-     - documents
-     - kanban_boards
-     - kanban_columns
-     - kanban_tasks
-     - tags
-     - client_tags
-     - project_tags
+     - **users** - пользователи системы
+     - **clients** - клиенты
+     - **projects** - проекты
+     - **contacts** - контакты клиентов
+     - **addresses** - адреса клиентов
+     - **client_documents** - документы клиентов
+     - **project_documents** - документы проектов
+     - **kanban_boards** - доски канбан
+     - **kanban_columns** - колонки канбан
+     - **kanban_tasks** - задачи канбан
+     - **task_comments** - комментарии к задачам
+     - **task_attachments** - вложения к задачам
+     - **checklist_items** - элементы чек-листов
+     - **activities** - журнал активности
+     - **integrations** - интеграции
+     - **client_tags** - теги клиентов
 
 ### 3. Настройка RLS (Row Level Security)
 
