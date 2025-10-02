@@ -19,11 +19,21 @@ function PerformanceTracker() {
   return null;
 }
 
+// PWA monitoring component
+function PWAMonitor() {
+  // Lazy load PWA monitoring
+  import("./lib/hooks/usePWAMonitoring").then(({ usePWAMonitoring }) => {
+    usePWAMonitoring();
+  });
+  return null;
+}
+
 createRoot(document.getElementById("root")!).render(
   <ToastProvider>
     <ProjectProvider>
       <AppRouter />
       <PerformanceTracker />
+      <PWAMonitor />
       <Analytics 
         mode={import.meta.env.VITE_NODE_ENV === 'production' ? 'production' : 'development'}
         debug={import.meta.env.VITE_NODE_ENV === 'development'}
