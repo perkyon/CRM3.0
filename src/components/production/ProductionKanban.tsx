@@ -1,112 +1,134 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Progress } from '../ui/progress';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '../ui/sheet';
 import { 
-  ChevronRight, 
-  User, 
-  Calendar, 
-  AlertTriangle, 
-  CheckCircle2,
-  Clock,
-  Camera,
-  FileText,
-  ArrowLeft
+  ArrowLeft,
+  Plus,
+  FileText
 } from 'lucide-react';
-import { projectStageNames, stageOrder } from '../../lib/mockData';
 import { useProjects } from '../../contexts/ProjectContextNew';
-import { formatDate, getPriorityColor } from '../../lib/utils';
-import { StatusBadge } from '../ui/status-badge';
-import { ProjectStage } from '../../types';
+import { KanbanBoard, KanbanTask } from '../../types';
+import { supabaseKanbanService } from '../../lib/supabase/services/KanbanService';
+import { toast } from '../../lib/toast';
+import { KanbanTaskCard } from './KanbanTaskCard';
 
 interface ProductionKanbanProps {
   projectId?: string;
   onNavigate?: (page: string, params?: { projectId?: string; clientId?: string; taskId?: string }) => void;
 }
 
-interface KanbanCard {
-  id: string;
-  projectId: string;
-  title: string;
-  stage: ProjectStage;
-  assigneeId: string;
-  dueDate: string;
-  priority: string;
-  progress: number;
-  checklist: { id: string; text: string; completed: boolean }[];
-  riskLevel: 'none' | 'low' | 'medium' | 'high';
-}
-
-const mockKanbanCards: KanbanCard[] = [
-  {
-    id: 'KC-001',
-    projectId: 'PRJ-001',
-    title: 'Кухня "Модерн"',
-    stage: 'assembly',
-    assigneeId: '2',
-    dueDate: '2024-02-15',
-    priority: 'high',
-    progress: 75,
-    checklist: [
-      { id: '1', text: 'Подготовить детали', completed: true },
-      { id: '2', text: 'Установить каркас', completed: true },
-      { id: '3', text: 'Навесить фасады', completed: false },
-      { id: '4', text: 'Установить фурнитуру', completed: false },
-    ],
-    riskLevel: 'none'
-  },
-  {
-    id: 'KC-002',
-    projectId: 'PRJ-002',
-    title: 'Шкаф-купе в спальню',
-    stage: 'cutting',
-    assigneeId: '2',
-    dueDate: '2024-03-01',
-    priority: 'medium',
-    progress: 30,
-    checklist: [
-      { id: '1', text: 'Раскрой ЛДСП', completed: true },
-      { id: '2', text: 'Раскрой зеркал', completed: false },
-      { id: '3', text: 'Подготовка фурнитуры', completed: false },
-    ],
-    riskLevel: 'low'
-  },
-];
-
 export function ProductionKanban({ projectId, onNavigate }: ProductionKanbanProps) {
-  const { getProject } = useProjects();
-  const [selectedCard, setSelectedCard] = useState<KanbanCard | null>(null);
+  const { projects, selectedProject } = useProjects();
+  const [boards, setBoards] = useState<KanbanBoard[]>([]);
+  const [selectedTask, setSelectedTask] = useState<KanbanTask | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  const cards = projectId ? 
-    mockKanbanCards.filter(card => card.projectId === projectId) : 
-    mockKanbanCards;
+  // Load kanban boards for project
+  useEffect(() => {
+    if (projectId) {
+      loadProjectBoards(projectId);
+    } else {
+      setIsLoading(false);
+    }
+  }, [projectId]);
 
-  const getCardsForStage = (stage: ProjectStage) => {
-    return cards.filter(card => card.stage === stage);
-  };
-
-  const getRiskColor = (level: string) => {
-    const colors = {
-      none: '',
-      low: 'bg-yellow-100 text-yellow-800',
-      medium: 'bg-orange-100 text-orange-800',
-      high: 'bg-red-100 text-red-800'
-    };
-    return colors[level as keyof typeof colors] || '';
-  };
-
-  const advanceCard = (card: KanbanCard) => {
-    const currentIndex = stageOrder.indexOf(card.stage);
-    if (currentIndex < stageOrder.length - 1) {
-      const nextStage = stageOrder[currentIndex + 1] as ProjectStage;
-      console.log(`Перемещение карточки ${card.id} из ${card.stage} в ${nextStage}`);
-      // Here would be the logic to update the card stage
+  const loadProjectBoards = async (projectId: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const projectBoards = await supabaseKanbanService.getProjectBoards(projectId);
+      setBoards(projectBoards);
+    } catch (error: any) {
+      setError(error.message);
+      toast.error(`Ошибка загрузки досок: ${error.message}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const currentProject = projectId ? getProject(projectId) : null;
+  const createDefaultBoard = async () => {
+    if (!projectId) return;
+    
+    try {
+      const project = projects.find(p => p.id === projectId) || selectedProject;
+      const boardTitle = project ? `Производство: ${project.title}` : 'Производственная доска';
+      
+      const newBoard = await supabaseKanbanService.createBoard({
+        projectId,
+        title: boardTitle,
+        description: 'Доска для отслеживания производственных задач',
+      });
+      
+      setBoards([newBoard]);
+      toast.success('Доска создана');
+    } catch (error: any) {
+      toast.error(`Ошибка создания доски: ${error.message}`);
+    }
+  };
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+            <span className="text-muted-foreground">Загрузка производственных досок...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-red-800 font-medium">Ошибка загрузки</h3>
+              <p className="text-red-600 text-sm mt-1">{error}</p>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => projectId && loadProjectBoards(projectId)}
+            >
+              Повторить
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle no boards state
+  if (projectId && boards.length === 0) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12">
+          <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
+            <FileText className="w-12 h-12 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-medium mb-2">Нет производственных досок</h3>
+          <p className="text-muted-foreground mb-4">
+            Создайте доску для отслеживания производственных задач
+          </p>
+          <Button onClick={createDefaultBoard}>
+            <Plus className="w-4 h-4 mr-2" />
+            Создать доску
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const currentProject = projectId ? (projects.find(p => p.id === projectId) || selectedProject) : null;
+  const currentBoard = boards[0]; // Use first board for now
 
   return (
     <div className="p-6 lg:p-8 space-y-6">
@@ -120,8 +142,8 @@ export function ProductionKanban({ projectId, onNavigate }: ProductionKanbanProp
             <>
               <div className="border-l border-border h-6"></div>
               <div>
-                <h1 className="text-2xl font-medium">{currentProject.title}</h1>
-                <p className="text-muted-foreground">Производственный процесс</p>
+                <h2 className="font-medium">{currentProject.title}</h2>
+                <p className="text-sm text-muted-foreground">Производственная доска</p>
               </div>
             </>
           )}
@@ -135,56 +157,113 @@ export function ProductionKanban({ projectId, onNavigate }: ProductionKanbanProp
         </div>
       )}
 
-      <div className="overflow-x-auto">
-        <div className="flex gap-4 pb-4" style={{ minWidth: 'max-content' }}>
-          {stageOrder.map((stage) => {
-            const stageCards = getCardsForStage(stage as ProjectStage);
-            
-            return (
-              <div key={stage} className="flex-shrink-0 w-80">
+      {currentBoard && (
+        <div className="overflow-x-auto">
+          <div className="flex gap-4 pb-4" style={{ minWidth: 'max-content' }}>
+            {currentBoard.columns?.map((column) => (
+              <div key={column.id} className="flex-shrink-0 w-80">
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center justify-between text-base">
-                      <span>{projectStageNames[stage]}</span>
-                      <Badge variant="secondary">{stageCards.length}</Badge>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: column.color || '#6b7280' }}
+                        />
+                        <span>{column.title}</span>
+                      </div>
+                      <Badge variant="secondary">{column.tasks?.length || 0}</Badge>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {stageCards.map((card) => (
-                      <KanbanCardComponent
-                        key={card.id}
-                        card={card}
-                        onAdvance={() => advanceCard(card)}
-                        onViewDetails={() => setSelectedCard(card)}
-                      />
-                    ))}
-                    {stageCards.length === 0 && (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <div className="text-sm">Нет задач</div>
+                    {column.tasks && column.tasks.length > 0 ? (
+                      column.tasks.map((task) => (
+                        <KanbanTaskCard
+                          key={task.id}
+                          task={task}
+                          onViewDetails={() => setSelectedTask(task)}
+                        />
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground text-sm">
+                        Нет задач
                       </div>
                     )}
                   </CardContent>
                 </Card>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Card Details Sheet */}
-      <Sheet open={!!selectedCard} onOpenChange={() => setSelectedCard(null)}>
-        <SheetContent className="w-full sm:max-w-2xl" aria-describedby="card-detail-sheet-description">
-          <SheetDescription id="card-detail-sheet-description" className="sr-only">
-            Подробная информация о задаче производства
-          </SheetDescription>
-          <SheetHeader className="sr-only">
-            <SheetTitle>Детали карточки</SheetTitle>
+      {!projectId && (
+        <div className="text-center py-12">
+          <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
+            <FileText className="w-12 h-12 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-medium mb-2">Выберите проект</h3>
+          <p className="text-muted-foreground mb-4">
+            Для просмотра производственных досок выберите проект
+          </p>
+        </div>
+      )}
+
+      {/* Task Detail Sheet */}
+      <Sheet open={!!selectedTask} onOpenChange={(open) => !open && setSelectedTask(null)}>
+        <SheetContent className="w-[400px] sm:w-[540px]">
+          <SheetHeader>
+            <SheetTitle>{selectedTask?.title}</SheetTitle>
+            <SheetDescription>
+              Детали задачи
+            </SheetDescription>
           </SheetHeader>
-          {selectedCard && (
-            <CardDetailView 
-              card={selectedCard} 
-              onAdvance={() => advanceCard(selectedCard)}
-            />
+          
+          {selectedTask && (
+            <div className="mt-6 space-y-4">
+              <div>
+                <h4 className="font-medium mb-2">Описание</h4>
+                <p className="text-sm text-muted-foreground">
+                  {selectedTask.description || 'Описание не указано'}
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="font-medium mb-2">Исполнитель</h4>
+                <p className="text-sm">
+                  {selectedTask.assignee?.name || 'Не назначен'}
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="font-medium mb-2">Приоритет</h4>
+                <Badge className={getPriorityColor(selectedTask.priority)}>
+                  {selectedTask.priority === 'high' ? 'Высокий' : 
+                   selectedTask.priority === 'medium' ? 'Средний' : 'Низкий'}
+                </Badge>
+              </div>
+              
+              {selectedTask.checklist && selectedTask.checklist.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-2">Чек-лист</h4>
+                  <div className="space-y-2">
+                    {selectedTask.checklist.map((item) => (
+                      <div key={item.id} className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" 
+                          checked={item.completed}
+                          readOnly
+                          className="rounded"
+                        />
+                        <span className={`text-sm ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
+                          {item.text}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </SheetContent>
       </Sheet>
@@ -192,196 +271,15 @@ export function ProductionKanban({ projectId, onNavigate }: ProductionKanbanProp
   );
 }
 
-function KanbanCardComponent({ 
-  card, 
-  onAdvance, 
-  onViewDetails 
-}: { 
-  card: KanbanCard; 
-  onAdvance: () => void;
-  onViewDetails: () => void;
-}) {
-  const completedTasks = card.checklist.filter(item => item.completed).length;
-  const totalTasks = card.checklist.length;
-  const isLastStage = card.stage === 'done';
-
-  return (
-    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={onViewDetails}>
-      <CardContent className="p-4">
-        <div className="space-y-3">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <h4 className="font-medium text-sm line-clamp-2">{card.title}</h4>
-              <p className="text-xs text-muted-foreground mt-1">{card.id}</p>
-            </div>
-            {card.riskLevel !== 'none' && (
-              <Badge variant="outline" className={getRiskColor(card.riskLevel)}>
-                <AlertTriangle className="size-3 mr-1" />
-                {card.riskLevel}
-              </Badge>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Прогресс</span>
-              <span>{completedTasks}/{totalTasks}</span>
-            </div>
-            <Progress value={(completedTasks / totalTasks) * 100} className="h-1" />
-          </div>
-
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <User className="size-3" />
-              <span>Мастер</span>
-            </div>
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Calendar className="size-3" />
-              <span>{formatDate(card.dueDate)}</span>
-            </div>
-          </div>
-
-          {!isLastStage && (
-            <Button 
-              size="sm" 
-              className="w-full h-8"
-              onClick={(e) => {
-                e.stopPropagation();
-                onAdvance();
-              }}
-            >
-              Следующий этап
-              <ChevronRight className="size-3 ml-1" />
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function CardDetailView({ card, onAdvance }: { card: KanbanCard; onAdvance: () => void }) {
-  const [checklist, setChecklist] = useState(card.checklist);
-
-  const toggleChecklistItem = (id: string) => {
-    setChecklist(prev => prev.map(item => 
-      item.id === id ? { ...item, completed: !item.completed } : item
-    ));
-  };
-
-  const completedTasks = checklist.filter(item => item.completed).length;
-  const totalTasks = checklist.length;
-
-  return (
-    <div className="space-y-6">
-      <SheetHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <SheetTitle>{card.title}</SheetTitle>
-            <div className="flex items-center gap-2 mt-2">
-              <StatusBadge status={card.stage}>
-                {projectStageNames[card.stage]}
-              </StatusBadge>
-              <StatusBadge status={card.priority}>
-                {card.priority}
-              </StatusBadge>
-            </div>
-          </div>
-          {card.stage !== 'done' && (
-            <Button onClick={onAdvance}>
-              <ChevronRight className="size-4 mr-2" />
-              Следующий этап
-            </Button>
-          )}
-        </div>
-      </SheetHeader>
-
-      {/* Progress Overview */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Общий прогресс</span>
-              <span className="text-sm text-muted-foreground">
-                {completedTasks}/{totalTasks} задач
-              </span>
-            </div>
-            <Progress value={(completedTasks / totalTasks) * 100} />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Checklist */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Чек-лист этапа</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {checklist.map((item) => (
-              <div key={item.id} className="flex items-center gap-3">
-                <button
-                  onClick={() => toggleChecklistItem(item.id)}
-                  className={`size-5 rounded border-2 flex items-center justify-center transition-colors ${
-                    item.completed 
-                      ? 'bg-green-500 border-green-500 text-white' 
-                      : 'border-muted-foreground hover:border-green-500'
-                  }`}
-                >
-                  {item.completed && <CheckCircle2 className="size-3" />}
-                </button>
-                <span className={`flex-1 ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
-                  {item.text}
-                </span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Действия</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-3">
-            <Button variant="outline" size="sm">
-              <Camera className="size-4 mr-2" />
-              Добавить фото
-            </Button>
-            <Button variant="outline" size="sm">
-              <FileText className="size-4 mr-2" />
-              Добавить заметку
-            </Button>
-            <Button variant="outline" size="sm">
-              <User className="size-4 mr-2" />
-              Назначить
-            </Button>
-            <Button variant="outline" size="sm">
-              <Clock className="size-4 mr-2" />
-              Изменить срок
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Risk Assessment */}
-      {card.riskLevel !== 'none' && (
-        <Card className="border-orange-200 bg-orange-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="size-5 text-orange-600" />
-              <div>
-                <h4 className="font-medium text-orange-800">Внимание к рискам</h4>
-                <p className="text-sm text-orange-700">
-                  Уровень риска: {card.riskLevel}. Требует дополнительного контроля.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
+function getPriorityColor(priority: string) {
+  switch (priority) {
+    case 'high':
+      return 'bg-red-100 text-red-800';
+    case 'medium':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'low':
+      return 'bg-green-100 text-green-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
 }

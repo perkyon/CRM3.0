@@ -22,8 +22,9 @@ import {
   FileText,
   History
 } from 'lucide-react';
-import { mockClients, mockUsers } from '../../lib/mockData';
+import { mockUsers } from '../../lib/mockData';
 import { useProjects } from '../../contexts/ProjectContextNew';
+import { useClientStore } from '../../lib/stores/clientStore';
 import { formatCurrency, formatDate, getInitials, formatPhone } from '../../lib/utils';
 import { StatusBadge } from '../ui/status-badge';
 import { Client } from '../../types';
@@ -47,12 +48,25 @@ const typeLabels = {
 export function Clients() {
   const navigate = useNavigate();
   const { projects } = useProjects();
+  const {
+    clients,
+    isLoading,
+    error,
+    fetchClients,
+    createClient,
+    clearError
+  } = useClientStore();
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isClientDetailOpen, setIsClientDetailOpen] = useState(false);
   const [isNewClientOpen, setIsNewClientOpen] = useState(false);
-  const [clients, setClients] = useState(mockClients);
+
+  // Load clients on component mount
+  React.useEffect(() => {
+    fetchClients();
+  }, [fetchClients]);
 
   const filteredClients = useMemo(() => {
     return clients.filter(client => {
@@ -72,20 +86,53 @@ export function Clients() {
     return owner?.name || 'Не назначен';
   };
 
-  const handleClientCreate = (clientData: Omit<Client, 'id' | 'createdAt' | 'lastActivity' | 'projectsCount' | 'arBalance' | 'tags' | 'documents'>) => {
-    const newClient: Client = {
-      ...clientData,
-      id: `client_${Date.now()}`,
-      createdAt: new Date().toISOString().split('T')[0],
-      lastActivity: new Date().toISOString().split('T')[0],
-      projectsCount: 0,
-      arBalance: 0,
-      tags: [],
-      documents: []
-    };
-    
-    setClients(prev => [newClient, ...prev]);
+  const handleClientCreate = async (clientData: Omit<Client, 'id' | 'createdAt' | 'lastActivity' | 'projectsCount' | 'arBalance' | 'tags' | 'documents'>) => {
+    try {
+      await createClient({
+        name: clientData.name,
+        company: clientData.company,
+        type: clientData.type,
+        status: clientData.status,
+        ownerId: clientData.ownerId,
+        contacts: clientData.contacts,
+        addresses: clientData.addresses,
+      });
+      
+      toast.success('Клиент успешно создан');
+      setIsNewClientOpen(false);
+      
+      // Refresh clients list
+      await fetchClients();
+    } catch (error: any) {
+      toast.error(`Ошибка создания клиента: ${error.message}`);
+    }
   };
+
+  // Handle error display
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-red-800 font-medium">Ошибка загрузки клиентов</h3>
+              <p className="text-red-600 text-sm mt-1">{error}</p>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => {
+                clearError();
+                fetchClients();
+              }}
+            >
+              Повторить
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -197,7 +244,25 @@ export function Clients() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredClients.map((client) => (
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8">
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                        <span className="text-muted-foreground">Загрузка клиентов...</span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : filteredClients.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8">
+                      <div className="text-muted-foreground">
+                        {searchQuery || statusFilter !== 'all' ? 'Клиенты не найдены' : 'Нет клиентов'}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredClients.map((client) => (
                   <TableRow 
                     key={client.id}
                     className="cursor-pointer hover:bg-accent/50 transition-colors"
@@ -254,7 +319,8 @@ export function Clients() {
                       </Button>
                     </TableCell>
                   </TableRow>
-                ))}
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>

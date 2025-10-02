@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -12,31 +12,120 @@ import {
   Users, 
   Calendar,
   ArrowRight,
-  Plus
+  Plus,
+  RefreshCw
 } from 'lucide-react';
-import { mockDashboardKPIs, mockClients } from '../../lib/mockData';
 import { useProjects } from '../../contexts/ProjectContextNew';
+import { useClientStore } from '../../lib/stores/clientStore';
 import { formatCurrency, formatDate, getDaysUntilDue } from '../../lib/utils';
 import { StatusBadge } from '../ui/status-badge';
 import { useAnalytics, CRM_EVENTS } from '../../lib/hooks/useAnalytics';
+import { supabaseDashboardService, DashboardStats } from '../../lib/supabase/services/DashboardService';
+import { toast } from '../../lib/toast';
+import { DashboardKPIs } from '../../types';
 
 export function Dashboard() {
   const navigate = useNavigate();
   const { projects } = useProjects();
+  const { clients } = useClientStore();
   const { trackPageView, trackUserAction } = useAnalytics();
-  const kpis = mockDashboardKPIs;
-  const activeProjects = projects.filter(p => p.stage !== 'done');
-  const overdueProjects = activeProjects.filter(p => getDaysUntilDue(p.dueDate) < 0);
-  const recentClients = mockClients.slice(0, 3);
+  
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+  const [kpis, setKpis] = useState<DashboardKPIs | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Load dashboard data
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const [stats, kpiData] = await Promise.all([
+        supabaseDashboardService.getDashboardStats(),
+        supabaseDashboardService.getKPIs()
+      ]);
+      
+      setDashboardStats(stats);
+      setKpis(kpiData);
+    } catch (error: any) {
+      setError(error.message);
+      toast.error(`Ошибка загрузки данных: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const activeProjects = projects.filter(p => p.stage !== 'completed' && p.stage !== 'cancelled');
+  const overdueProjects = dashboardStats?.upcomingDeadlines.filter(d => d.daysLeft < 0) || [];
+  const recentClients = clients.slice(0, 3);
 
   // Отслеживание просмотра страницы
   useEffect(() => {
-    trackPageView('dashboard', {
-      activeProjects: activeProjects.length,
-      overdueProjects: overdueProjects.length,
-      totalClients: mockClients.length,
-    });
-  }, [trackPageView, activeProjects.length, overdueProjects.length]);
+    if (kpis) {
+      trackPageView('dashboard', {
+        activeProjects: kpis.activeProjects,
+        overdueProjects: overdueProjects.length,
+        totalClients: kpis.totalClients,
+      });
+    }
+  }, [trackPageView, kpis, overdueProjects.length]);
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+            <span className="text-muted-foreground">Загрузка данных панели управления...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-red-800 font-medium">Ошибка загрузки данных</h3>
+              <p className="text-red-600 text-sm mt-1">{error}</p>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={loadDashboardData}
+            >
+              Повторить
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!kpis || !dashboardStats) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12">
+          <h3 className="text-lg font-medium mb-2">Нет данных</h3>
+          <p className="text-muted-foreground mb-4">Данные панели управления недоступны</p>
+          <Button onClick={loadDashboardData}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Загрузить данные
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -207,22 +296,28 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentClients.map((client) => (
-                <div key={client.id} className="flex items-center justify-between p-3 border rounded-lg">
+              {dashboardStats.recentActivities.slice(0, 5).map((activity) => (
+                <div key={activity.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="size-10 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Users className="size-5 text-primary" />
+                      {activity.type === 'project_created' || activity.type === 'project_updated' ? (
+                        <Package className="size-5 text-primary" />
+                      ) : (
+                        <Users className="size-5 text-primary" />
+                      )}
                     </div>
                     <div>
-                      <h4 className="font-medium">{client.name}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {formatDate(client.lastActivity)}
+                      <h4 className="font-medium text-sm">{activity.description}</h4>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDate(activity.timestamp)}
                       </p>
                     </div>
                   </div>
-                  <StatusBadge status={client.status}>
-                    {client.status}
-                  </StatusBadge>
+                  <Badge variant="secondary" className="text-xs">
+                    {activity.type === 'project_created' ? 'Проект' : 
+                     activity.type === 'project_updated' ? 'Обновление' : 
+                     'Клиент'}
+                  </Badge>
                 </div>
               ))}
             </div>
