@@ -22,6 +22,19 @@ export const projectStageNames = {
 
 export const stageOrder = ['brief', 'design', 'approval', 'production', 'assembly', 'delivery', 'completed'];
 
+// Production sub-stages for detailed production tracking
+export const productionSubStages = {
+  cutting: 'Раскрой',
+  edging: 'Кромкование', 
+  drilling: 'Сверление',
+  assembly: 'Сборка',
+  finishing: 'Отделка',
+  quality_check: 'Контроль качества',
+  packaging: 'Упаковка'
+};
+
+export const productionSubStageOrder = ['cutting', 'edging', 'drilling', 'assembly', 'finishing', 'quality_check', 'packaging'];
+
 // BOM Items - for materials management (still using mock until MaterialService is created)
 export const mockBOMItems: BOMItem[] = [
   {

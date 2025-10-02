@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { ClientDocument, ClientDocumentCategory, Project } from '../../types';
 import { toast } from '../../lib/toast';
-import { mockProjects } from '../../lib/mockData';
+import { useProjects } from '../../contexts/ProjectContextNew';
 
 interface DocumentManagerProps {
   entityType: 'client' | 'project';
@@ -64,6 +64,7 @@ export function DocumentManager({
   onDocumentAdd, 
   onDocumentDelete 
 }: DocumentManagerProps) {
+  const { projects } = useProjects();
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<ClientDocumentCategory>('other');
   const [description, setDescription] = useState('');
@@ -71,10 +72,9 @@ export function DocumentManager({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-
   // Получаем связанные проекты для клиента
   const relatedProjects = entityType === 'client' 
-    ? mockProjects.filter(p => p.clientId === entityId)
+    ? projects.filter(p => p.clientId === entityId)
     : [];
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {

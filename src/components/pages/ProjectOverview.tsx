@@ -24,8 +24,9 @@ import {
   Plus,
   Warehouse
 } from 'lucide-react';
-import { mockClients, mockUsers, projectStageNames, stageOrder, productionSubStages, productionSubStageOrder } from '../../lib/mockData';
+import { mockUsers, projectStageNames, stageOrder, productionSubStages, productionSubStageOrder } from '../../lib/mockData';
 import { useProjects } from '../../contexts/ProjectContextNew';
+import { useClientStore } from '../../lib/stores/clientStore';
 import { DocumentManager } from '../documents/DocumentManager';
 import { MaterialsManager } from '../materials/MaterialsManager';
 import { SimpleEditDialog } from '../projects/SimpleEditDialog';
@@ -39,6 +40,7 @@ export function ProjectOverview() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const { projects, selectedProject, fetchProject } = useProjects();
+  const { clients } = useClientStore();
   const [project, setProject] = useState<Project | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
@@ -84,7 +86,7 @@ export function ProjectOverview() {
     );
   }
 
-  const client = mockClients.find(c => c.id === project.clientId);
+  const client = clients.find((c: any) => c.id === project.clientId);
   const manager = mockUsers.find(u => u.id === project.managerId);
   const foreman = mockUsers.find(u => u.id === project.foremanId);
   
@@ -162,7 +164,7 @@ export function ProjectOverview() {
                 <p className="text-sm text-muted-foreground">Текущий этап</p>
                 <div className="mt-2">
                   <StatusBadge status={project.stage}>
-                    {projectStageNames[project.stage] || project.stage}
+                    {projectStageNames[project.stage as keyof typeof projectStageNames] || project.stage}
                   </StatusBadge>
                 </div>
               </div>
@@ -323,10 +325,10 @@ export function ProjectOverview() {
                             'bg-blue-500'
                           }
                         `} />
-                        {projectStageNames[project.stage]}
+                        {projectStageNames[project.stage as keyof typeof projectStageNames] || project.stage}
                         {project.stage === 'production' && project.productionSubStage && (
                           <span className="text-xs text-muted-foreground">
-                            · {productionSubStages[project.productionSubStage]}
+                            · {productionSubStages[project.productionSubStage as keyof typeof productionSubStages] || project.productionSubStage}
                           </span>
                         )}
                       </div>
@@ -380,7 +382,7 @@ export function ProjectOverview() {
                                       'text-gray-600'
                                     }
                                   `}>
-                                    {projectStageNames[stage]}
+                                    {projectStageNames[stage as keyof typeof projectStageNames] || stage}
                                   </h4>
                                 </div>
                                 
@@ -396,7 +398,7 @@ export function ProjectOverview() {
                             {/* Production Sub-stages */}
                             {stage === 'production' && (isCurrent || isCompleted) && (
                               <div className="ml-9 space-y-1 pb-2">
-                                {productionSubStageOrder.map((subStage, subIndex) => {
+                                {productionSubStageOrder.map((subStage: string, subIndex: number) => {
                                   const isSubCompleted = isCurrent && project.productionSubStage && 
                                     productionSubStageOrder.indexOf(project.productionSubStage) > subIndex;
                                   const isSubCurrent = isCurrent && project.productionSubStage === subStage;
@@ -486,7 +488,7 @@ export function ProjectOverview() {
                       variant="outline"
                       className="h-12"
                       onClick={() => {
-                        const primaryContact = client.contacts.find(c => c.isPrimary) || client.contacts[0];
+                        const primaryContact = client.contacts.find((c: any) => c.isPrimary) || client.contacts[0];
                         if (primaryContact?.phone) {
                           window.open(`tel:${primaryContact.phone}`, '_self');
                         }
@@ -500,7 +502,7 @@ export function ProjectOverview() {
                       variant="outline"
                       className="h-12"
                       onClick={() => {
-                        const primaryContact = client.contacts.find(c => c.isPrimary) || client.contacts[0];
+                        const primaryContact = client.contacts.find((c: any) => c.isPrimary) || client.contacts[0];
                         if (primaryContact?.email) {
                           window.open(`mailto:${primaryContact.email}`, '_blank');
                         }
@@ -535,13 +537,13 @@ export function ProjectOverview() {
                   <div className="flex items-center gap-2">
                     <Phone className="size-3 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">
-                      {client.contacts.find(c => c.isPrimary)?.phone || client.contacts[0]?.phone || 'Не указан'}
+                      {client.contacts.find((c: any) => c.isPrimary)?.phone || client.contacts[0]?.phone || 'Не указан'}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Mail className="size-3 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">
-                      {client.contacts.find(c => c.isPrimary)?.email || client.contacts[0]?.email || 'Не указан'}
+                      {client.contacts.find((c: any) => c.isPrimary)?.email || client.contacts[0]?.email || 'Не указан'}
                     </p>
                   </div>
                 </div>
