@@ -87,22 +87,30 @@ export class SupabaseProjectService {
   async createProject(projectData: CreateProjectRequest): Promise<Project> {
     const { documents, ...projectInfo } = projectData;
 
-    // Create project
+    // Create project with simplified data
+    const projectToInsert = {
+      title: projectInfo.title,
+      client_id: projectInfo.clientId,
+      site_address: projectInfo.siteAddress || '',
+      manager_id: projectInfo.managerId,
+      foreman_id: projectInfo.foremanId || null,
+      start_date: projectInfo.startDate || null,
+      due_date: projectInfo.dueDate || null,
+      budget: projectInfo.budget || 0,
+      priority: projectInfo.priority || 'medium',
+      stage: projectInfo.stage || 'brief',
+      production_sub_stage: projectInfo.productionSubStage || null,
+      risk_notes: projectInfo.riskNotes || null,
+      brief_complete: projectInfo.briefComplete || false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    console.log('Creating project with data:', projectToInsert);
+
     const { data: project, error: projectError } = await supabase
       .from(TABLES.PROJECTS)
-      .insert({
-        ...projectInfo,
-        client_id: projectInfo.clientId,
-        manager_id: projectInfo.managerId,
-        foreman_id: projectInfo.foremanId,
-        start_date: projectInfo.startDate,
-        due_date: projectInfo.dueDate,
-        production_sub_stage: projectInfo.productionSubStage,
-        risk_notes: projectInfo.riskNotes,
-        brief_complete: projectInfo.briefComplete || false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
+      .insert(projectToInsert)
       .select()
       .single();
 
@@ -147,8 +155,27 @@ export class SupabaseProjectService {
     // Update client projects count
     await this.updateClientProjectsCount(project.client_id);
 
-    // Return full project data
-    return this.getProject(project.id);
+    // Return simplified project data for now
+    return {
+      ...project,
+      clientId: project.client_id,
+      siteAddress: project.site_address,
+      managerId: project.manager_id,
+      foremanId: project.foreman_id,
+      startDate: project.start_date,
+      dueDate: project.due_date,
+      productionSubStage: project.production_sub_stage,
+      riskNotes: project.risk_notes,
+      briefComplete: project.brief_complete,
+      createdAt: project.created_at,
+      updatedAt: project.updated_at,
+      // Add mock related data
+      client: { id: project.client_id, name: 'Mock Client', company: 'Mock Company', type: 'ООО' as const },
+      manager: { id: project.manager_id, name: 'Mock Manager', email: 'manager@example.com' },
+      foreman: project.foreman_id ? { id: project.foreman_id, name: 'Mock Foreman', email: 'foreman@example.com' } : undefined,
+      documents: [],
+      kanbanBoards: [],
+    };
   }
 
   // Update existing project

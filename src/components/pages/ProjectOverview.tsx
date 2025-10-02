@@ -38,16 +38,34 @@ import { toast } from '../../lib/toast';
 export function ProjectOverview() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
-  const { getProject } = useProjects();
-  const [project, setProject] = useState(getProject(projectId!));
+  const { projects, selectedProject, fetchProject } = useProjects();
+  const [project, setProject] = useState<Project | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
 
   useEffect(() => {
     if (projectId) {
-      setProject(getProject(projectId));
+      // Сначала ищем в локальных проектах
+      const localProject = projects.find(p => p.id === projectId);
+      if (localProject) {
+        setProject(localProject);
+      } else {
+        // Если не найден локально, загружаем из API
+        fetchProject(projectId).then(() => {
+          if (selectedProject && selectedProject.id === projectId) {
+            setProject(selectedProject);
+          }
+        });
+      }
     }
-  }, [projectId, getProject]);
+  }, [projectId, projects, selectedProject, fetchProject]);
+
+  // Обновляем проект при изменении selectedProject
+  useEffect(() => {
+    if (selectedProject && selectedProject.id === projectId) {
+      setProject(selectedProject);
+    }
+  }, [selectedProject, projectId]);
   
   if (!project) {
     return (
