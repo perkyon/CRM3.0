@@ -29,7 +29,7 @@ import { formatCurrency, formatDate, getDaysUntilDue } from '../../lib/utils';
 import { StatusBadge } from '../ui/status-badge';
 import { useAnalytics, CRM_EVENTS } from '../../lib/hooks/useAnalytics';
 import { Project, ProjectStage } from '../../types';
-import { useProjects } from '../../contexts/ProjectContext';
+import { useProjects } from '../../contexts/ProjectContextNew';
 
 export function Projects() {
   const navigate = useNavigate();

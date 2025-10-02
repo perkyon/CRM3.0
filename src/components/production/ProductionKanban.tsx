@@ -16,7 +16,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { projectStageNames, stageOrder } from '../../lib/mockData';
-import { useProjects } from '../../contexts/ProjectContext';
+import { useProjects } from '../../contexts/ProjectContextNew';
 import { formatDate, getPriorityColor } from '../../lib/utils';
 import { StatusBadge } from '../ui/status-badge';
 import { ProjectStage } from '../../types';

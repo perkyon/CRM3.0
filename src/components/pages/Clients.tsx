@@ -23,7 +23,7 @@ import {
   History
 } from 'lucide-react';
 import { mockClients, mockUsers } from '../../lib/mockData';
-import { useProjects } from '../../contexts/ProjectContext';
+import { useProjects } from '../../contexts/ProjectContextNew';
 import { formatCurrency, formatDate, getInitials, formatPhone } from '../../lib/utils';
 import { StatusBadge } from '../ui/status-badge';
 import { Client } from '../../types';

@@ -25,7 +25,7 @@ import {
   Warehouse
 } from 'lucide-react';
 import { mockClients, mockUsers, projectStageNames, stageOrder, productionSubStages, productionSubStageOrder } from '../../lib/mockData';
-import { useProjects } from '../../contexts/ProjectContext';
+import { useProjects } from '../../contexts/ProjectContextNew';
 import { DocumentManager } from '../documents/DocumentManager';
 import { MaterialsManager } from '../materials/MaterialsManager';
 import { SimpleEditDialog } from '../projects/SimpleEditDialog';

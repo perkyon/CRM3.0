@@ -15,7 +15,7 @@ import {
   Plus
 } from 'lucide-react';
 import { mockDashboardKPIs, mockClients } from '../../lib/mockData';
-import { useProjects } from '../../contexts/ProjectContext';
+import { useProjects } from '../../contexts/ProjectContextNew';
 import { formatCurrency, formatDate, getDaysUntilDue } from '../../lib/utils';
 import { StatusBadge } from '../ui/status-badge';
 import { useAnalytics, CRM_EVENTS } from '../../lib/hooks/useAnalytics';

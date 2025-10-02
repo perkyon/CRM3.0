@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import { Client, Project, ClientTag } from '../../types';
 import { formatDate, formatCurrency, formatPhone, getInitials } from '../../lib/utils';
-import { useProjects } from '../../contexts/ProjectContext';
+import { useProjects } from '../../contexts/ProjectContextNew';
 import { StatusBadge } from '../ui/status-badge';
 import { toast } from '../../lib/toast';
 import { EditClientDialog } from './EditClientDialog';
