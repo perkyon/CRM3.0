@@ -15,7 +15,7 @@ import { sentryVitePlugin } from '@sentry/vite-plugin';
         brotliSize: true,
       }),
       sentryVitePlugin({
-        org: 'your-org',
+        org: 'buro-hi',
         project: 'crm-3-0',
         authToken: process.env.SENTRY_AUTH_TOKEN,
         sourcemaps: {
