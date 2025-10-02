@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { Project, CreateProjectRequest, UpdateProjectRequest, ProjectSearchParams } from '../../types';
-import { projectService } from '../api/services';
+import { supabaseProjectService } from '../supabase/services/ProjectService';
 import { PaginatedResponse } from '../api/config';
 
 interface ProjectState {
@@ -54,7 +54,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       set({ isLoading: true, error: null });
       
       const searchParams = { ...get().filters, ...params };
-      const response: PaginatedResponse<Project> = await projectService.getProjects(searchParams);
+      const response: PaginatedResponse<Project> = await supabaseProjectService.getProjects(searchParams);
       
       set({
         projects: response.data,
@@ -76,7 +76,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const project = await projectService.getProject(id);
+      const project = await supabaseProjectService.getProject(id);
       
       set({
         selectedProject: project,
@@ -105,7 +105,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const newProject = await projectService.createProject(projectData);
+      const newProject = await supabaseProjectService.createProject(projectData);
       
       set((state) => ({
         projects: [newProject, ...state.projects],
@@ -127,7 +127,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const updatedProject = await projectService.updateProject(id, projectData);
+      const updatedProject = await supabaseProjectService.updateProject(id, projectData);
       
       set((state) => ({
         projects: state.projects.map(project =>
@@ -152,7 +152,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      await projectService.deleteProject(id);
+      await supabaseProjectService.deleteProject(id);
       
       set((state) => ({
         projects: state.projects.filter(project => project.id !== id),
@@ -173,7 +173,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const updatedProject = await projectService.updateProjectStage(id, stage);
+      const updatedProject = await supabaseProjectService.updateProjectStage(id, stage);
       
       set((state) => ({
         projects: state.projects.map(project =>
@@ -196,7 +196,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const updatedProject = await projectService.updateProductionSubStage(id, productionSubStage);
+      const updatedProject = await supabaseProjectService.updateProjectStage(id, undefined, productionSubStage);
       
       set((state) => ({
         projects: state.projects.map(project =>

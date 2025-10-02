@@ -1,7 +1,7 @@
 
 import { createRoot } from "react-dom/client";
 import { ToastProvider } from "./components/ui/custom-toaster";
-import { ProjectProvider } from "./contexts/ProjectContext";
+import { ProjectProvider } from "./contexts/ProjectContextNew";
 import { AppRouter } from "./router/AppRouter";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { Client, CreateClientRequest, UpdateClientRequest, ClientSearchParams } from '../../types';
-import { clientService } from '../api/services';
+import { supabaseClientService } from '../supabase/services/ClientService';
 import { PaginatedResponse } from '../api/config';
 
 interface ClientState {
@@ -52,7 +52,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
       set({ isLoading: true, error: null });
       
       const searchParams = { ...get().filters, ...params };
-      const response: PaginatedResponse<Client> = await clientService.getClients(searchParams);
+      const response: PaginatedResponse<Client> = await supabaseClientService.getClients(searchParams);
       
       set({
         clients: response.data,
@@ -74,7 +74,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const client = await clientService.getClient(id);
+      const client = await supabaseClientService.getClient(id);
       
       set({
         selectedClient: client,
@@ -103,7 +103,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const newClient = await clientService.createClient(clientData);
+      const newClient = await supabaseClientService.createClient(clientData);
       
       set((state) => ({
         clients: [newClient, ...state.clients],
@@ -125,7 +125,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const updatedClient = await clientService.updateClient(id, clientData);
+      const updatedClient = await supabaseClientService.updateClient(id, clientData);
       
       set((state) => ({
         clients: state.clients.map(client =>
@@ -150,7 +150,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      await clientService.deleteClient(id);
+      await supabaseClientService.deleteClient(id);
       
       set((state) => ({
         clients: state.clients.filter(client => client.id !== id),
