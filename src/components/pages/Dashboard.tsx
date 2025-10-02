@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -18,14 +18,25 @@ import { mockDashboardKPIs, mockClients } from '../../lib/mockData';
 import { useProjects } from '../../contexts/ProjectContext';
 import { formatCurrency, formatDate, getDaysUntilDue } from '../../lib/utils';
 import { StatusBadge } from '../ui/status-badge';
+import { useAnalytics, CRM_EVENTS } from '../../lib/hooks/useAnalytics';
 
 export function Dashboard() {
   const navigate = useNavigate();
   const { projects } = useProjects();
+  const { trackPageView, trackUserAction } = useAnalytics();
   const kpis = mockDashboardKPIs;
   const activeProjects = projects.filter(p => p.stage !== 'done');
   const overdueProjects = activeProjects.filter(p => getDaysUntilDue(p.dueDate) < 0);
   const recentClients = mockClients.slice(0, 3);
+
+  // Отслеживание просмотра страницы
+  useEffect(() => {
+    trackPageView('dashboard', {
+      activeProjects: activeProjects.length,
+      overdueProjects: overdueProjects.length,
+      totalClients: mockClients.length,
+    });
+  }, [trackPageView, activeProjects.length, overdueProjects.length]);
 
   return (
     <div className="p-6 space-y-6">
@@ -36,7 +47,10 @@ export function Dashboard() {
           <p className="text-muted-foreground">Обзор деятельности мастерской</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => navigate('/projects')}>
+          <Button onClick={() => {
+            trackUserAction('create_project_clicked', { source: 'dashboard_header' });
+            navigate('/projects');
+          }}>
             <Plus className="size-4 mr-2" />
             Создать проект
           </Button>
@@ -94,7 +108,10 @@ export function Dashboard() {
               variant="outline" 
               size="sm" 
               className="mt-2"
-              onClick={() => navigate('/inventory')}
+              onClick={() => {
+                trackUserAction('inventory_clicked', { source: 'dashboard_kpi' });
+                navigate('/inventory');
+              }}
             >
               Открыть дефицит
             </Button>

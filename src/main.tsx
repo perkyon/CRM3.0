@@ -10,12 +10,27 @@ import "./index.css";
 // Initialize Sentry
 import "./sentry.client.config";
 
+// Performance tracking component
+function PerformanceTracker() {
+  // Lazy load performance tracking to avoid blocking initial render
+  import("./lib/hooks/usePerformanceTracking").then(({ usePerformanceTracking }) => {
+    usePerformanceTracking();
+  });
+  return null;
+}
+
 createRoot(document.getElementById("root")!).render(
   <ToastProvider>
     <ProjectProvider>
       <AppRouter />
-      <Analytics />
-      <SpeedInsights />
+      <PerformanceTracker />
+      <Analytics 
+        mode={import.meta.env.VITE_NODE_ENV === 'production' ? 'production' : 'development'}
+        debug={import.meta.env.VITE_NODE_ENV === 'development'}
+      />
+      <SpeedInsights 
+        debug={import.meta.env.VITE_NODE_ENV === 'development'}
+      />
     </ProjectProvider>
   </ToastProvider>
 );
