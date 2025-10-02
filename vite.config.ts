@@ -14,14 +14,15 @@ import { sentryVitePlugin } from '@sentry/vite-plugin';
         gzipSize: true,
         brotliSize: true,
       }),
-      sentryVitePlugin({
-        org: 'buro-hi',
-        project: 'crm-3-0',
-        authToken: process.env.SENTRY_AUTH_TOKEN,
-        sourcemaps: {
-          assets: './build/**',
-        },
-      }),
+      // Временно отключаем Sentry plugin до настройки проекта
+      // sentryVitePlugin({
+      //   org: 'buro-hi',
+      //   project: 'crm-3-0',
+      //   authToken: process.env.SENTRY_AUTH_TOKEN,
+      //   sourcemaps: {
+      //     assets: './build/**',
+      //   },
+      // }),
     ],
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
