@@ -1,8 +1,8 @@
 import { Client, Project, User, BOMItem, InventoryItem, Estimate, Invoice, DashboardKPIs, Document, KanbanBoard, KanbanColumn, KanbanTask, ClientTag, ClientDocument } from '../types';
 
 export const mockUsers: User[] = [
-  { id: '1', name: 'Алексей Петров', email: 'a.petrov@workshop.ru', phone: '+7 495 123-45-67', role: 'Manager', active: true, avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150' },
-  { id: '2', name: 'Мария Сидорова', email: 'm.sidorova@workshop.ru', phone: '+7 495 234-56-78', role: 'Master', active: true, avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150' },
+  { id: '1', name: 'Сыроежкин', email: 'syroejkin@workshop.ru', phone: '+7 495 123-45-67', role: 'Manager', active: true, avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150' },
+  { id: '2', name: 'Олег Смирнов', email: 'o.smirnov@workshop.ru', phone: '+7 495 234-56-78', role: 'Master', active: true, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150' },
   { id: '3', name: 'Дмитрий Козлов', email: 'd.kozlov@workshop.ru', phone: '+7 495 345-67-89', role: 'Procurement', active: true, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150' },
   { id: '4', name: 'Анна Волкова', email: 'a.volkova@workshop.ru', phone: '+7 495 456-78-90', role: 'Accountant', active: true, avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150' },
 ];

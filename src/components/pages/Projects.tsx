@@ -27,12 +27,14 @@ import {
 import { mockClients, mockUsers, projectStageNames, stageOrder } from '../../lib/mockData';
 import { formatCurrency, formatDate, getDaysUntilDue } from '../../lib/utils';
 import { StatusBadge } from '../ui/status-badge';
+import { useAnalytics, CRM_EVENTS } from '../../lib/hooks/useAnalytics';
 import { Project, ProjectStage } from '../../types';
 import { useProjects } from '../../contexts/ProjectContext';
 
 export function Projects() {
   const navigate = useNavigate();
   const { projects, addProject, updateProject, deleteProject } = useProjects();
+  const { trackUserAction } = useAnalytics();
   const [searchQuery, setSearchQuery] = useState('');
   const [stageFilter, setStageFilter] = useState<string>('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -456,7 +458,18 @@ export function Projects() {
                 const daysUntilDue = getDaysUntilDue(project.dueDate);
                 
                 return (
-                  <TableRow key={project.id}>
+                  <TableRow 
+                    key={project.id}
+                    className="cursor-pointer hover:bg-accent/50 transition-colors"
+                    onClick={() => {
+                      trackUserAction('project_opened', { 
+                        projectId: project.id, 
+                        projectTitle: project.title,
+                        source: 'projects_table_click' 
+                      });
+                      navigate(`/projects/${project.id}`);
+                    }}
+                  >
                     <TableCell>
                       <div>
                         <div className="font-medium">{project.title}</div>
@@ -504,7 +517,11 @@ export function Projects() {
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <MoreHorizontal className="size-4" />
                           </Button>
                         </DropdownMenuTrigger>
