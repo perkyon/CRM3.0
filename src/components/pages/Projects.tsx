@@ -33,7 +33,7 @@ import { useProjects } from '../../contexts/ProjectContextNew';
 
 export function Projects() {
   const navigate = useNavigate();
-  const { projects, addProject, updateProject, deleteProject } = useProjects();
+  const { projects, createProject, updateProject, deleteProject } = useProjects();
   const { trackUserAction } = useAnalytics();
   const [searchQuery, setSearchQuery] = useState('');
   const [stageFilter, setStageFilter] = useState<string>('all');
@@ -98,7 +98,19 @@ export function Projects() {
         createdAt: new Date().toISOString()
       };
 
-      addProject(project);
+      await createProject({
+        title: newProject.title,
+        clientId: newProject.clientId,
+        siteAddress: newProject.siteAddress,
+        managerId: newProject.managerId,
+        foremanId: newProject.foremanId || undefined,
+        startDate: newProject.startDate || undefined,
+        dueDate: newProject.dueDate || undefined,
+        budget: parseFloat(newProject.budget) || 0,
+        priority: newProject.priority as Project['priority'],
+        stage: 'brief' as Project['stage'],
+        briefComplete: false,
+      });
       
       toast('Проект успешно создан', { type: 'success' });
       setIsCreateDialogOpen(false);

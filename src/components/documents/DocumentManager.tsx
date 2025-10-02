@@ -68,6 +68,7 @@ export function DocumentManager({
   const [selectedCategory, setSelectedCategory] = useState<ClientDocumentCategory>('other');
   const [description, setDescription] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
 
@@ -88,7 +89,17 @@ export function DocumentManager({
       return;
     }
 
-    handleUpload(file);
+    // Просто сохраняем выбранный файл, не загружаем автоматически
+    setSelectedFile(file);
+  };
+
+  const handleUploadClick = async () => {
+    if (!selectedFile) {
+      toast.error('Выберите файл для загрузки');
+      return;
+    }
+
+    await handleUpload(selectedFile);
   };
 
   const handleUpload = async (file: File) => {
@@ -120,6 +131,7 @@ export function DocumentManager({
       // Сброс формы
       setDescription('');
       setSelectedCategory('other');
+      setSelectedFile(null);
       setUploadDialogOpen(false);
       
       if (fileInputRef.current) {
@@ -332,15 +344,35 @@ export function DocumentManager({
 
             <div>
               <Label htmlFor="file">Файл <span className="text-destructive">*</span></Label>
-              <Input
-                ref={fileInputRef}
-                id="file"
-                type="file"
-                onChange={handleFileSelect}
-                className="mt-1"
-                accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip,.rar"
-                disabled={isUploading}
-              />
+              <div className="flex items-center gap-2">
+                <Input
+                  ref={fileInputRef}
+                  id="file"
+                  type="file"
+                  onChange={handleFileSelect}
+                  className="mt-1 hidden"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip,.rar"
+                  disabled={isUploading}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="w-full"
+                >
+                  {selectedFile ? 'Изменить файл' : 'Выбрать файл'}
+                </Button>
+              </div>
+              {selectedFile && (
+                <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
+                  {getFileIcon(selectedFile.type)}
+                  <span className="text-sm">{selectedFile.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    ({(selectedFile.size / 1024 / 1024).toFixed(2)} МБ)
+                  </span>
+                </div>
+              )}
               <p className="text-xs text-muted-foreground mt-1">
                 Поддерживаемые форматы: PDF, DOC, DOCX, XLS, XLSX, PNG, JPG, ZIP, RAR. Максимум 50 МБ.
               </p>
@@ -358,15 +390,23 @@ export function DocumentManager({
             <div className="flex gap-2 pt-4">
               <Button
                 variant="outline"
-                onClick={() => setUploadDialogOpen(false)}
+                onClick={() => {
+                  setUploadDialogOpen(false);
+                  setSelectedFile(null);
+                  setDescription('');
+                  setSelectedCategory('other');
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                  }
+                }}
                 disabled={isUploading}
                 className="flex-1"
               >
                 Отмена
               </Button>
               <Button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
+                onClick={handleUploadClick}
+                disabled={isUploading || !selectedFile}
                 className="flex-1"
               >
                 {isUploading ? (
@@ -374,7 +414,7 @@ export function DocumentManager({
                 ) : (
                   <>
                     <Upload className="size-4 mr-2" />
-                    Выбрать файл
+                    Загрузить
                   </>
                 )}
               </Button>

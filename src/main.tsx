@@ -1,32 +1,17 @@
 
+import React from "react";
 import { createRoot } from "react-dom/client";
 import { ToastProvider } from "./components/ui/custom-toaster";
 import { ProjectProvider } from "./contexts/ProjectContextNew";
 import { AppRouter } from "./router/AppRouter";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { PerformanceTracker } from "./components/monitoring/PerformanceTracker";
+import { PWAMonitor } from "./components/monitoring/PWAMonitor";
 import "./index.css";
 
 // Initialize Sentry
 import "./sentry.client.config";
-
-// Performance tracking component
-function PerformanceTracker() {
-  // Lazy load performance tracking to avoid blocking initial render
-  import("./lib/hooks/usePerformanceTracking").then(({ usePerformanceTracking }) => {
-    usePerformanceTracking();
-  });
-  return null;
-}
-
-// PWA monitoring component
-function PWAMonitor() {
-  // Lazy load PWA monitoring
-  import("./lib/hooks/usePWAMonitoring").then(({ usePWAMonitoring }) => {
-    usePWAMonitoring();
-  });
-  return null;
-}
 
 createRoot(document.getElementById("root")!).render(
   <ToastProvider>
