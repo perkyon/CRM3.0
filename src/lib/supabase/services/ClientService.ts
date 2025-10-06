@@ -20,7 +20,10 @@ function mapSupabaseClientToClient(supabaseClient: any): Client {
     notes: supabaseClient.notes,
     createdAt: supabaseClient.created_at,
     updatedAt: supabaseClient.updated_at,
-    contacts: supabaseClient.contacts || [],
+    contacts: (supabaseClient.contacts || []).map((contact: any) => ({
+      ...contact,
+      isPrimary: contact.is_primary
+    })),
     addresses: supabaseClient.addresses || [],
     tags: supabaseClient.tags || [],
     documents: supabaseClient.documents || [],
@@ -132,12 +135,15 @@ export class SupabaseClientService {
 
     // Insert contacts
     if (contacts && contacts.length > 0) {
-      const contactsData = contacts.map(contact => ({
-        ...contact,
-        client_id: client.id,
-        is_primary: contact.isPrimary,
-        created_at: new Date().toISOString(),
-      }));
+      const contactsData = contacts.map(contact => {
+        const { isPrimary, ...contactData } = contact;
+        return {
+          ...contactData,
+          client_id: client.id,
+          is_primary: isPrimary,
+          created_at: new Date().toISOString(),
+        };
+      });
 
       const { error: contactsError } = await supabase
         .from(TABLES.CONTACTS)
@@ -238,12 +244,15 @@ export class SupabaseClientService {
 
       // Insert new contacts
       if (contacts.length > 0) {
-        const contactsData = contacts.map(contact => ({
-          ...contact,
-          client_id: id,
-          is_primary: contact.isPrimary,
-          created_at: new Date().toISOString(),
-        }));
+        const contactsData = contacts.map(contact => {
+          const { isPrimary, ...contactData } = contact;
+          return {
+            ...contactData,
+            client_id: id,
+            is_primary: isPrimary,
+            created_at: new Date().toISOString(),
+          };
+        });
 
         const { error: contactsError } = await supabase
           .from(TABLES.CONTACTS)
