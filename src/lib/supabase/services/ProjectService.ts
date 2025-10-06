@@ -10,12 +10,7 @@ export class SupabaseProjectService {
     
     let query = supabase
       .from(TABLES.PROJECTS)
-      .select(`
-        *,
-        client:clients(id, name, company, type),
-        manager:users!manager_id(id, name, email),
-        foreman:users!foreman_id(id, name, email)
-      `)
+      .select('*')
       .range((page - 1) * limit, page * limit - 1)
       .order('created_at', { ascending: false });
 
@@ -57,12 +52,7 @@ export class SupabaseProjectService {
   async getProject(id: string): Promise<Project> {
     const { data, error } = await supabase
       .from(TABLES.PROJECTS)
-      .select(`
-        *,
-        client:clients(id, name, company, type),
-        manager:users!manager_id(id, name, email),
-        foreman:users!foreman_id(id, name, email)
-      `)
+      .select('*')
       .eq('id', id)
       .single();
 

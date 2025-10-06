@@ -24,6 +24,7 @@ import { supabaseDashboardService, DashboardStats } from '../../lib/supabase/ser
 import { toast } from '../../lib/toast';
 import { DashboardKPIs } from '../../types';
 import { testSupabaseConnection } from '../../lib/supabase/test-connection';
+import { debugSupabaseConnection } from '../../lib/supabase/debug-connection';
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -41,6 +42,8 @@ export function Dashboard() {
     loadDashboardData();
     // Test Supabase connection
     testSupabaseConnection();
+    // Run detailed debug
+    debugSupabaseConnection();
   }, []);
 
   const loadDashboardData = async () => {
