@@ -24,16 +24,18 @@ import {
 
   Loader2
 } from 'lucide-react';
-import { mockClients, mockUsers, projectStageNames, stageOrder } from '../../lib/mockData';
+import { mockUsers, projectStageNames, stageOrder } from '../../lib/mockData';
 import { formatCurrency, formatDate, getDaysUntilDue } from '../../lib/utils';
 import { StatusBadge } from '../ui/status-badge';
 import { useAnalytics, CRM_EVENTS } from '../../lib/hooks/useAnalytics';
 import { Project, ProjectStage } from '../../types';
 import { useProjects } from '../../contexts/ProjectContextNew';
+import { useClientStore } from '../../lib/stores/clientStore';
 
 export function Projects() {
   const navigate = useNavigate();
   const { projects, createProject, updateProject, deleteProject } = useProjects();
+  const { clients } = useClientStore();
   const { trackUserAction } = useAnalytics();
   const [searchQuery, setSearchQuery] = useState('');
   const [stageFilter, setStageFilter] = useState<string>('all');
@@ -268,7 +270,7 @@ export function Projects() {
                     <SelectValue placeholder="Выберите клиента" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockClients.map((client) => (
+                    {clients.map((client) => (
                       <SelectItem key={client.id} value={client.id}>
                         {client.name}
                       </SelectItem>
@@ -465,7 +467,7 @@ export function Projects() {
             </TableHeader>
             <TableBody>
               {filteredProjects.map((project) => {
-                const client = mockClients.find(c => c.id === project.clientId);
+                const client = clients.find(c => c.id === project.clientId);
                 const manager = mockUsers.find(u => u.id === project.managerId);
                 const daysUntilDue = getDaysUntilDue(project.dueDate);
                 
@@ -599,7 +601,7 @@ export function Projects() {
                   <SelectValue placeholder="Выберите клиента" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockClients.map((client) => (
+                  {clients.map((client) => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.name}
                     </SelectItem>
