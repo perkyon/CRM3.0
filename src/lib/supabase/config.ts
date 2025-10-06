@@ -12,9 +12,9 @@ export const supabase = createClient(
   SUPABASE_CONFIG.anonKey,
   {
     auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true,
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false,
     },
     realtime: {
       params: {
@@ -23,8 +23,9 @@ export const supabase = createClient(
     },
     global: {
       headers: {
-        // Temporary: bypass RLS for development
+        // Temporary: bypass authentication for development
         'apikey': SUPABASE_CONFIG.anonKey,
+        'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`,
       },
     },
   }
