@@ -3,6 +3,31 @@ import { Client, CreateClientRequest, UpdateClientRequest, ClientSearchParams } 
 import { PaginatedResponse } from '../../api/config';
 import { handleApiError } from '../../error/ErrorHandler';
 
+// Helper function to map Supabase data to our Client interface
+function mapSupabaseClientToClient(supabaseClient: any): Client {
+  return {
+    id: supabaseClient.id,
+    type: supabaseClient.type,
+    name: supabaseClient.name,
+    company: supabaseClient.company,
+    preferredChannel: supabaseClient.preferred_channel,
+    source: supabaseClient.source,
+    status: supabaseClient.status,
+    lastActivity: supabaseClient.last_activity,
+    ownerId: supabaseClient.owner_id,
+    projectsCount: supabaseClient.projects_count,
+    arBalance: supabaseClient.ar_balance,
+    notes: supabaseClient.notes,
+    createdAt: supabaseClient.created_at,
+    updatedAt: supabaseClient.updated_at,
+    contacts: supabaseClient.contacts || [],
+    addresses: supabaseClient.addresses || [],
+    tags: supabaseClient.tags || [],
+    documents: supabaseClient.documents || [],
+    projects: supabaseClient.projects || [],
+  };
+}
+
 export class SupabaseClientService {
   // Get all clients with pagination and filters
   async getClients(params?: ClientSearchParams): Promise<PaginatedResponse<Client>> {
@@ -45,7 +70,7 @@ export class SupabaseClientService {
     }
 
     return {
-      data: data || [],
+      data: (data || []).map(mapSupabaseClientToClient),
       pagination: {
         page,
         limit,
@@ -74,7 +99,7 @@ export class SupabaseClientService {
       throw new Error(`Failed to fetch client: ${error.message}`);
     }
 
-    return data;
+    return mapSupabaseClientToClient(data);
   }
 
   // Create new client
@@ -85,9 +110,14 @@ export class SupabaseClientService {
     const { data: client, error: clientError } = await supabase
       .from(TABLES.CLIENTS)
       .insert({
-        ...clientInfo,
-        owner_id: clientInfo.ownerId,
+        type: clientInfo.type,
+        name: clientInfo.name,
+        company: clientInfo.company,
         preferred_channel: clientInfo.preferredChannel,
+        source: clientInfo.source,
+        status: clientInfo.status,
+        owner_id: clientInfo.ownerId,
+        notes: clientInfo.notes,
         projects_count: 0,
         ar_balance: 0,
         created_at: new Date().toISOString(),
@@ -175,14 +205,23 @@ export class SupabaseClientService {
     const { contacts, addresses, tags, ...clientInfo } = clientData;
 
     // Update client basic info
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+    };
+
+    // Only update fields that are provided
+    if (clientInfo.type !== undefined) updateData.type = clientInfo.type;
+    if (clientInfo.name !== undefined) updateData.name = clientInfo.name;
+    if (clientInfo.company !== undefined) updateData.company = clientInfo.company;
+    if (clientInfo.preferredChannel !== undefined) updateData.preferred_channel = clientInfo.preferredChannel;
+    if (clientInfo.source !== undefined) updateData.source = clientInfo.source;
+    if (clientInfo.status !== undefined) updateData.status = clientInfo.status;
+    if (clientInfo.ownerId !== undefined) updateData.owner_id = clientInfo.ownerId;
+    if (clientInfo.notes !== undefined) updateData.notes = clientInfo.notes;
+
     const { error: clientError } = await supabase
       .from(TABLES.CLIENTS)
-      .update({
-        ...clientInfo,
-        owner_id: clientInfo.ownerId,
-        preferred_channel: clientInfo.preferredChannel,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', id);
 
     if (clientError) {
