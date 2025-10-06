@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -8,8 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Card, CardContent } from '../ui/card';
 import { X } from 'lucide-react';
 import { Client, User } from '../../types';
-import { toast } from '../../lib/toast';
+import { toast } from 'sonner';
 import { mockUsers } from '../../lib/mockData';
+import { supabase } from '../../lib/supabase/config';
 
 interface NewClientDialogProps {
   open: boolean;
@@ -19,6 +20,7 @@ interface NewClientDialogProps {
 
 export function NewClientDialog({ open, onOpenChange, onClientCreate }: NewClientDialogProps) {
   const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
   
   // Форма
   const [formData, setFormData] = useState({
@@ -35,6 +37,39 @@ export function NewClientDialog({ open, onOpenChange, onClientCreate }: NewClien
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Загружаем пользователей из Supabase
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('active', true)
+          .in('role', ['Manager', 'Admin']);
+
+        if (error) {
+          console.error('Error loading users:', error);
+          // Fallback to mock users if Supabase fails
+          setUsers(mockUsers.filter(user => user.role === 'Manager' || user.role === 'Admin'));
+        } else {
+          setUsers(data || []);
+          // Автоматически выбираем первого пользователя (обычно это текущий пользователь)
+          if (data && data.length > 0 && !formData.ownerId) {
+            setFormData(prev => ({ ...prev, ownerId: data[0].id }));
+          }
+        }
+      } catch (error) {
+        console.error('Error loading users:', error);
+        // Fallback to mock users
+        setUsers(mockUsers.filter(user => user.role === 'Manager' || user.role === 'Admin'));
+      }
+    };
+
+    if (open) {
+      loadUsers();
+    }
+  }, [open]);
 
   // Маска для телефона
   const formatPhone = (value: string) => {
@@ -282,7 +317,7 @@ export function NewClientDialog({ open, onOpenChange, onClientCreate }: NewClien
                           <SelectValue placeholder="Выберите ответственного" />
                         </SelectTrigger>
                         <SelectContent>
-                          {mockUsers.filter(user => user.role === 'Manager' || user.role === 'Admin').map(user => (
+                          {users.map(user => (
                             <SelectItem key={user.id} value={user.id}>
                               {user.name}
                             </SelectItem>
