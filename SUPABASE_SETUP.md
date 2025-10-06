@@ -116,9 +116,9 @@ CREATE POLICY "Admins can delete users" ON users FOR DELETE USING (auth.role() =
    - Выберите **"API"**
 
 2. **Скопируйте ключи:**
-   - **Project URL** - это ваш `VITE_SUPABASE_URL`
-   - **anon public** - это ваш `VITE_SUPABASE_ANON_KEY`
-   - **service_role** - это ваш `VITE_SUPABASE_SERVICE_ROLE_KEY` (для серверных операций)
+   - **Project URL** - это ваш `VITE_SUPABASE_URL` https://xhclmypcklndxqzkhgfk.supabase.co
+   - **anon public** - это ваш `VITE_SUPABASE_ANON_KEY` eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhoY2xteXBja2xuZHhxemtoZ2ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgxMDIzNTcsImV4cCI6MjA3MzY3ODM1N30.p4MmkvF4zwCQQB1zXxjYhr2tXSk_e6kG3b8GM0MAs_k
+   - **service_role** - это ваш `VITE_SUPABASE_SERVICE_ROLE_KEY` (для серверных операций) eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhoY2xteXBja2xuZHhxemtoZ2ZrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODEwMjM1NywiZXhwIjoyMDczNjc4MzU3fQ.MsMkqmP5Riz5WZBSkN5R94K6-Z-XPqqAH3iCE6eyrDk
 
 ### 6. Настройка переменных окружения в Vercel
 

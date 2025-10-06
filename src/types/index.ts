@@ -365,16 +365,17 @@ export interface UpdateClientRequest {
 export interface CreateProjectRequest {
   clientId: string;
   title: string;
-  siteAddress: string;
+  siteAddress?: string;
   managerId: string;
-  foremanId: string;
-  startDate: string;
-  dueDate: string;
-  budget: number;
-  priority: Project['priority'];
+  foremanId?: string;
+  startDate?: string;
+  dueDate?: string;
+  budget?: number;
+  priority?: Project['priority'];
   stage?: Project['stage'];
   riskNotes?: string;
   briefComplete?: boolean;
+  productionSubStage?: Project['productionSubStage'];
 }
 
 export interface UpdateProjectRequest {

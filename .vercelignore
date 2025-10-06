@@ -1,0 +1,10 @@
+# Ignore service worker from being treated as a serverless function
+sw.js
+public/sw.js
+build/sw.js
+
+# Ignore other files that shouldn't be treated as functions
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts

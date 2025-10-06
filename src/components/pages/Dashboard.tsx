@@ -23,6 +23,7 @@ import { useAnalytics, CRM_EVENTS } from '../../lib/hooks/useAnalytics';
 import { supabaseDashboardService, DashboardStats } from '../../lib/supabase/services/DashboardService';
 import { toast } from '../../lib/toast';
 import { DashboardKPIs } from '../../types';
+import { testSupabaseConnection } from '../../lib/supabase/test-connection';
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -38,6 +39,8 @@ export function Dashboard() {
   // Load dashboard data
   useEffect(() => {
     loadDashboardData();
+    // Test Supabase connection
+    testSupabaseConnection();
   }, []);
 
   const loadDashboardData = async () => {
