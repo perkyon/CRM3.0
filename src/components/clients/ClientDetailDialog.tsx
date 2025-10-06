@@ -85,9 +85,9 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
   const getMessengerLink = (messenger: string, value: string) => {
     switch (messenger) {
       case 'whatsapp':
-        return `https://wa.me/${value.replace(/\\D/g, '')}`;
+        return `https://wa.me/${(value || '').replace(/\\D/g, '')}`;
       case 'telegram':
-        return `https://t.me/${value.replace('@', '')}`;
+        return `https://t.me/${(value || '').replace('@', '')}`;
       default:
         return '#';
     }
@@ -291,7 +291,7 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
                                   <Button 
                                     variant="ghost" 
                                     size="sm"
-                                    onClick={() => window.open(`https://wa.me/${contact.messengers?.whatsapp?.replace(/[^\d]/g, '')}`, '_blank')}
+                                    onClick={() => window.open(`https://wa.me/${(contact.messengers?.whatsapp || '').replace(/[^\d]/g, '')}`, '_blank')}
                                   >
                                     <MessageCircle className="size-4" />
                                   </Button>

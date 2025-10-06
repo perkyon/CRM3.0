@@ -117,7 +117,7 @@ export function EditClientDialog({ client, open, onOpenChange, onClientUpdate }:
         billingCity: client.addresses.billing?.city || '',
         billingZipCode: client.addresses.billing?.zipCode || '',
         whatsapp: primaryContact?.messengers?.whatsapp || '',
-        telegram: primaryContact?.messengers?.telegram?.replace('@', '') || ''
+        telegram: primaryContact?.messengers?.telegram ? primaryContact.messengers.telegram.replace('@', '') : ''
       });
     }
   }, [client, open]);
@@ -146,7 +146,7 @@ export function EditClientDialog({ client, open, onOpenChange, onClientUpdate }:
   };
 
   const handleTelegramChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
+    let value = e.target.value || '';
     // Убираем все @ символы
     value = value.replace(/@/g, '');
     // Убираем пробелы и спецсимволы кроме подчеркивания
@@ -164,7 +164,7 @@ export function EditClientDialog({ client, open, onOpenChange, onClientUpdate }:
     if (!formData.contactPhone.trim()) {
       newErrors.contactPhone = 'Телефон обязателен для заполнения';
     } else {
-      const phoneDigits = formData.contactPhone.replace(/\D/g, '');
+      const phoneDigits = (formData.contactPhone || '').replace(/\D/g, '');
       if (phoneDigits.length < 11) {
         newErrors.contactPhone = 'Введите корректный номер телефона';
       }

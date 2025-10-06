@@ -104,7 +104,7 @@ export function NewClientDialog({ open, onOpenChange, onClientCreate }: NewClien
     if (!formData.phone.trim()) {
       newErrors.phone = 'Телефон обязателен для заполнения';
     } else {
-      const phoneDigits = formData.phone.replace(/\D/g, '');
+      const phoneDigits = (formData.phone || '').replace(/\D/g, '');
       if (phoneDigits.length < 11) {
         newErrors.phone = 'Введите корректный номер телефона';
       }
@@ -145,7 +145,7 @@ export function NewClientDialog({ open, onOpenChange, onClientCreate }: NewClien
           email: formData.email,
           isPrimary: true,
           messengers: formData.phone ? {
-            whatsapp: formData.phone.replace(/\D/g, '').startsWith('7') ? formData.phone : undefined
+            whatsapp: formData.phone ? formData.phone.replace(/\D/g, '').startsWith('7') ? formData.phone : undefined : undefined
           } : undefined
         }],
         addresses: {},

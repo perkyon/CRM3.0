@@ -190,7 +190,7 @@ export function EditProjectDialog({ project, open, onOpenChange, onProjectUpdate
                 value={formData.budget}
                 onChange={(e) => {
                   // Разрешаем только цифры
-                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  const value = (e.target.value || '').replace(/[^0-9]/g, '');
                   handleInputChange('budget', value);
                 }}
                 placeholder="350002"
