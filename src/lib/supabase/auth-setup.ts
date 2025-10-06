@@ -17,7 +17,7 @@ export async function initializeAuth() {
       
       // Try to sign in with a default user (for development)
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email: 'admin@workshop.ru',
+        email: 'fominsevil@gmail.com',
         password: 'admin123',
       });
 
@@ -27,7 +27,7 @@ export async function initializeAuth() {
         // If user doesn't exist, try to create one
         console.log('Attempting to create default user...');
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: 'admin@workshop.ru',
+          email: 'fominsevil@gmail.com',
           password: 'admin123',
         });
 
