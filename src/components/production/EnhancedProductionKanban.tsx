@@ -12,10 +12,20 @@ import {
   Search,
   X
 } from 'lucide-react';
-import { mockKanbanBoards, mockUsers, defaultKanbanColumns } from '../../lib/mockData';
+import { mockUsers } from '../../lib/mockData';
 import { KanbanBoard, KanbanColumn, KanbanTask, User as UserType } from '../../types';
+import { supabaseKanbanService } from '../../lib/supabase/services/KanbanService';
 import { ModernKanbanColumn, AddColumnCard } from './ModernKanbanColumn';
 import { ModernTaskDetail } from './ModernTaskDetail';
+import { useEffect } from 'react';
+
+// Default kanban columns
+const defaultKanbanColumns = [
+  { id: '1', title: 'К выполнению', position: 0, color: '#6b7280' },
+  { id: '2', title: 'В работе', position: 1, color: '#3b82f6' },
+  { id: '3', title: 'На проверке', position: 2, color: '#f59e0b' },
+  { id: '4', title: 'Завершено', position: 3, color: '#10b981' },
+];
 
 interface EnhancedProductionKanbanProps {
   projectId?: string;
@@ -29,8 +39,32 @@ interface DraggedItem {
 }
 
 export function EnhancedProductionKanban({ projectId, onNavigate }: EnhancedProductionKanbanProps) {
-  const [boards, setBoards] = useState<KanbanBoard[]>(mockKanbanBoards);
+  const [boards, setBoards] = useState<KanbanBoard[]>([]);
   const [selectedTask, setSelectedTask] = useState<KanbanTask | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load boards from Supabase
+  useEffect(() => {
+    const loadBoards = async () => {
+      try {
+        setIsLoading(true);
+        if (projectId) {
+          const projectBoards = await supabaseKanbanService.getProjectBoards(projectId);
+          setBoards(projectBoards);
+        } else {
+          // Load all boards if no specific project
+          setBoards([]);
+        }
+      } catch (error) {
+        console.error('Failed to load kanban boards:', error);
+        setBoards([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadBoards();
+  }, [projectId]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
@@ -293,6 +327,17 @@ export function EnhancedProductionKanban({ projectId, onNavigate }: EnhancedProd
   };
 
   const hasActiveFilters = searchQuery || filters.assignee || filters.priority || filters.tags;
+
+  if (isLoading) {
+    return (
+      <div className="p-6 lg:p-8">
+        <div className="text-center py-16">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <h2 className="text-xl font-medium mb-4">Загрузка канбан-досок...</h2>
+        </div>
+      </div>
+    );
+  }
 
   if (!currentBoard) {
     return (
