@@ -1,11 +1,21 @@
 import { User, BOMItem, InventoryItem, Estimate, Invoice, DashboardKPIs, Document, KanbanBoard, KanbanColumn, KanbanTask } from '../types';
 
+// Generate UUID v4 (simple implementation)
+function generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 // Users - still using mock data until full auth integration
+// Using proper UUIDs for Supabase compatibility
 export const mockUsers: User[] = [
-  { id: '1', name: 'Сыроежкин', email: 'syroejkin@workshop.ru', phone: '+7 495 123-45-67', role: 'Manager', active: true, avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150' },
-  { id: '2', name: 'Олег Смирнов', email: 'o.smirnov@workshop.ru', phone: '+7 495 234-56-78', role: 'Master', active: true, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150' },
-  { id: '3', name: 'Дмитрий Козлов', email: 'd.kozlov@workshop.ru', phone: '+7 495 345-67-89', role: 'Procurement', active: true, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150' },
-  { id: '4', name: 'Анна Волкова', email: 'a.volkova@workshop.ru', phone: '+7 495 456-78-90', role: 'Accountant', active: true, avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150' },
+  { id: '550e8400-e29b-41d4-a716-446655440001', name: 'Сыроежкин', email: 'syroejkin@workshop.ru', phone: '+7 495 123-45-67', role: 'Manager', active: true, avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150' },
+  { id: '550e8400-e29b-41d4-a716-446655440002', name: 'Олег Смирнов', email: 'o.smirnov@workshop.ru', phone: '+7 495 234-56-78', role: 'Master', active: true, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150' },
+  { id: '550e8400-e29b-41d4-a716-446655440003', name: 'Дмитрий Козлов', email: 'd.kozlov@workshop.ru', phone: '+7 495 345-67-89', role: 'Procurement', active: true, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150' },
+  { id: '550e8400-e29b-41d4-a716-446655440004', name: 'Анна Волкова', email: 'a.volkova@workshop.ru', phone: '+7 495 456-78-90', role: 'Accountant', active: true, avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150' },
 ];
 
 // Project stage names and order
@@ -38,7 +48,7 @@ export const productionSubStageOrder = ['cutting', 'edging', 'drilling', 'assemb
 // BOM Items - for materials management (still using mock until MaterialService is created)
 export const mockBOMItems: BOMItem[] = [
   {
-    id: '1',
+    id: '550e8400-e29b-41d4-a716-446655440010',
     projectId: 'PRJ-001',
     name: 'ЛДСП 16мм Белый',
     sku: 'LDSP-16-WHITE',
@@ -53,7 +63,7 @@ export const mockBOMItems: BOMItem[] = [
     status: 'received',
   },
   {
-    id: '2',
+    id: '550e8400-e29b-41d4-a716-446655440011',
     projectId: 'PRJ-001',
     name: 'Петли Blum',
     sku: 'BLUM-HINGE-001',
@@ -72,7 +82,7 @@ export const mockBOMItems: BOMItem[] = [
 // Inventory - for warehouse management
 export const mockInventory: InventoryItem[] = [
   { 
-    id: '1',
+    id: '550e8400-e29b-41d4-a716-446655440010',
     name: 'ЛДСП 16мм Белый',
     sku: 'LDSP-16-WHITE',
     category: 'Плитные материалы',
@@ -88,7 +98,7 @@ export const mockInventory: InventoryItem[] = [
     lastUpdated: '2024-01-20'
   },
   { 
-    id: '2',
+    id: '550e8400-e29b-41d4-a716-446655440011',
     name: 'Петли Blum Clip Top',
     sku: 'BLUM-CLIP-TOP',
     category: 'Фурнитура',
@@ -117,7 +127,7 @@ export const mockEstimates: Estimate[] = [
     status: 'approved',
     items: [
       {
-        id: '1',
+        id: '550e8400-e29b-41d4-a716-446655440010',
         name: 'Кухонный гарнитур "Модерн"',
         description: 'Изготовление кухонного гарнитура по индивидуальному проекту',
         unit: 'комплект',
@@ -147,7 +157,7 @@ export const mockInvoices: Invoice[] = [
     status: 'paid',
     items: [
       {
-        id: '1',
+        id: '550e8400-e29b-41d4-a716-446655440010',
         name: 'Кухонный гарнитур "Модерн"',
         description: 'Изготовление кухонного гарнитура по индивидуальному проекту',
         unit: 'комплект',
@@ -180,7 +190,7 @@ export const mockDashboardKPIs: DashboardKPIs = {
 // Documents - for file management
 export const mockDocuments: Document[] = [
   {
-    id: '1',
+    id: '550e8400-e29b-41d4-a716-446655440010',
     name: 'Техническое задание.pdf',
     type: 'pdf',
     size: 1024000,

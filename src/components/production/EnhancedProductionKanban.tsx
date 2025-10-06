@@ -21,10 +21,10 @@ import { useEffect } from 'react';
 
 // Default kanban columns
 const defaultKanbanColumns = [
-  { id: '1', title: 'К выполнению', position: 0, color: '#6b7280' },
-  { id: '2', title: 'В работе', position: 1, color: '#3b82f6' },
-  { id: '3', title: 'На проверке', position: 2, color: '#f59e0b' },
-  { id: '4', title: 'Завершено', position: 3, color: '#10b981' },
+  { id: '550e8400-e29b-41d4-a716-446655440020', title: 'К выполнению', position: 0, color: '#6b7280' },
+  { id: '550e8400-e29b-41d4-a716-446655440021', title: 'В работе', position: 1, color: '#3b82f6' },
+  { id: '550e8400-e29b-41d4-a716-446655440022', title: 'На проверке', position: 2, color: '#f59e0b' },
+  { id: '550e8400-e29b-41d4-a716-446655440023', title: 'Завершено', position: 3, color: '#10b981' },
 ];
 
 interface EnhancedProductionKanbanProps {

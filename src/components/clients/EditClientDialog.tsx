@@ -203,7 +203,7 @@ export function EditClientDialog({ client, open, onOpenChange, onClientUpdate }:
         preferredChannel: formData.preferredChannel,
         notes: formData.notes,
         contacts: [{
-          id: client.contacts[0]?.id || '1',
+          id: client.contacts[0]?.id || '550e8400-e29b-41d4-a716-446655440001',
           name: formData.contactName || formData.name,
           role: formData.contactRole || (formData.type === 'Физ. лицо' ? 'Владелец' : 'Представитель'),
           phone: formData.contactPhone,
