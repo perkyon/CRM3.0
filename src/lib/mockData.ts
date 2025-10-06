@@ -12,7 +12,7 @@ function generateUUID(): string {
 // Users - still using mock data until full auth integration
 // Using proper UUIDs for Supabase compatibility
 export const mockUsers: User[] = [
-  { id: '550e8400-e29b-41d4-a716-446655440001', name: 'Сыроежкин', email: 'syroejkin@workshop.ru', phone: '+7 495 123-45-67', role: 'Manager', active: true, avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150' },
+  { id: '9fc4d042-f598-487c-a383-cccfe0e219db', name: 'Сыроежкин', email: 'syroejkin@workshop.ru', phone: '+7 495 123-45-67', role: 'Manager', active: true, avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150' },
   { id: '550e8400-e29b-41d4-a716-446655440002', name: 'Олег Смирнов', email: 'o.smirnov@workshop.ru', phone: '+7 495 234-56-78', role: 'Master', active: true, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150' },
   { id: '550e8400-e29b-41d4-a716-446655440003', name: 'Дмитрий Козлов', email: 'd.kozlov@workshop.ru', phone: '+7 495 345-67-89', role: 'Procurement', active: true, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150' },
   { id: '550e8400-e29b-41d4-a716-446655440004', name: 'Анна Волкова', email: 'a.volkova@workshop.ru', phone: '+7 495 456-78-90', role: 'Accountant', active: true, avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150' },

@@ -138,7 +138,7 @@ export function NewClientDialog({ open, onOpenChange, onClientCreate }: NewClien
         name: formData.name,
         company: formData.type !== 'Физ. лицо' ? formData.name : undefined,
         contacts: [{
-          id: '550e8400-e29b-41d4-a716-446655440001',
+          id: '9fc4d042-f598-487c-a383-cccfe0e219db',
           name: formData.contactName || formData.name,
           role: formData.type === 'Физ. лицо' ? 'Владелец' : 'Представитель',
           phone: formData.phone,

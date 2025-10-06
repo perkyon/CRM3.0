@@ -66,7 +66,7 @@ export async function testSupabaseConnection() {
           preferred_channel: 'Email',
           source: 'Тест',
           status: 'new',
-          owner_id: '550e8400-e29b-41d4-a716-446655440001',
+          owner_id: '9fc4d042-f598-487c-a383-cccfe0e219db',
           projects_count: 0,
           ar_balance: 0,
           created_at: new Date().toISOString(),
