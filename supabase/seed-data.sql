@@ -4,9 +4,9 @@
 -- Insert test users into the users table
 INSERT INTO users (id, name, email, phone, role, active, avatar, created_at, updated_at) VALUES
 (
-  '550e8400-e29b-41d4-a716-446655440001',
+  '9fc4d042-f598-487c-a383-cccfe0e219db',
   'Сыроежкин',
-  'syroejkin@workshop.ru',
+  'fominsevil@gmail.com',
   '+7 495 123-45-67',
   'Manager',
   true,
@@ -66,7 +66,7 @@ INSERT INTO clients (id, type, name, company, preferred_channel, source, status,
   'Email',
   'Сайт',
   'new',
-  '550e8400-e29b-41d4-a716-446655440001',
+  '9fc4d042-f598-487c-a383-cccfe0e219db',
   0,
   0,
   'Тестовый клиент для разработки',
@@ -109,7 +109,7 @@ INSERT INTO projects (id, client_id, title, site_address, manager_id, foreman_id
   '550e8400-e29b-41d4-a716-446655440100',
   'Тестовый проект',
   'Москва, ул. Тестовая, д. 1',
-  '550e8400-e29b-41d4-a716-446655440001',
+  '9fc4d042-f598-487c-a383-cccfe0e219db',
   '550e8400-e29b-41d4-a716-446655440002',
   '2024-01-01',
   '2024-06-01',
@@ -137,18 +137,16 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = NOW();
 
 -- Create a test kanban board for the project
-INSERT INTO kanban_boards (id, project_id, title, description, created_at, updated_at) VALUES
+INSERT INTO kanban_boards (id, project_id, title, created_at, updated_at) VALUES
 (
   '550e8400-e29b-41d4-a716-446655440400',
   '550e8400-e29b-41d4-a716-446655440300',
   'Тестовая доска',
-  'Тестовая канбан доска для разработки',
   NOW(),
   NOW()
 )
 ON CONFLICT (id) DO UPDATE SET
   title = EXCLUDED.title,
-  description = EXCLUDED.description,
   updated_at = NOW();
 
 -- Create default columns for the kanban board
