@@ -14,9 +14,7 @@ export class SupabaseProjectService {
         *,
         client:clients(id, name, company, type),
         manager:users!manager_id(id, name, email),
-        foreman:users!foreman_id(id, name, email),
-        documents:project_documents(*),
-        kanban_boards:kanban_boards(*)
+        foreman:users!foreman_id(id, name, email)
       `)
       .range((page - 1) * limit, page * limit - 1)
       .order('created_at', { ascending: false });
@@ -63,15 +61,7 @@ export class SupabaseProjectService {
         *,
         client:clients(id, name, company, type),
         manager:users!manager_id(id, name, email),
-        foreman:users!foreman_id(id, name, email),
-        documents:project_documents(*),
-        kanban_boards:kanban_boards(
-          *,
-          columns:kanban_columns(
-            *,
-            tasks:kanban_tasks(*)
-          )
-        )
+        foreman:users!foreman_id(id, name, email)
       `)
       .eq('id', id)
       .single();
