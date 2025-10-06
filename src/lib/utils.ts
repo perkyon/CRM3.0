@@ -5,7 +5,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(amount: number): string {
+export function formatCurrency(amount: number | undefined | null): string {
+  if (amount === undefined || amount === null || isNaN(amount)) {
+    return '0 ₽';
+  }
   return new Intl.NumberFormat('ru-RU', {
     style: 'currency',
     currency: 'RUB'
@@ -39,7 +42,8 @@ export function formatDateTime(date: string): string {
   }).format(new Date(date));
 }
 
-export function formatPhone(phone: string): string {
+export function formatPhone(phone: string | undefined | null): string {
+  if (!phone) return '';
   const cleaned = phone.replace(/\D/g, '');
   if (cleaned.startsWith('7') && cleaned.length === 11) {
     return `+7 ${cleaned.slice(1, 4)} ${cleaned.slice(4, 7)}-${cleaned.slice(7, 9)}-${cleaned.slice(9)}`;

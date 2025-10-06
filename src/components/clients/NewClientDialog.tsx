@@ -73,6 +73,7 @@ export function NewClientDialog({ open, onOpenChange, onClientCreate }: NewClien
 
   // Маска для телефона
   const formatPhone = (value: string) => {
+    if (!value) return '';
     const digits = value.replace(/\D/g, '');
     if (digits.startsWith('7')) {
       const match = digits.match(/^7(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})$/);

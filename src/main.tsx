@@ -8,6 +8,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { PerformanceTracker } from "./components/monitoring/PerformanceTracker";
 import { PWAMonitor } from "./components/monitoring/PWAMonitor";
+import { ErrorBoundary } from "./components/error/ErrorBoundary";
 import { initializeAuth } from "./lib/supabase/auth-setup";
 import "./index.css";
 
@@ -24,19 +25,21 @@ initializeAuth().then((success) => {
 });
 
 createRoot(document.getElementById("root")!).render(
-  <ToastProvider>
-    <ProjectProvider>
-      <AppRouter />
-      <PerformanceTracker />
-      <PWAMonitor />
-      <Analytics 
-        mode={import.meta.env.VITE_NODE_ENV === 'production' ? 'production' : 'development'}
-        debug={import.meta.env.VITE_NODE_ENV === 'development'}
-      />
-      <SpeedInsights 
-        debug={import.meta.env.VITE_NODE_ENV === 'development'}
-      />
-    </ProjectProvider>
-  </ToastProvider>
+  <ErrorBoundary>
+    <ToastProvider>
+      <ProjectProvider>
+        <AppRouter />
+        <PerformanceTracker />
+        <PWAMonitor />
+        <Analytics 
+          mode={import.meta.env.VITE_NODE_ENV === 'production' ? 'production' : 'development'}
+          debug={import.meta.env.VITE_NODE_ENV === 'development'}
+        />
+        <SpeedInsights 
+          debug={import.meta.env.VITE_NODE_ENV === 'development'}
+        />
+      </ProjectProvider>
+    </ToastProvider>
+  </ErrorBoundary>
 );
   
