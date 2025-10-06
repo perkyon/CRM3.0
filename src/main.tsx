@@ -8,10 +8,20 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { PerformanceTracker } from "./components/monitoring/PerformanceTracker";
 import { PWAMonitor } from "./components/monitoring/PWAMonitor";
+import { initializeAuth } from "./lib/supabase/auth-setup";
 import "./index.css";
 
 // Initialize Sentry
 import "./sentry.client.config";
+
+// Initialize authentication
+initializeAuth().then((success) => {
+  if (success) {
+    console.log('✅ Authentication initialized successfully');
+  } else {
+    console.warn('⚠️ Authentication initialization failed - some features may not work');
+  }
+});
 
 createRoot(document.getElementById("root")!).render(
   <ToastProvider>
