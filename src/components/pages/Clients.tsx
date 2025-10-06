@@ -67,7 +67,12 @@ export function Clients() {
 
   // Load clients on component mount
   React.useEffect(() => {
-    fetchClients();
+    // Предзагрузка с небольшой задержкой для лучшего UX
+    const timer = setTimeout(() => {
+      fetchClients();
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [fetchClients]);
 
   const filteredClients = useMemo(() => {
@@ -249,10 +254,13 @@ export function Clients() {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
-                      <div className="flex items-center justify-center space-x-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                        <span className="text-muted-foreground">Загрузка клиентов...</span>
+                    <TableCell colSpan={7} className="text-center py-12">
+                      <div className="flex flex-col items-center justify-center space-y-4">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        <div className="text-center">
+                          <p className="text-muted-foreground font-medium">Загрузка клиентов...</p>
+                          <p className="text-sm text-muted-foreground mt-1">Это может занять несколько секунд</p>
+                        </div>
                       </div>
                     </TableCell>
                   </TableRow>

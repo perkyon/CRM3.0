@@ -9,6 +9,7 @@ interface ClientState {
   selectedClient: Client | null;
   isLoading: boolean;
   error: string | null;
+  lastFetchTime: number | null;
   pagination: {
     page: number;
     limit: number;
@@ -35,6 +36,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
   selectedClient: null,
   isLoading: false,
   error: null,
+  lastFetchTime: null,
   pagination: {
     page: 1,
     limit: 20,
@@ -48,6 +50,15 @@ export const useClientStore = create<ClientState>((set, get) => ({
 
   // Actions
   fetchClients: async (params?: ClientSearchParams) => {
+    const state = get();
+    const now = Date.now();
+    
+    // Кэширование: не загружаем повторно в течение 30 секунд
+    if (state.lastFetchTime && (now - state.lastFetchTime) < 30000 && state.clients.length > 0) {
+      console.log('Using cached clients data');
+      return;
+    }
+    
     try {
       set({ isLoading: true, error: null });
       
@@ -59,6 +70,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
         pagination: response.pagination,
         filters: searchParams,
         isLoading: false,
+        lastFetchTime: now,
       });
       
     } catch (error: any) {

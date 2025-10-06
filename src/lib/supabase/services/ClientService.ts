@@ -40,11 +40,8 @@ export class SupabaseClientService {
       .from(TABLES.CLIENTS)
       .select(`
         *,
-        contacts:contacts(*),
-        addresses:addresses(*),
-        tags:client_tags(*),
-        documents:client_documents(*),
-        projects:projects(id, title, stage, priority, due_date)
+        contacts:contacts(id, name, phone, email, is_primary),
+        addresses:addresses(id, type, street, city, zip_code)
       `)
       .range((page - 1) * limit, page * limit - 1)
       .order('created_at', { ascending: false });
