@@ -116,7 +116,7 @@ export class SupabaseClientService {
         preferred_channel: clientInfo.preferredChannel,
         source: clientInfo.source,
         status: clientInfo.status,
-        owner_id: clientInfo.ownerId,
+        owner_id: clientInfo.ownerId || '9fc4d042-f598-487c-a383-cccfe0e219db',
         notes: clientInfo.notes,
         projects_count: 0,
         ar_balance: 0,

@@ -72,7 +72,7 @@ export class SupabaseProjectService {
       title: projectInfo.title,
       client_id: projectInfo.clientId,
       site_address: projectInfo.siteAddress || '',
-      manager_id: projectInfo.managerId,
+      manager_id: projectInfo.managerId || '9fc4d042-f598-487c-a383-cccfe0e219db',
       foreman_id: projectInfo.foremanId || null,
       start_date: projectInfo.startDate || null,
       due_date: projectInfo.dueDate || null,
@@ -168,7 +168,7 @@ export class SupabaseProjectService {
       .update({
         ...projectInfo,
         client_id: projectInfo.clientId,
-        manager_id: projectInfo.managerId,
+        manager_id: projectInfo.managerId || '9fc4d042-f598-487c-a383-cccfe0e219db',
         foreman_id: projectInfo.foremanId,
         start_date: projectInfo.startDate,
         due_date: projectInfo.dueDate,
