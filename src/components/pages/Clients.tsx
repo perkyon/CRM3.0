@@ -55,6 +55,7 @@ export function Clients() {
     error,
     fetchClients,
     createClient,
+    updateClient,
     clearError
   } = useClientStore();
   
@@ -335,10 +336,17 @@ export function Clients() {
         open={isClientDetailOpen}
         onOpenChange={setIsClientDetailOpen}
         onNavigate={(page: string) => navigate(`/${page}`)}
-        onClientUpdate={(updatedClient) => {
-          setClients(prev => prev.map(client => 
-            client.id === updatedClient.id ? updatedClient : client
-          ));
+        onClientUpdate={async (updatedClient) => {
+          try {
+            await updateClient(updatedClient.id, updatedClient);
+            setClients(prev => prev.map(client => 
+              client.id === updatedClient.id ? updatedClient : client
+            ));
+            toast.success('Клиент успешно обновлен');
+          } catch (error) {
+            console.error('Error updating client:', error);
+            toast.error('Ошибка при обновлении клиента');
+          }
         }}
       />
 
