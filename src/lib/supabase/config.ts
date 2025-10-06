@@ -30,6 +30,12 @@ export const supabase = createClient(
   }
 );
 
+// Make Supabase available globally for debugging
+if (typeof window !== 'undefined') {
+  (window as any).supabase = supabase;
+  console.log('🔧 Supabase client made available globally for debugging');
+}
+
 // Database table names
 export const TABLES = {
   USERS: 'users',
