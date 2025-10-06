@@ -30,6 +30,7 @@ import { StatusBadge } from '../ui/status-badge';
 import { Client } from '../../types';
 import { ClientDetailDialog } from '../clients/ClientDetailDialog';
 import { NewClientDialog } from '../clients/NewClientDialog';
+import { toast } from 'sonner';
 
 const statusLabels = {
   lead: 'Лид',
@@ -93,6 +94,7 @@ export function Clients() {
         company: clientData.company,
         type: clientData.type,
         status: clientData.status,
+        preferredChannel: clientData.preferredChannel || 'Phone', // Default to Phone if not specified
         ownerId: clientData.ownerId,
         contacts: clientData.contacts,
         addresses: clientData.addresses,
