@@ -84,7 +84,7 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = NOW();
 
 -- Create a test contact for the client
-INSERT INTO contacts (id, client_id, name, role, phone, email, is_primary, created_at, updated_at) VALUES
+INSERT INTO contacts (id, client_id, name, role, phone, email, is_primary, created_at) VALUES
 (
   '550e8400-e29b-41d4-a716-446655440200',
   '550e8400-e29b-41d4-a716-446655440100',
@@ -93,7 +93,6 @@ INSERT INTO contacts (id, client_id, name, role, phone, email, is_primary, creat
   '+7 495 999-99-99',
   'test@testcompany.ru',
   true,
-  NOW(),
   NOW()
 )
 ON CONFLICT (id) DO UPDATE SET
@@ -101,8 +100,7 @@ ON CONFLICT (id) DO UPDATE SET
   role = EXCLUDED.role,
   phone = EXCLUDED.phone,
   email = EXCLUDED.email,
-  is_primary = EXCLUDED.is_primary,
-  updated_at = NOW();
+  is_primary = EXCLUDED.is_primary;
 
 -- Create a test project
 INSERT INTO projects (id, client_id, title, site_address, manager_id, foreman_id, start_date, due_date, budget, priority, stage, production_sub_stage, risk_notes, brief_complete, created_at, updated_at) VALUES
@@ -154,45 +152,40 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = NOW();
 
 -- Create default columns for the kanban board
-INSERT INTO kanban_columns (id, board_id, title, position, color, created_at, updated_at) VALUES
+INSERT INTO kanban_columns (id, board_id, title, stage, position, created_at) VALUES
 (
   '550e8400-e29b-41d4-a716-446655440500',
   '550e8400-e29b-41d4-a716-446655440400',
   'К выполнению',
+  'todo',
   0,
-  '#6b7280',
-  NOW(),
   NOW()
 ),
 (
   '550e8400-e29b-41d4-a716-446655440501',
   '550e8400-e29b-41d4-a716-446655440400',
   'В работе',
+  'in_progress',
   1,
-  '#3b82f6',
-  NOW(),
   NOW()
 ),
 (
   '550e8400-e29b-41d4-a716-446655440502',
   '550e8400-e29b-41d4-a716-446655440400',
   'На проверке',
+  'review',
   2,
-  '#f59e0b',
-  NOW(),
   NOW()
 ),
 (
   '550e8400-e29b-41d4-a716-446655440503',
   '550e8400-e29b-41d4-a716-446655440400',
   'Завершено',
+  'done',
   3,
-  '#10b981',
-  NOW(),
   NOW()
 )
 ON CONFLICT (id) DO UPDATE SET
   title = EXCLUDED.title,
-  position = EXCLUDED.position,
-  color = EXCLUDED.color,
-  updated_at = NOW();
+  stage = EXCLUDED.stage,
+  position = EXCLUDED.position;
