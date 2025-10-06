@@ -21,6 +21,12 @@ export const supabase = createClient(
         eventsPerSecond: 10,
       },
     },
+    global: {
+      headers: {
+        // Temporary: bypass RLS for development
+        'apikey': SUPABASE_CONFIG.anonKey,
+      },
+    },
   }
 );
 
