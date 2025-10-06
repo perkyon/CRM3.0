@@ -38,11 +38,7 @@ export class SupabaseClientService {
     
     let query = supabase
       .from(TABLES.CLIENTS)
-      .select(`
-        *,
-        contacts:contacts(id, name, phone, email, is_primary),
-        addresses:addresses(id, type, street, city, zip_code)
-      `)
+      .select('*')
       .range((page - 1) * limit, page * limit - 1)
       .order('created_at', { ascending: false });
 
@@ -69,8 +65,31 @@ export class SupabaseClientService {
       throw handleApiError(error, 'SupabaseClientService.getClients');
     }
 
+    // Fetch related data separately to avoid JOIN issues
+    const clientsWithRelations = await Promise.all(
+      (data || []).map(async (client) => {
+        // Fetch contacts
+        const { data: contacts } = await supabase
+          .from(TABLES.CONTACTS)
+          .select('id, name, phone, email, is_primary')
+          .eq('client_id', client.id);
+
+        // Fetch addresses
+        const { data: addresses } = await supabase
+          .from(TABLES.ADDRESSES)
+          .select('id, type, street, city, zip_code')
+          .eq('client_id', client.id);
+
+        return {
+          ...client,
+          contacts: contacts || [],
+          addresses: addresses || [],
+        };
+      })
+    );
+
     return {
-      data: (data || []).map(mapSupabaseClientToClient),
+      data: clientsWithRelations.map(mapSupabaseClientToClient),
       pagination: {
         page,
         limit,
