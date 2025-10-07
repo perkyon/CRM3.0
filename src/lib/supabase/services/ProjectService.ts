@@ -111,7 +111,8 @@ export class SupabaseProjectService {
       .single();
 
     if (boardError) {
-      console.warn('Failed to create kanban board:', boardError.message);
+      console.error('Failed to create kanban board:', boardError);
+      console.error('Board error details:', boardError.message, boardError.details, boardError.hint);
     } else {
       // Create default columns
       const defaultColumns = [

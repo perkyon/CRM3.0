@@ -6,7 +6,7 @@ export const SUPABASE_CONFIG = {
   anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key',
 } as const;
 
-// Create Supabase client
+// Create Supabase client with NO authentication
 export const supabase = createClient(
   SUPABASE_CONFIG.url,
   SUPABASE_CONFIG.anonKey,
@@ -15,6 +15,7 @@ export const supabase = createClient(
       autoRefreshToken: false,
       persistSession: false,
       detectSessionInUrl: false,
+      flowType: 'implicit'
     },
     realtime: {
       params: {
@@ -23,11 +24,16 @@ export const supabase = createClient(
     },
     global: {
       headers: {
-        // Temporary: bypass authentication for development
+        // Bypass all authentication for development
         'apikey': SUPABASE_CONFIG.anonKey,
         'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
     },
+    db: {
+      schema: 'public'
+    }
   }
 );
 
