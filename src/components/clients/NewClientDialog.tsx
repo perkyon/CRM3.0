@@ -133,7 +133,7 @@ export function NewClientDialog({ open, onOpenChange, onClientCreate }: NewClien
     
     try {
       // Создаем объект клиента
-      const newClient: Omit<Client, 'id' | 'createdAt' | 'lastActivity' | 'projectsCount' | 'arBalance' | 'tags' | 'documents'> = {
+      const newClient: Omit<Client, 'id' | 'createdAt' | 'lastActivity' | 'projectsCount' | 'arBalance' | 'tags' | 'documents' | 'updatedAt'> = {
         type: formData.type,
         name: formData.name,
         company: formData.type !== 'Физ. лицо' ? formData.name : undefined,
@@ -158,7 +158,7 @@ export function NewClientDialog({ open, onOpenChange, onClientCreate }: NewClien
       
       onClientCreate(newClient);
       
-      toast('Клиент успешно создан', { type: 'success' });
+      toast('Клиент успешно создан');
       
       // Сброс формы
       setFormData({
@@ -178,7 +178,7 @@ export function NewClientDialog({ open, onOpenChange, onClientCreate }: NewClien
       
     } catch (error) {
       console.error('Error creating client:', error);
-      toast('Ошибка при создании клиента', { type: 'error' });
+      toast('Ошибка при создании клиента');
     } finally {
       setLoading(false);
     }
@@ -311,7 +311,7 @@ export function NewClientDialog({ open, onOpenChange, onClientCreate }: NewClien
                     {/* Ответственный */}
                     <div>
                       <Label htmlFor="owner">Ответственный <span className="text-destructive">*</span></Label>
-                      <Select value={formData.ownerId} onValueChange={(value) => 
+                      <Select value={formData.ownerId} onValueChange={(value: string) => 
                         setFormData(prev => ({ ...prev, ownerId: value }))
                       }>
                         <SelectTrigger id="owner" className={`mt-1 ${errors.ownerId ? 'border-destructive' : ''}`}>

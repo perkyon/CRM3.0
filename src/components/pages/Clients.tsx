@@ -101,6 +101,7 @@ export function Clients() {
         type: clientData.type,
         status: clientData.status,
         preferredChannel: clientData.preferredChannel || 'Phone', // Default to Phone if not specified
+        source: 'Manual', // Default source
         ownerId: clientData.ownerId,
         contacts: clientData.contacts,
         addresses: clientData.addresses,
@@ -290,7 +291,7 @@ export function Clients() {
                         <div>
                           <div className="font-medium">{client.name}</div>
                           <div className="text-sm text-muted-foreground">
-                            {typeLabels[client.type]}
+                            {typeLabels[client.type as keyof typeof typeLabels]}
                           </div>
                         </div>
                       </div>
@@ -320,7 +321,7 @@ export function Clients() {
                       <Button 
                         variant="ghost" 
                         size="sm"
-                        onClick={(e) => {
+                        onClick={(e: React.MouseEvent) => {
                           e.stopPropagation();
                           setSelectedClient(client);
                           setIsClientDetailOpen(true);
@@ -347,9 +348,8 @@ export function Clients() {
         onClientUpdate={async (updatedClient) => {
           try {
             await updateClient(updatedClient.id, updatedClient);
-            setClients(prev => prev.map(client => 
-              client.id === updatedClient.id ? updatedClient : client
-            ));
+            // Refresh clients list after update
+            fetchClients();
             toast.success('Клиент успешно обновлен');
           } catch (error) {
             console.error('Error updating client:', error);
