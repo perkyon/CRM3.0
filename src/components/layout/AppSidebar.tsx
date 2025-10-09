@@ -30,7 +30,6 @@ const navigationItems = [
   { id: 'production', label: 'Производство', icon: Package, permission: 'production' },
   { id: 'inventory', label: 'Склад', icon: Warehouse, permission: 'inventory' },
   { id: 'finance', label: 'Финансы', icon: Calculator, permission: 'finance' },
-  { id: 'workflow-demo', label: 'Демо Workflow', icon: Play, permission: '' },
   { id: 'settings', label: 'Настройки', icon: Settings, permission: '' },
   { id: 'roles', label: 'Роли', icon: Shield, permission: 'admin' },
   { id: 'integrations', label: 'Интеграции', icon: Plug, permission: 'admin' },

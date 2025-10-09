@@ -76,12 +76,45 @@ export function EnhancedProductionKanban({ projectId, onNavigate }: EnhancedProd
             createBoardForProject(projectId);
           }
         } else {
-          // Load all boards if no specific project
-          setBoards([]);
+          // Create a default board if no project specified
+          const defaultBoard: KanbanBoard = {
+            id: 'default-board',
+            projectId: 'default',
+            title: 'Общая производственная доска',
+            columns: defaultKanbanColumns.map((col, index) => ({
+              id: `COL-default-${index}`,
+              title: col.title,
+              stage: col.title.toLowerCase().replace(/\s+/g, '_'),
+              order: col.position,
+              isDefault: true,
+              color: col.color
+            })),
+            tasks: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          setBoards([defaultBoard]);
         }
       } catch (error) {
         console.error('Failed to load kanban boards:', error);
-        setBoards([]);
+        // Create default board on error
+        const defaultBoard: KanbanBoard = {
+          id: 'default-board',
+          projectId: 'default',
+          title: 'Общая производственная доска',
+          columns: defaultKanbanColumns.map((col, index) => ({
+            id: `COL-default-${index}`,
+            title: col.title,
+            stage: col.title.toLowerCase().replace(/\s+/g, '_'),
+            order: col.position,
+            isDefault: true,
+            color: col.color
+          })),
+          tasks: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        setBoards([defaultBoard]);
       } finally {
         setIsLoading(false);
       }

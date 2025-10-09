@@ -75,10 +75,6 @@ export const routes: RouteObject[] = [
         element: <DevelopmentPage title="Интеграции" />
       },
       {
-        path: 'workflow-demo',
-        element: <DevelopmentPage title="Демо Workflow" />
-      },
-      {
         path: '*',
         element: (
           <div className="p-6">
