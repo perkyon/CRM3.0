@@ -104,8 +104,6 @@ export class SupabaseProjectService {
       .insert({
         project_id: project.id,
         title: `${project.title} - Производство`,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
       })
       .select()
       .single();
