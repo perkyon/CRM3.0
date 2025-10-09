@@ -9,7 +9,7 @@ import { Card, CardContent } from '../ui/card';
 import { X } from 'lucide-react';
 import { Client, User } from '../../types';
 import { toast } from 'sonner';
-import { mockUsers } from '../../lib/mockData';
+import { useUserStore } from '../../lib/stores/userStore';
 import { supabase } from '../../lib/supabase/config';
 
 interface NewClientDialogProps {
@@ -20,7 +20,7 @@ interface NewClientDialogProps {
 
 export function NewClientDialog({ open, onOpenChange, onClientCreate }: NewClientDialogProps) {
   const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState<User[]>([]);
+  const { users, fetchUsers } = useUserStore();
   
   // Форма
   const [formData, setFormData] = useState({
@@ -50,10 +50,7 @@ export function NewClientDialog({ open, onOpenChange, onClientCreate }: NewClien
 
         if (error) {
           console.error('Error loading users:', error);
-          // Fallback to mock users if Supabase fails
-          setUsers(mockUsers.filter(user => user.role === 'Manager' || user.role === 'Admin'));
         } else {
-          setUsers(data || []);
           // Автоматически выбираем первого пользователя (обычно это текущий пользователь)
           if (data && data.length > 0 && !formData.ownerId) {
             setFormData(prev => ({ ...prev, ownerId: data[0].id }));
@@ -61,8 +58,6 @@ export function NewClientDialog({ open, onOpenChange, onClientCreate }: NewClien
         }
       } catch (error) {
         console.error('Error loading users:', error);
-        // Fallback to mock users
-        setUsers(mockUsers.filter(user => user.role === 'Manager' || user.role === 'Admin'));
       }
     };
 

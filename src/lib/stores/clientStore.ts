@@ -74,23 +74,12 @@ export const useClientStore = create<ClientState>((set, get) => ({
       });
       
     } catch (error: any) {
-      console.error('Failed to fetch clients from Supabase, using mock data:', error);
-      
-      // Fallback to mock data
-      const { mockClients } = await import('../../mockData');
+      console.error('Failed to fetch clients from Supabase:', error);
       set({
-        clients: mockClients,
-        pagination: {
-          page: 1,
-          limit: 20,
-          total: mockClients.length,
-          totalPages: 1,
-        },
-        filters: searchParams,
         isLoading: false,
-        lastFetchTime: now,
-        error: null,
+        error: error.message || 'Ошибка загрузки клиентов',
       });
+      throw error;
     }
   },
 

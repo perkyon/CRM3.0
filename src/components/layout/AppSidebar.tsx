@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { cn } from '../../lib/utils';
-import { mockUsers } from '../../lib/mockData';
+import { useUserStore } from '../../lib/stores/userStore';
 import { hasPermission } from '../../lib/utils';
 
 interface AppSidebarProps {
@@ -36,7 +36,7 @@ const navigationItems = [
 ];
 
 export function AppSidebar({ currentPage, onNavigate, collapsed, className }: AppSidebarProps) {
-  const currentUser = mockUsers[0]; // Mock current user
+  const { currentUser } = useUserStore();
 
   return (
     <div className={cn('bg-sidebar border-sidebar-border', className)}>
@@ -51,7 +51,7 @@ export function AppSidebar({ currentPage, onNavigate, collapsed, className }: Ap
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentPage === item.id;
-            const hasAccess = !item.permission || hasPermission(currentUser.role, item.permission);
+            const hasAccess = !item.permission || hasPermission(currentUser?.role || 'User', item.permission);
             
             return (
               <Button

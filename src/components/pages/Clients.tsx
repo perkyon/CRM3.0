@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -22,7 +22,7 @@ import {
   FileText,
   History
 } from 'lucide-react';
-import { mockUsers } from '../../lib/mockData';
+import { useUserStore } from '../../lib/stores/userStore';
 import { useProjects } from '../../contexts/ProjectContextNew';
 import { useClientStore } from '../../lib/stores/clientStore';
 import { formatCurrency, formatDate, getInitials, formatPhone } from '../../lib/utils';
@@ -88,8 +88,15 @@ export function Clients() {
     return projects.filter(p => p.clientId === clientId);
   };
 
+  const { users, fetchUsers } = useUserStore();
+  
+  // Fetch users on mount
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+  
   const getOwnerName = (ownerId: string) => {
-    const owner = mockUsers.find(u => u.id === ownerId);
+    const owner = users.find(u => u.id === ownerId);
     return owner?.name || 'Не назначен';
   };
 
@@ -217,7 +224,7 @@ export function Clients() {
                       <label className="text-sm font-medium">Ответственный</label>
                       <select className="w-full p-2 border rounded-md mt-2">
                         <option value="">Все</option>
-                        {mockUsers.map(user => (
+                        {users.map(user => (
                           <option key={user.id} value={user.id}>{user.name}</option>
                         ))}
                       </select>

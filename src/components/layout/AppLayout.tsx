@@ -8,13 +8,18 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '../ui/sheet';
 import { AppSidebar } from './AppSidebar';
 import { getInitials } from '../../lib/utils';
-import { mockUsers } from '../../lib/mockData';
+import { useUserStore } from '../../lib/stores/userStore';
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const currentUser = mockUsers[0]; // Mock current user
+  const { currentUser, fetchCurrentUser } = useUserStore();
+  
+  // Fetch current user on mount
+  React.useEffect(() => {
+    fetchCurrentUser();
+  }, [fetchCurrentUser]);
   
   // Получаем текущую страницу из URL
   const currentPage = location.pathname.split('/')[1] || 'dashboard';
@@ -57,9 +62,9 @@ export function AppLayout() {
               <Button variant="ghost" className="flex items-center gap-2">
                 <Avatar className="size-8">
                   <AvatarImage src="" />
-                  <AvatarFallback>{getInitials(currentUser.name)}</AvatarFallback>
+                  <AvatarFallback>{getInitials(currentUser?.name || 'User')}</AvatarFallback>
                 </Avatar>
-                <span className="hidden xl:block">{currentUser.name}</span>
+                <span className="hidden xl:block">{currentUser?.name || 'User'}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -111,7 +116,7 @@ export function AppLayout() {
             <Button variant="ghost" size="sm">
               <Avatar className="size-8">
                 <AvatarImage src="" />
-                <AvatarFallback>{getInitials(currentUser.name)}</AvatarFallback>
+                <AvatarFallback>{getInitials(currentUser?.name || 'User')}</AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
