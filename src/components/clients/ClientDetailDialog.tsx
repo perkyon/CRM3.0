@@ -158,7 +158,7 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
         <div className="flex-1 min-h-0 flex flex-col">
           <Tabs defaultValue="overview" className="flex-1 flex flex-col">
             <div className="px-4 sm:px-6 pt-4 shrink-0">
-              <TabsList className="inline-flex h-auto p-1 bg-muted rounded-lg">
+              <TabsList className="grid w-full grid-cols-3 h-auto p-1 bg-muted rounded-lg">
                 <TabsTrigger value="overview" className="text-xs sm:text-sm py-2 px-4">Обзор</TabsTrigger>
                 <TabsTrigger value="projects" className="text-xs sm:text-sm py-2 px-4">Проекты</TabsTrigger>
                 <TabsTrigger value="documents" className="text-xs sm:text-sm py-2 px-4">Документы</TabsTrigger>

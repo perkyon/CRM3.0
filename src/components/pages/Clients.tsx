@@ -397,7 +397,7 @@ function ClientProfile({ client, projects, onNavigate }: {
       </SheetHeader>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Обзор</TabsTrigger>
           <TabsTrigger value="projects">Проекты</TabsTrigger>
           <TabsTrigger value="communications">Общение</TabsTrigger>
@@ -442,7 +442,7 @@ function ClientProfile({ client, projects, onNavigate }: {
             </CardHeader>
             <CardContent>
               {projects.length > 0 ? (
-                <div className="space-y-2">
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
                   {projects.map(project => (
                     <div key={project.id} className="flex items-center justify-between p-2 border rounded">
                       <div>
@@ -469,7 +469,7 @@ function ClientProfile({ client, projects, onNavigate }: {
             </CardHeader>
             <CardContent>
               {projects.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-3 max-h-[400px] overflow-y-auto">
                   {projects.map(project => (
                     <div key={project.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div>
