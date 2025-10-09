@@ -36,13 +36,13 @@ export default function App() {
     try {
       switch (currentPage) {
         case 'dashboard':
-          return <Dashboard onNavigate={handleNavigate} />;
+          return <Dashboard />;
         case 'clients':
-          return <Clients onNavigate={handleNavigate} />;
+          return <Clients />;
         case 'projects':
-          return <Projects onNavigate={handleNavigate} />;
+          return <Projects />;
         case 'project-overview':
-          return <ProjectOverview projectId={pageParams?.projectId || ''} onNavigate={handleNavigate} />;
+          return <ProjectOverview />;
         case 'production':
           return <EnhancedProductionKanban projectId={pageParams?.projectId} onNavigate={handleNavigate} />;
         case 'inventory':
@@ -90,11 +90,9 @@ export default function App() {
               </div>
             </div>
           );
-        case 'workflow-demo':
-          return <WorkflowDemo />;
 
         default:
-          return <Dashboard onNavigate={handleNavigate} />;
+          return <Dashboard />;
       }
     } catch (error) {
       console.error('Render error:', error);
@@ -112,10 +110,9 @@ export default function App() {
   return (
     <ToastProvider>
       <ProjectProvider>
-        <div className="min-h-screen bg-background">
-          <AppLayout currentPage={currentPage} onNavigate={handleNavigate}>
-            {renderCurrentPage()}
-          </AppLayout>
+        <AppLayout />
+        <div className="lg:ml-64">
+          {renderCurrentPage()}
         </div>
       </ProjectProvider>
     </ToastProvider>

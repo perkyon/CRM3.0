@@ -133,7 +133,7 @@ export function NewClientDialog({ open, onOpenChange, onClientCreate }: NewClien
     
     try {
       // Создаем объект клиента
-      const newClient: Omit<Client, 'id' | 'createdAt' | 'lastActivity' | 'projectsCount' | 'arBalance' | 'tags' | 'documents' | 'updatedAt'> = {
+      const newClient: Omit<Client, 'id' | 'createdAt' | 'lastActivity' | 'projectsCount' | 'arBalance' | 'tags' | 'documents'> = {
         type: formData.type,
         name: formData.name,
         company: formData.type !== 'Физ. лицо' ? formData.name : undefined,
@@ -153,7 +153,8 @@ export function NewClientDialog({ open, onOpenChange, onClientCreate }: NewClien
         source: formData.source,
         status: 'lead',
         ownerId: formData.ownerId,
-        notes: formData.notes
+        notes: formData.notes,
+        updatedAt: new Date().toISOString()
       };
       
       onClientCreate(newClient);

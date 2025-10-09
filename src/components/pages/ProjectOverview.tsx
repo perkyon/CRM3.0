@@ -419,7 +419,7 @@ export function ProjectOverview() {
                                           'text-muted-foreground'
                                         }
                                       `}>
-                                        {productionSubStages[subStage]}
+                                        {productionSubStages[subStage as keyof typeof productionSubStages]}
                                         {isSubCurrent && (
                                           <span className="ml-2 text-blue-500">• текущий</span>
                                         )}

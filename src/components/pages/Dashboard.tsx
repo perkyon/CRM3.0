@@ -66,7 +66,7 @@ export function Dashboard() {
     }
   };
 
-  const activeProjects = projects.filter(p => p.stage !== 'completed' && p.stage !== 'cancelled');
+  const activeProjects = projects.filter(p => p.stage !== 'done');
   const overdueProjects = dashboardStats?.upcomingDeadlines.filter(d => d.daysLeft < 0) || [];
   const recentClients = clients.slice(0, 3);
 
@@ -74,9 +74,9 @@ export function Dashboard() {
   useEffect(() => {
     if (kpis) {
       trackPageView('dashboard', {
-        activeProjects: kpis.activeProjects,
+        activeProjects: kpis.ordersInProgress,
         overdueProjects: overdueProjects.length,
-        totalClients: kpis.totalClients,
+        totalClients: clients.length,
       });
     }
   }, [trackPageView, kpis, overdueProjects.length]);

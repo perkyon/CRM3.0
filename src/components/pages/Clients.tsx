@@ -40,8 +40,8 @@ const statusLabels = {
   client: 'Клиент'
 };
 
-const typeLabels = {
-  'ФЛ': 'Физ. лицо',
+const typeLabels: Record<string, string> = {
+  'Физ. лицо': 'Физ. лицо',
   'ИП': 'ИП',
   'ООО': 'ООО'
 };
@@ -93,7 +93,7 @@ export function Clients() {
     return owner?.name || 'Не назначен';
   };
 
-  const handleClientCreate = async (clientData: Omit<Client, 'id' | 'createdAt' | 'lastActivity' | 'projectsCount' | 'arBalance' | 'tags' | 'documents'>) => {
+  const handleClientCreate = async (clientData: Omit<Client, 'id' | 'createdAt' | 'lastActivity' | 'projectsCount' | 'arBalance' | 'tags' | 'documents' | 'updatedAt'>) => {
     try {
       await createClient({
         name: clientData.name,
@@ -104,6 +104,7 @@ export function Clients() {
         ownerId: clientData.ownerId,
         contacts: clientData.contacts,
         addresses: clientData.addresses,
+        source: 'manual', // Add required source field
       });
       
       toast.success('Клиент успешно создан');
@@ -165,14 +166,14 @@ export function Clients() {
               <Input
                 placeholder="Поиск по имени, телефону..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
             </div>
             <div className="flex gap-2">
               <select 
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
                 className="px-3 py-2 border rounded-md"
               >
                 <option value="all">Все статусы</option>
@@ -320,7 +321,7 @@ export function Clients() {
                       <Button 
                         variant="ghost" 
                         size="sm"
-                        onClick={(e) => {
+                        onClick={(e: React.MouseEvent) => {
                           e.stopPropagation();
                           setSelectedClient(client);
                           setIsClientDetailOpen(true);
@@ -347,9 +348,8 @@ export function Clients() {
         onClientUpdate={async (updatedClient) => {
           try {
             await updateClient(updatedClient.id, updatedClient);
-            setClients(prev => prev.map(client => 
-              client.id === updatedClient.id ? updatedClient : client
-            ));
+            // Update clients in store
+            // Note: This should be handled by the store's updateClient method
             toast.success('Клиент успешно обновлен');
           } catch (error) {
             console.error('Error updating client:', error);
