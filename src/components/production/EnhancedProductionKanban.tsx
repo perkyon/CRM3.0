@@ -15,9 +15,9 @@ import {
 import { mockUsers } from '../../lib/mockData';
 import { KanbanBoard, KanbanColumn, KanbanTask, User as UserType } from '../../types';
 import { supabaseKanbanService } from '../../lib/supabase/services/KanbanService';
+import { testKanbanConnection, createTestKanbanBoard } from '../../lib/supabase/test-kanban';
 import { ModernKanbanColumn, AddColumnCard } from './ModernKanbanColumn';
 import { ModernTaskDetail } from './ModernTaskDetail';
-import { useEffect } from 'react';
 
 // Default kanban columns
 const defaultKanbanColumns = [
@@ -48,9 +48,33 @@ export function EnhancedProductionKanban({ projectId, onNavigate }: EnhancedProd
     const loadBoards = async () => {
       try {
         setIsLoading(true);
+        
+        // Test connection first
+        const connectionOk = await testKanbanConnection();
+        console.log('🔧 Kanban connection test:', connectionOk);
+        
         if (projectId) {
-          const projectBoards = await supabaseKanbanService.getProjectBoards(projectId);
-          setBoards(projectBoards);
+          try {
+            const projectBoards = await supabaseKanbanService.getProjectBoards(projectId);
+            console.log('📊 Loaded boards:', projectBoards);
+            setBoards(projectBoards);
+            
+            // If no boards found, create a test one
+            if (projectBoards.length === 0) {
+              console.log('🔧 No boards found, creating test board...');
+              const testBoard = await createTestKanbanBoard(projectId);
+              if (testBoard) {
+                setBoards([testBoard]);
+              } else {
+                // Fallback to local board
+                createBoardForProject(projectId);
+              }
+            }
+          } catch (error) {
+            console.error('Failed to load kanban boards from Supabase:', error);
+            // Fallback to creating a local board
+            createBoardForProject(projectId);
+          }
         } else {
           // Load all boards if no specific project
           setBoards([]);
@@ -93,7 +117,11 @@ export function EnhancedProductionKanban({ projectId, onNavigate }: EnhancedProd
       title: `Производство проекта ${projectId}`,
       columns: defaultKanbanColumns.map((col, index) => ({
         id: `COL-${projectId}-${index}`,
-        ...col
+        title: col.title,
+        stage: col.title.toLowerCase().replace(/\s+/g, '_'),
+        order: col.position,
+        isDefault: true,
+        color: col.color
       })),
       tasks: [],
       createdAt: new Date().toISOString(),
@@ -398,7 +426,7 @@ export function EnhancedProductionKanban({ projectId, onNavigate }: EnhancedProd
               <div className="flex flex-wrap gap-3">
                 <div className="min-w-40">
                   <label className="text-sm">Исполнитель</label>
-                  <Select value={filters.assignee || "all"} onValueChange={(value) => setFilters(prev => ({ ...prev, assignee: value === "all" ? "" : value }))}>
+                  <Select value={filters.assignee || "all"} onValueChange={(value: string) => setFilters(prev => ({ ...prev, assignee: value === "all" ? "" : value }))}>
                     <SelectTrigger className="mt-1">
                       <SelectValue placeholder="Все" />
                     </SelectTrigger>
@@ -413,7 +441,7 @@ export function EnhancedProductionKanban({ projectId, onNavigate }: EnhancedProd
 
                 <div className="min-w-32">
                   <label className="text-sm">Приоритет</label>
-                  <Select value={filters.priority || "all"} onValueChange={(value) => setFilters(prev => ({ ...prev, priority: value === "all" ? "" : value }))}>
+                  <Select value={filters.priority || "all"} onValueChange={(value: string) => setFilters(prev => ({ ...prev, priority: value === "all" ? "" : value }))}>
                     <SelectTrigger className="mt-1">
                       <SelectValue placeholder="Все" />
                     </SelectTrigger>

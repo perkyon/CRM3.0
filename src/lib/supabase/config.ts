@@ -2,8 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 
 // Supabase configuration
 export const SUPABASE_CONFIG = {
-  url: import.meta.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co',
-  anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key',
+  url: (import.meta as any).env?.VITE_SUPABASE_URL || 'https://xhclmypcklndxqzkhgfk.supabase.co',
+  anonKey: (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhoY2xteXBja2xuZHhxemtoZ2ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgxMDIzNTcsImV4cCI6MjA3MzY3ODM1N30.p4MmkvF4zwCQQB1zXxjYhr2tXSk_e6kG3b8GM0MAs_k',
 } as const;
 
 // Create Supabase client with NO authentication

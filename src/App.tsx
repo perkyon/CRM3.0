@@ -6,8 +6,8 @@ import { Clients } from './components/pages/Clients';
 import { Projects } from './components/pages/Projects';
 import { EnhancedProductionKanban } from './components/production/EnhancedProductionKanban';
 import { ProjectOverview } from './components/pages/ProjectOverview';
-import { WorkflowDemo } from './components/demo/WorkflowDemo';
 import { ProjectProvider } from './contexts/ProjectContext';
+import './lib/supabase/debug-kanban';
 
 
 // Типы для параметров страниц
