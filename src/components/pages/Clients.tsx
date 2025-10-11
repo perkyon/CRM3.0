@@ -132,6 +132,20 @@ export function Clients() {
     }
   };
 
+  const handleDeleteClient = async () => {
+    if (!clientToDelete) return;
+    
+    try {
+      await deleteClient(clientToDelete.id);
+      toast.success('Клиент успешно удален');
+      setIsDeleteDialogOpen(false);
+      setClientToDelete(null);
+      await fetchClients();
+    } catch (error: any) {
+      toast.error(`Ошибка при удалении клиента: ${error.message}`);
+    }
+  };
+
   // Handle error display
   if (error) {
     return (
