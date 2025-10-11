@@ -443,13 +443,33 @@ export function ProjectOverview() {
                 entityType="project"
                 entityId={project.id}
                 documents={project.documents || []}
-                onDocumentAdd={(document) => {
-                  // В реальном приложении здесь будет обновление проекта через API
-                  console.log('Document added to project:', document);
+                onDocumentAdd={async (document) => {
+                  try {
+                    const updatedProject = {
+                      ...project,
+                      documents: [...(project.documents || []), document]
+                    };
+                    // TODO: Update project through API
+                    setProject(updatedProject);
+                    toast.success('Документ добавлен к проекту');
+                  } catch (error) {
+                    console.error('Error adding document:', error);
+                    toast.error('Ошибка при добавлении документа');
+                  }
                 }}
-                onDocumentDelete={(documentId) => {
-                  // В реальном приложении здесь будет удаление документа через API
-                  console.log('Document deleted from project:', documentId);
+                onDocumentDelete={async (documentId) => {
+                  try {
+                    const updatedProject = {
+                      ...project,
+                      documents: (project.documents || []).filter(d => d.id !== documentId)
+                    };
+                    // TODO: Update project through API  
+                    setProject(updatedProject);
+                    toast.success('Документ удален');
+                  } catch (error) {
+                    console.error('Error deleting document:', error);
+                    toast.error('Ошибка при удалении документа');
+                  }
                 }}
               />
             </TabsContent>

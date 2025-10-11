@@ -402,10 +402,18 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
                     entityId={client.id}
                     documents={client.documents || []}
                     onDocumentAdd={(document) => {
-                      console.log('Document added to client:', document);
+                      const updatedClient = {
+                        ...client,
+                        documents: [...(client.documents || []), document]
+                      };
+                      onClientUpdate?.(updatedClient);
                     }}
                     onDocumentDelete={(documentId) => {
-                      console.log('Document deleted from client:', documentId);
+                      const updatedClient = {
+                        ...client,
+                        documents: (client.documents || []).filter(d => d.id !== documentId)
+                      };
+                      onClientUpdate?.(updatedClient);
                     }}
                   />
                 </div>
