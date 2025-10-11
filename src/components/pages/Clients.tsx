@@ -398,24 +398,25 @@ export function Clients() {
         onNavigate={(page: string) => navigate(`/${page}`)}
         onClientUpdate={async (updatedClient) => {
           try {
+            console.log('Updating client:', updatedClient.id);
             await updateClient(updatedClient.id, {
               name: updatedClient.name,
               company: updatedClient.company,
               type: updatedClient.type,
               status: updatedClient.status,
-              source: updatedClient.source,
+              source: updatedClient.source || 'manual',
               preferredChannel: updatedClient.preferredChannel,
               ownerId: updatedClient.ownerId,
               notes: updatedClient.notes,
               contacts: updatedClient.contacts,
               addresses: updatedClient.addresses,
             });
-            // Don't show toast here - EditClientDialog already shows it
+            console.log('Client updated successfully');
             // Refresh list to show changes
             await fetchClients();
-          } catch (error) {
+          } catch (error: any) {
             console.error('Error updating client:', error);
-            toast.error('Ошибка при обновлении клиента');
+            toast.error(`Ошибка при обновлении клиента: ${error.message}`);
             throw error; // Re-throw so EditClientDialog knows it failed
           }
         }}
