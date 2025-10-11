@@ -40,10 +40,11 @@ import { NewClientDialog } from '../clients/NewClientDialog';
 import { toast } from 'sonner';
 
 const statusLabels = {
+  lead: 'Лид',
   new: 'Новый',
   client: 'Клиент',
   in_work: 'В работе',
-  completed: 'Завершен'
+  lost: 'Потерян'
 };
 
 const typeLabels: Record<string, string> = {

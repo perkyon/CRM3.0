@@ -26,7 +26,7 @@ export interface Client {
   };
   preferredChannel: 'WhatsApp' | 'Telegram' | 'Email' | 'Phone';
   source: string;
-  status: 'new' | 'client' | 'in_work' | 'completed';
+  status: 'lead' | 'new' | 'in_work' | 'lost' | 'client';
   lastActivity: string;
   ownerId: string;
   projectsCount: number;

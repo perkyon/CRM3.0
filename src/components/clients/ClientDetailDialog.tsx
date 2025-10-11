@@ -46,10 +46,11 @@ interface ClientDetailDialogProps {
 }
 
 const statusLabels = {
+  lead: 'Лид',
   new: 'Новый',
   client: 'Клиент',
   in_work: 'В работе',
-  completed: 'Завершен'
+  lost: 'Потерян'
 };
 
 const typeLabels = {
