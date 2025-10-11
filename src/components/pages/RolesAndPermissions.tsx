@@ -24,6 +24,7 @@ import {
   XCircle
 } from 'lucide-react';
 import { useUserStore } from '../../lib/stores/userStore';
+import { useAuth } from '../../contexts/AuthContext';
 import { User, Role } from '../../types';
 import { getInitials } from '../../lib/utils';
 import { toast } from '../../lib/toast';
@@ -135,7 +136,8 @@ const PERMISSION_CATEGORIES = [
 ];
 
 export function RolesAndPermissions() {
-  const { users, fetchUsers, currentUser } = useUserStore();
+  const { users, fetchUsers } = useUserStore();
+  const { user: currentUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState<Role | 'all'>('all');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
