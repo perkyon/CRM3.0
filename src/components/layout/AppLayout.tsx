@@ -14,12 +14,13 @@ export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { currentUser, fetchCurrentUser } = useUserStore();
+  const { currentUser, fetchCurrentUser, fetchUsers } = useUserStore();
   
-  // Fetch current user on mount
+  // Fetch current user and all users on mount
   React.useEffect(() => {
     fetchCurrentUser();
-  }, [fetchCurrentUser]);
+    fetchUsers(); // Загружаем всех пользователей для фильтров и т.д.
+  }, [fetchCurrentUser, fetchUsers]);
   
   // Получаем текущую страницу из URL
   const currentPage = location.pathname.split('/')[1] || 'dashboard';

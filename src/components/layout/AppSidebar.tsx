@@ -51,7 +51,8 @@ export function AppSidebar({ currentPage, onNavigate, collapsed, className }: Ap
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentPage === item.id;
-            const hasAccess = !item.permission || hasPermission(currentUser?.role || 'User', item.permission);
+            // Временно разрешаем доступ ко всем пунктам пока пользователь не загружен
+            const hasAccess = !currentUser || !item.permission || hasPermission(currentUser.role, item.permission);
             
             return (
               <Button
