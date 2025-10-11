@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { Project, CreateProjectRequest, UpdateProjectRequest, ProjectSearchParams } from '../../types';
 import { supabaseProjectService } from '../supabase/services/ProjectService';
 import { PaginatedResponse } from '../api/config';
@@ -31,7 +32,9 @@ interface ProjectState {
   setLoading: (loading: boolean) => void;
 }
 
-export const useProjectStore = create<ProjectState>((set, get) => ({
+export const useProjectStore = create<ProjectState>()(
+  persist(
+    (set, get) => ({
   // Initial state
   projects: [],
   selectedProject: null,
@@ -232,4 +235,14 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   setLoading: (loading: boolean) => {
     set({ isLoading: loading });
   },
-}));
+    }),
+    {
+      name: 'project-storage',
+      partialize: (state) => ({
+        projects: state.projects,
+        selectedProject: state.selectedProject,
+        pagination: state.pagination,
+      }),
+    }
+  )
+);
