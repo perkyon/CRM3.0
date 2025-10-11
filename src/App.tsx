@@ -6,6 +6,7 @@ import { Clients } from './components/pages/Clients';
 import { Projects } from './components/pages/Projects';
 import { EnhancedProductionKanban } from './components/production/EnhancedProductionKanban';
 import { ProjectOverview } from './components/pages/ProjectOverview';
+import { RolesAndPermissions } from './components/pages/RolesAndPermissions';
 import { ProjectProvider } from './contexts/ProjectContext';
 import './lib/supabase/debug-kanban';
 
@@ -73,14 +74,7 @@ export default function App() {
             </div>
           );
         case 'roles':
-          return (
-            <div className="p-6">
-              <h1 className="text-2xl font-medium mb-4">Роли и права доступа</h1>
-              <div className="text-center py-16 text-muted-foreground">
-                <p>Раздел "Роли" в разработке</p>
-              </div>
-            </div>
-          );
+          return <RolesAndPermissions />;
         case 'integrations':
           return (
             <div className="p-6">
