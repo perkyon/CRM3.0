@@ -539,17 +539,26 @@ export function Projects() {
                             <MoreHorizontal className="size-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/projects/${project.id}`)}>
+                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/projects/${project.id}`);
+                          }}>
                             <Eye className="size-4 mr-2" />
                             Открыть
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openEditDialog(project)}>
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            openEditDialog(project);
+                          }}>
                             <Edit className="size-4 mr-2" />
                             Редактировать
                           </DropdownMenuItem>
                           <DropdownMenuItem 
-                            onClick={() => openDeleteDialog(project)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openDeleteDialog(project);
+                            }}
                             className="text-red-600"
                           >
                             <Trash2 className="size-4 mr-2" />
