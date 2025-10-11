@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ToastProvider } from './components/ui/custom-toaster';
 import { AppLayout } from './components/layout/AppLayout';
 import { Dashboard } from './components/pages/Dashboard';
@@ -7,7 +7,9 @@ import { Projects } from './components/pages/Projects';
 import { EnhancedProductionKanban } from './components/production/EnhancedProductionKanban';
 import { ProjectOverview } from './components/pages/ProjectOverview';
 import { RolesAndPermissions } from './components/pages/RolesAndPermissions';
+import { LoginPage } from './components/auth/LoginPage';
 import { ProjectProvider } from './contexts/ProjectContext';
+import { useAuth } from './contexts/AuthContext';
 import './lib/supabase/debug-kanban';
 
 
@@ -19,8 +21,27 @@ type PageParams = {
 } | null;
 
 export default function App() {
+  const { isAuthenticated, loading, login } = useAuth();
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [pageParams, setPageParams] = useState<PageParams>(null);
+  
+  // Показываем загрузку пока проверяем авторизацию
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  
+  // Показываем страницу входа если не авторизован
+  if (!isAuthenticated) {
+    return (
+      <ToastProvider>
+        <LoginPage onLogin={login} />
+      </ToastProvider>
+    );
+  }
 
 
 

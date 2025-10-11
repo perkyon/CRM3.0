@@ -1,6 +1,8 @@
 import React, { Suspense } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { routes } from './routes';
+import { useAuth } from '../contexts/AuthContext';
+import { LoginPage } from '../components/auth/LoginPage';
 
 // Создаем роутер
 const router = createBrowserRouter(routes);
@@ -17,6 +19,18 @@ const LoadingFallback = () => (
 
 // Основной компонент роутера
 export function AppRouter() {
+  const { isAuthenticated, loading, login } = useAuth();
+  
+  // Показываем загрузку пока проверяем авторизацию
+  if (loading) {
+    return <LoadingFallback />;
+  }
+  
+  // Показываем страницу входа если не авторизован
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={login} />;
+  }
+  
   return (
     <Suspense fallback={<LoadingFallback />}>
       <RouterProvider router={router} />

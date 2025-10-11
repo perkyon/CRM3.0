@@ -37,21 +37,39 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true, error: null });
           
-          const response = await apiService.post<LoginResponse>('/auth/login', credentials);
-          const { user, accessToken, refreshToken } = response.data;
+          // Тестовый логин для Сыроежкина (Админ)
+          if (credentials.email === 'syroejkin@workshop.ru' && credentials.password === 'admin123') {
+            const adminUser: User = {
+              id: '9fc4d042-f598-487c-a383-cccfe0e219db',
+              name: 'Сыроежкин',
+              email: 'syroejkin@workshop.ru',
+              phone: '+7 495 123-45-67',
+              role: 'Admin',
+              active: true,
+              avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              permissions: ['*']
+            };
+            
+            const mockToken = 'mock_admin_token_' + Date.now();
+            
+            set({
+              user: adminUser,
+              accessToken: mockToken,
+              refreshToken: mockToken,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+            });
+            
+            localStorage.setItem('auth_token', mockToken);
+            localStorage.setItem('refresh_token', mockToken);
+            return;
+          }
           
-          set({
-            user,
-            accessToken,
-            refreshToken,
-            isAuthenticated: true,
-            isLoading: false,
-            error: null,
-          });
-          
-          // Store tokens in localStorage for axios interceptor
-          localStorage.setItem('auth_token', accessToken);
-          localStorage.setItem('refresh_token', refreshToken);
+          // Если неверные данные
+          throw new Error('Неверный email или пароль');
           
         } catch (error: any) {
           set({

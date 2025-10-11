@@ -1,15 +1,15 @@
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
 import { useAuthStore } from '../lib/stores/authStore';
-import { LoginRequest, User } from '../types';
+import { User } from '../types';
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
+  loading: boolean;
   error: string | null;
   
   // Actions
-  login: (credentials: LoginRequest) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
   clearError: () => void;
@@ -18,39 +18,17 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const {
-    user,
-    isAuthenticated,
-    isLoading,
-    error,
-    login,
-    logout,
-    updateUser,
-    clearError,
-  } = useAuthStore();
-
-  // Auto-refresh token on app start
-  useEffect(() => {
-    if (isAuthenticated) {
-      // Check if token is expired and refresh if needed
-      const token = localStorage.getItem('auth_token');
-      if (token) {
-        // In a real app, you would decode the JWT and check expiration
-        // For now, we'll just ensure the token exists
-        console.log('User is authenticated, token exists');
-      }
-    }
-  }, [isAuthenticated]);
+  const authStore = useAuthStore();
 
   const contextValue: AuthContextType = {
-    user,
-    isAuthenticated,
-    isLoading,
-    error,
-    login,
-    logout,
-    updateUser,
-    clearError,
+    user: authStore.user,
+    isAuthenticated: authStore.isAuthenticated,
+    loading: authStore.isLoading,
+    error: authStore.error,
+    login: authStore.login,
+    logout: authStore.logout,
+    updateUser: authStore.updateUser,
+    clearError: authStore.clearError,
   };
 
   return (

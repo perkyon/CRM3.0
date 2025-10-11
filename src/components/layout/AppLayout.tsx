@@ -9,12 +9,14 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescri
 import { AppSidebar } from './AppSidebar';
 import { getInitials } from '../../lib/utils';
 import { useUserStore } from '../../lib/stores/userStore';
+import { useAuth } from '../../contexts/AuthContext';
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser, fetchCurrentUser, fetchUsers } = useUserStore();
+  const { logout } = useAuth();
   
   // Fetch current user and all users on mount
   React.useEffect(() => {
@@ -78,7 +80,7 @@ export function AppLayout() {
                 Настройки
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={logout}>
                 <LogOut className="mr-2 size-4" />
                 Выйти
               </DropdownMenuItem>
@@ -125,7 +127,7 @@ export function AppLayout() {
             <DropdownMenuItem>Профиль</DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleNavigate('settings')}>Настройки</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Выйти</DropdownMenuItem>
+            <DropdownMenuItem onClick={logout}>Выйти</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </header>

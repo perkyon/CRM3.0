@@ -80,6 +80,19 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
+      // Проверяем авторизованного пользователя из AuthStore
+      const savedUser = localStorage.getItem('crm_user');
+      if (savedUser) {
+        try {
+          const user = JSON.parse(savedUser);
+          set({ currentUser: user, isLoading: false });
+          return;
+        } catch (e) {
+          console.error('Error parsing saved user:', e);
+        }
+      }
+      
+      // Если нет сохраненного пользователя, пробуем загрузить из Supabase
       const currentUser = await supabaseUserService.getCurrentUser();
       
       set({
