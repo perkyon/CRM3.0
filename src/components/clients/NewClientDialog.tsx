@@ -146,7 +146,7 @@ export function NewClientDialog({ open, onOpenChange, onClientCreate }: NewClien
         addresses: {},
         preferredChannel: formData.preferredChannel,
         source: formData.source,
-        status: 'lead',
+        status: 'new',
         ownerId: formData.ownerId,
         notes: formData.notes,
         updatedAt: new Date().toISOString()

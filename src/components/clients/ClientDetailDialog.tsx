@@ -46,11 +46,10 @@ interface ClientDetailDialogProps {
 }
 
 const statusLabels = {
-  lead: 'Лид',
   new: 'Новый',
+  client: 'Клиент',
   in_work: 'В работе',
-  lost: 'Потерян',
-  client: 'Клиент'
+  completed: 'Завершен'
 };
 
 const typeLabels = {
@@ -157,11 +156,26 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
 
         <div className="flex-1 min-h-0 flex flex-col">
           <Tabs defaultValue="overview" className="flex-1 flex flex-col">
-            <div className="px-6 pt-6 shrink-0">
-              <TabsList className="grid w-full grid-cols-3 h-auto p-1 bg-muted rounded-lg">
-                <TabsTrigger value="overview" className="text-sm py-3 px-6">Обзор</TabsTrigger>
-                <TabsTrigger value="projects" className="text-sm py-3 px-6">Проекты</TabsTrigger>
-                <TabsTrigger value="documents" className="text-sm py-3 px-6">Документы</TabsTrigger>
+            <div className="px-6 pt-6 pb-0 shrink-0 border-b">
+              <TabsList className="w-full h-auto p-0 bg-transparent border-0 rounded-none flex justify-start gap-0">
+                <TabsTrigger 
+                  value="overview" 
+                  className="text-sm py-3 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none bg-transparent"
+                >
+                  Обзор
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="projects" 
+                  className="text-sm py-3 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none bg-transparent"
+                >
+                  Проекты
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="documents" 
+                  className="text-sm py-3 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none bg-transparent"
+                >
+                  Документы
+                </TabsTrigger>
               </TabsList>
             </div>
 

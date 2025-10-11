@@ -45,11 +45,10 @@ const typeLabels = {
 };
 
 const statusLabels = {
-  lead: 'Лид',
   new: 'Новый',
+  client: 'Клиент',
   in_work: 'В работе',
-  lost: 'Потерян',
-  client: 'Клиент'
+  completed: 'Завершен'
 };
 
 const channelLabels = {
@@ -68,7 +67,7 @@ export function EditClientDialog({ client, open, onOpenChange, onClientUpdate }:
     type: 'Физ. лицо' as 'Физ. лицо' | 'ИП' | 'ООО',
     name: '',
     company: '',
-    status: 'lead' as 'lead' | 'new' | 'in_work' | 'lost' | 'client',
+    status: 'new' as 'new' | 'client' | 'in_work' | 'completed',
     source: '',
     ownerId: '',
     preferredChannel: 'Phone' as 'WhatsApp' | 'Telegram' | 'Email' | 'Phone',
@@ -347,7 +346,7 @@ export function EditClientDialog({ client, open, onOpenChange, onClientUpdate }:
                       {/* Статус */}
                       <div>
                         <Label htmlFor="status">Статус</Label>
-                        <Select value={formData.status} onValueChange={(value: 'lead' | 'new' | 'in_work' | 'lost' | 'client') => 
+                        <Select value={formData.status} onValueChange={(value: 'new' | 'client' | 'in_work' | 'completed') => 
                           setFormData(prev => ({ ...prev, status: value }))
                         }>
                           <SelectTrigger id="status" className="mt-1">

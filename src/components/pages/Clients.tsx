@@ -33,11 +33,10 @@ import { NewClientDialog } from '../clients/NewClientDialog';
 import { toast } from 'sonner';
 
 const statusLabels = {
-  lead: 'Лид',
   new: 'Новый',
+  client: 'Клиент',
   in_work: 'В работе',
-  lost: 'Потерян',
-  client: 'Клиент'
+  completed: 'Завершен'
 };
 
 const typeLabels: Record<string, string> = {
@@ -184,11 +183,10 @@ export function Clients() {
                 className="px-3 py-2 border rounded-md"
               >
                 <option value="all">Все статусы</option>
-                <option value="lead">Лиды</option>
                 <option value="new">Новые</option>
-                <option value="in_work">В работе</option>
                 <option value="client">Клиенты</option>
-                <option value="lost">Потерянные</option>
+                <option value="in_work">В работе</option>
+                <option value="completed">Завершенные</option>
               </select>
               <Sheet>
                 <SheetTrigger asChild>

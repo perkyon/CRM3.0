@@ -420,15 +420,11 @@ export function EnhancedProductionKanban({ projectId, onNavigate }: EnhancedProd
       {/* Header */}
       <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
         <div className="flex items-center gap-4">
-          {projectId && onNavigate && (
-            <>
-              <Button variant="ghost" size="sm" onClick={() => onNavigate('project-overview', { projectId })}>
-                <ArrowLeft className="size-4 mr-2" />
-                Назад к проекту
-              </Button>
-              <div className="border-l border-border h-6"></div>
-            </>
-          )}
+          <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
+            <ArrowLeft className="size-4 mr-2" />
+            Назад
+          </Button>
+          <div className="border-l border-border h-6"></div>
           <div>
             <h1 className="text-2xl font-medium">{currentBoard.title}</h1>
             <p className="text-muted-foreground">

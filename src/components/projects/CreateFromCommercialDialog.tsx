@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -15,7 +15,8 @@ import {
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { toast } from '../../lib/toast';
-import { mockUsers } from '../../lib/mockData';
+import { useUserStore } from '../../lib/stores/userStore';
+import { SmartClientSearch } from './SmartClientSearch';
 import { CommercialDocument } from '../commercial/CommercialDocuments';
 
 interface CreateFromCommercialDialogProps {
@@ -31,6 +32,7 @@ export function CreateFromCommercialDialog({
   onOpenChange,
   onProjectCreate
 }: CreateFromCommercialDialogProps) {
+  const { users, fetchUsers } = useUserStore();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -41,6 +43,10 @@ export function CreateFromCommercialDialog({
     dueDate: '',
     priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent'
   });
+  
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   // Инициализация формы на основе коммерческого документа
   React.useEffect(() => {
@@ -190,7 +196,7 @@ export function CreateFromCommercialDialog({
                   <SelectValue placeholder="Выберите менеджера" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockUsers.filter(user => user.role === 'Manager').map((user) => (
+                  {users.filter(user => user.role === 'Manager').map((user) => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.name}
                     </SelectItem>
@@ -209,7 +215,7 @@ export function CreateFromCommercialDialog({
                   <SelectValue placeholder="Выберите начальника цеха" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockUsers.filter(user => user.role === 'Master').map((user) => (
+                  {users.filter(user => user.role === 'Master').map((user) => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.name}
                     </SelectItem>

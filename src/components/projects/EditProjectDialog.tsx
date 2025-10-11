@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { DatePicker } from '../ui/date-picker';
 import { toast } from '../../lib/toast';
 import { Project } from '../../types';
-import { mockClients, mockUsers } from '../../lib/mockData';
+import { useUserStore } from '../../lib/stores/userStore';
+import { SmartClientSearch } from './SmartClientSearch';
 
 interface EditProjectDialogProps {
   project: Project;
@@ -18,6 +19,8 @@ interface EditProjectDialogProps {
 }
 
 export function EditProjectDialog({ project, open, onOpenChange, onProjectUpdate }: EditProjectDialogProps) {
+  const { users, fetchUsers } = useUserStore();
+  
   const [formData, setFormData] = useState({
     title: project.title,
     description: project.description || '',
@@ -31,6 +34,10 @@ export function EditProjectDialog({ project, open, onOpenChange, onProjectUpdate
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,18 +127,12 @@ export function EditProjectDialog({ project, open, onOpenChange, onProjectUpdate
 
             <div>
               <Label htmlFor="client">Клиент *</Label>
-              <Select value={formData.clientId} onValueChange={(value) => handleInputChange('clientId', value)}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Выберите клиента" />
-                </SelectTrigger>
-                <SelectContent>
-                  {mockClients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SmartClientSearch 
+                value={formData.clientId}
+                onValueChange={(value) => handleInputChange('clientId', value)}
+                placeholder="Поиск клиента по имени, телефону, email..."
+                className="mt-1"
+              />
             </div>
 
             <div>
@@ -141,7 +142,7 @@ export function EditProjectDialog({ project, open, onOpenChange, onProjectUpdate
                   <SelectValue placeholder="Выберите менеджера" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockUsers.filter(user => user.role === 'Manager').map((user) => (
+                  {users.filter(user => user.role === 'Manager').map((user) => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.name}
                     </SelectItem>
@@ -158,7 +159,7 @@ export function EditProjectDialog({ project, open, onOpenChange, onProjectUpdate
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Не назначен</SelectItem>
-                  {mockUsers.filter(user => user.role === 'Master').map((user) => (
+                  {users.filter(user => user.role === 'Master').map((user) => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.name}
                     </SelectItem>
