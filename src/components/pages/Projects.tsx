@@ -539,15 +539,15 @@ export function Projects() {
                             <MoreHorizontal className="size-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                          <DropdownMenuItem onClick={(e) => {
+                        <DropdownMenuContent align="end" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                          <DropdownMenuItem onClick={(e: React.MouseEvent) => {
                             e.stopPropagation();
                             navigate(`/projects/${project.id}`);
                           }}>
                             <Eye className="size-4 mr-2" />
                             Открыть
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={(e) => {
+                          <DropdownMenuItem onClick={(e: React.MouseEvent) => {
                             e.stopPropagation();
                             openEditDialog(project);
                           }}>
@@ -555,7 +555,7 @@ export function Projects() {
                             Редактировать
                           </DropdownMenuItem>
                           <DropdownMenuItem 
-                            onClick={(e) => {
+                            onClick={(e: React.MouseEvent) => {
                               e.stopPropagation();
                               openDeleteDialog(project);
                             }}

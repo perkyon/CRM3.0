@@ -356,8 +356,8 @@ export function Clients() {
                             <MoreHorizontal className="size-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                          <DropdownMenuItem onClick={(e) => {
+                        <DropdownMenuContent align="end" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                          <DropdownMenuItem onClick={(e: React.MouseEvent) => {
                             e.stopPropagation();
                             setSelectedClient(client);
                             setIsClientDetailOpen(true);
@@ -366,7 +366,7 @@ export function Clients() {
                             Открыть
                           </DropdownMenuItem>
                           <DropdownMenuItem 
-                            onClick={(e) => {
+                            onClick={(e: React.MouseEvent) => {
                               e.stopPropagation();
                               setClientToDelete(client);
                               setIsDeleteDialogOpen(true);
