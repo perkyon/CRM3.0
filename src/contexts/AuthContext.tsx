@@ -20,12 +20,16 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const authStore = useAuthStore();
 
+  const login = async (email: string, password: string) => {
+    return authStore.login({ email, password });
+  };
+
   const contextValue: AuthContextType = {
     user: authStore.user,
     isAuthenticated: authStore.isAuthenticated,
     loading: authStore.isLoading,
     error: authStore.error,
-    login: authStore.login,
+    login,
     logout: authStore.logout,
     updateUser: authStore.updateUser,
     clearError: authStore.clearError,
