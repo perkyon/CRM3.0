@@ -200,17 +200,6 @@ export function Clients() {
               />
             </div>
             <div className="flex gap-2">
-              <select 
-                value={statusFilter}
-                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border rounded-md"
-              >
-                <option value="all">Все статусы</option>
-                <option value="new">Новые</option>
-                <option value="client">Клиенты</option>
-                <option value="in_work">В работе</option>
-                <option value="completed">Завершенные</option>
-              </select>
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="outline">
@@ -225,7 +214,42 @@ export function Clients() {
                   <SheetHeader>
                     <SheetTitle>Расширенные фильтры</SheetTitle>
                   </SheetHeader>
-                  <div className="space-y-4 mt-6">
+                  <div className="space-y-6 mt-6">
+                    <div>
+                      <label className="text-sm font-medium mb-3 block">Статус клиента</label>
+                      <div className="space-y-2">
+                        <label 
+                          className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
+                        >
+                          <input 
+                            type="radio" 
+                            name="status"
+                            value="all"
+                            checked={statusFilter === 'all'}
+                            onChange={() => setStatusFilter('all')}
+                            className="w-4 h-4"
+                          />
+                          <span className="font-medium">✓ Все статусы</span>
+                        </label>
+                        {Object.entries(statusLabels).map(([key, label]) => (
+                          <label 
+                            key={key} 
+                            className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
+                          >
+                            <input 
+                              type="radio" 
+                              name="status"
+                              value={key}
+                              checked={statusFilter === key}
+                              onChange={() => setStatusFilter(key)}
+                              className="w-4 h-4"
+                            />
+                            <span className="font-medium">{label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
                     <div>
                       <label className="text-sm font-medium">Тип клиента</label>
                       <div className="space-y-2 mt-2">
@@ -236,10 +260,6 @@ export function Clients() {
                           </label>
                         ))}
                       </div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Источник</label>
-                      <Input placeholder="Поиск по источнику" className="mt-2" />
                     </div>
                     <div>
                       <label className="text-sm font-medium">Ответственный</label>
@@ -396,10 +416,20 @@ export function Clients() {
         onNavigate={(page: string) => navigate(`/${page}`)}
         onClientUpdate={async (updatedClient) => {
           try {
-            await updateClient(updatedClient.id, updatedClient);
-            // Update clients in store
-            // Note: This should be handled by the store's updateClient method
+            await updateClient(updatedClient.id, {
+              name: updatedClient.name,
+              company: updatedClient.company,
+              type: updatedClient.type,
+              status: updatedClient.status,
+              source: updatedClient.source,
+              preferredChannel: updatedClient.preferredChannel,
+              ownerId: updatedClient.ownerId,
+              notes: updatedClient.notes,
+              contacts: updatedClient.contacts,
+              addresses: updatedClient.addresses,
+            });
             toast.success('Клиент успешно обновлен');
+            await fetchClients(); // Refresh list
           } catch (error) {
             console.error('Error updating client:', error);
             toast.error('Ошибка при обновлении клиента');

@@ -137,15 +137,13 @@ export function Projects() {
   // Функция редактирования проекта
   const handleEditProject = async () => {
     if (!selectedProject || !newProject.title || !newProject.clientId || !newProject.managerId) {
-      toast('Заполните обязательные поля', { type: 'error' });
+      toast.error('Заполните обязательные поля');
       return;
     }
 
     setIsLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      updateProject(selectedProject.id, {
+      await updateProject(selectedProject.id, {
         clientId: newProject.clientId,
         title: newProject.title,
         siteAddress: newProject.siteAddress,
@@ -157,7 +155,7 @@ export function Projects() {
         priority: newProject.priority
       });
       
-      toast('Проект успешно обновлён', { type: 'success' });
+      toast.success('Проект успешно обновлен');
       setIsEditDialogOpen(false);
       setSelectedProject(null);
     } catch (error) {
