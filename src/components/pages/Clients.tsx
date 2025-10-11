@@ -6,6 +6,7 @@ import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '../ui/sheet';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../ui/alert-dialog';
 
@@ -200,79 +201,42 @@ export function Clients() {
               />
             </div>
             <div className="flex gap-2">
-              <Sheet>
-                <SheetTrigger asChild>
+              <Popover>
+                <PopoverTrigger asChild>
                   <Button variant="outline">
                     <Filter className="size-4 mr-2" />
                     Фильтры
                   </Button>
-                </SheetTrigger>
-                <SheetContent aria-describedby="filters-sheet-description">
-                  <SheetDescription id="filters-sheet-description" className="sr-only">
-                    Панель расширенных фильтров для поиска клиентов
-                  </SheetDescription>
-                  <SheetHeader>
-                    <SheetTitle>Расширенные фильтры</SheetTitle>
-                  </SheetHeader>
-                  <div className="space-y-6 mt-6">
+                </PopoverTrigger>
+                <PopoverContent className="w-80" align="end">
+                  <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium mb-3 block">Статус клиента</label>
-                      <div className="space-y-2">
-                        <label 
-                          className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
+                      <h4 className="font-medium mb-3">Статус клиента</h4>
+                      <div className="space-y-1">
+                        <div 
+                          className={`flex items-center space-x-2 p-2 rounded-md hover:bg-accent cursor-pointer transition-colors ${statusFilter === 'all' ? 'bg-accent' : ''}`}
+                          onClick={() => setStatusFilter('all')}
                         >
-                          <input 
-                            type="radio" 
-                            name="status"
-                            value="all"
-                            checked={statusFilter === 'all'}
-                            onChange={() => setStatusFilter('all')}
-                            className="w-4 h-4"
-                          />
-                          <span className="font-medium">✓ Все статусы</span>
-                        </label>
+                          {statusFilter === 'all' && <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center"><div className="w-2 h-2 rounded-full bg-white"></div></div>}
+                          {statusFilter !== 'all' && <div className="w-4 h-4 rounded-full border-2"></div>}
+                          <span className="text-sm">Все статусы</span>
+                        </div>
                         {Object.entries(statusLabels).map(([key, label]) => (
-                          <label 
-                            key={key} 
-                            className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
+                          <div 
+                            key={key}
+                            className={`flex items-center space-x-2 p-2 rounded-md hover:bg-accent cursor-pointer transition-colors ${statusFilter === key ? 'bg-accent' : ''}`}
+                            onClick={() => setStatusFilter(key)}
                           >
-                            <input 
-                              type="radio" 
-                              name="status"
-                              value={key}
-                              checked={statusFilter === key}
-                              onChange={() => setStatusFilter(key)}
-                              className="w-4 h-4"
-                            />
-                            <span className="font-medium">{label}</span>
-                          </label>
+                            {statusFilter === key && <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center"><div className="w-2 h-2 rounded-full bg-white"></div></div>}
+                            {statusFilter !== key && <div className="w-4 h-4 rounded-full border-2"></div>}
+                            <span className="text-sm">{label}</span>
+                          </div>
                         ))}
                       </div>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium">Тип клиента</label>
-                      <div className="space-y-2 mt-2">
-                        {Object.entries(typeLabels).map(([key, label]) => (
-                          <label key={key} className="flex items-center space-x-2">
-                            <input type="checkbox" />
-                            <span>{label}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Ответственный</label>
-                      <select className="w-full p-2 border rounded-md mt-2">
-                        <option value="">Все</option>
-                        {users.map(user => (
-                          <option key={user.id} value={user.id}>{user.name}</option>
-                        ))}
-                      </select>
                     </div>
                   </div>
-                </SheetContent>
-              </Sheet>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </CardContent>
