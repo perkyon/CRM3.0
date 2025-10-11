@@ -157,17 +157,17 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
 
         <div className="flex-1 min-h-0 flex flex-col">
           <Tabs defaultValue="overview" className="flex-1 flex flex-col">
-            <div className="px-4 sm:px-6 pt-4 shrink-0">
+            <div className="px-6 pt-6 shrink-0">
               <TabsList className="grid w-full grid-cols-3 h-auto p-1 bg-muted rounded-lg">
-                <TabsTrigger value="overview" className="text-xs sm:text-sm py-2 px-4">Обзор</TabsTrigger>
-                <TabsTrigger value="projects" className="text-xs sm:text-sm py-2 px-4">Проекты</TabsTrigger>
-                <TabsTrigger value="documents" className="text-xs sm:text-sm py-2 px-4">Документы</TabsTrigger>
+                <TabsTrigger value="overview" className="text-sm py-3 px-6">Обзор</TabsTrigger>
+                <TabsTrigger value="projects" className="text-sm py-3 px-6">Проекты</TabsTrigger>
+                <TabsTrigger value="documents" className="text-sm py-3 px-6">Документы</TabsTrigger>
               </TabsList>
             </div>
 
             <div className="flex-1 min-h-0 overflow-y-auto">
-              <TabsContent value="overview" className="space-y-4 mt-4 sm:mt-6 m-0 overflow-y-auto max-h-[60vh]">
-                <div className="px-4 sm:px-6 space-y-6">
+              <TabsContent value="overview" className="mt-0 m-0 h-full">
+                <div className="px-6 py-6 space-y-6 overflow-y-auto h-full">
                   {/* Основная информация */}
                   <Card>
                     <CardHeader className="pb-4">
@@ -364,8 +364,8 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
                 </div>
               </TabsContent>
 
-              <TabsContent value="projects" className="space-y-4 mt-4 sm:mt-6 m-0 overflow-y-auto max-h-[60vh]">
-                <div className="px-4 sm:px-6">
+              <TabsContent value="projects" className="mt-0 m-0 h-full">
+                <div className="px-6 py-6 overflow-y-auto h-full">
                   <div className="text-center py-16">
                     <Star className="size-12 mx-auto text-muted-foreground mb-4" />
                     <h3 className="font-medium mb-2">Проекты клиента</h3>
@@ -380,8 +380,8 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
                 </div>
               </TabsContent>
 
-              <TabsContent value="documents" className="space-y-4 mt-4 sm:mt-6 m-0 overflow-y-auto max-h-[60vh]">
-                <div className="px-4 sm:px-6">
+              <TabsContent value="documents" className="mt-0 m-0 h-full">
+                <div className="px-6 py-6 overflow-y-auto h-full">
                   <DocumentManager 
                     entityType="client"
                     entityId={client.id}
