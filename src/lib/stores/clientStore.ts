@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { Client, CreateClientRequest, UpdateClientRequest, ClientSearchParams } from '../../types';
 import { supabaseClientService } from '../supabase/services/ClientService';
 import { PaginatedResponse } from '../api/config';
+import { realtimeService } from '../supabase/realtime';
 
 interface ClientState {
   // State
@@ -28,6 +29,8 @@ interface ClientState {
   setFilters: (filters: Partial<ClientSearchParams>) => void;
   clearError: () => void;
   setLoading: (loading: boolean) => void;
+  subscribeToRealtime: () => void;
+  unsubscribeFromRealtime: () => void;
 }
 
 export const useClientStore = create<ClientState>((set, get) => ({
@@ -196,5 +199,37 @@ export const useClientStore = create<ClientState>((set, get) => ({
 
   setLoading: (loading: boolean) => {
     set({ isLoading: loading });
+  },
+
+  subscribeToRealtime: () => {
+    realtimeService.subscribeToClients(
+      // onInsert
+      (payload) => {
+        console.log('New client added:', payload);
+        set((state) => ({
+          clients: [payload.new, ...state.clients],
+        }));
+      },
+      // onUpdate
+      (payload) => {
+        console.log('Client updated:', payload);
+        set((state) => ({
+          clients: state.clients.map(client =>
+            client.id === payload.new.id ? { ...client, ...payload.new } : client
+          ),
+        }));
+      },
+      // onDelete
+      (payload) => {
+        console.log('Client deleted:', payload);
+        set((state) => ({
+          clients: state.clients.filter(client => client.id !== payload.old.id),
+        }));
+      }
+    );
+  },
+
+  unsubscribeFromRealtime: () => {
+    realtimeService.unsubscribe('clients');
   },
 }));

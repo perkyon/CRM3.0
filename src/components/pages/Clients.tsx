@@ -63,7 +63,9 @@ export function Clients() {
     createClient,
     updateClient,
     deleteClient,
-    clearError
+    clearError,
+    subscribeToRealtime,
+    unsubscribeFromRealtime
   } = useClientStore();
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -376,7 +378,13 @@ export function Clients() {
       <ClientDetailDialog
         client={selectedClient}
         open={isClientDetailOpen}
-        onOpenChange={setIsClientDetailOpen}
+        onOpenChange={(open) => {
+          setIsClientDetailOpen(open);
+          if (!open) {
+            // Refresh when closing to get latest data
+            fetchClients();
+          }
+        }}
         onNavigate={(page: string) => navigate(`/${page}`)}
         onClientUpdate={async (updatedClient) => {
           try {
@@ -392,11 +400,13 @@ export function Clients() {
               contacts: updatedClient.contacts,
               addresses: updatedClient.addresses,
             });
-            toast.success('Клиент успешно обновлен');
-            await fetchClients(); // Refresh list
+            // Don't show toast here - EditClientDialog already shows it
+            // Refresh list to show changes
+            await fetchClients();
           } catch (error) {
             console.error('Error updating client:', error);
             toast.error('Ошибка при обновлении клиента');
+            throw error; // Re-throw so EditClientDialog knows it failed
           }
         }}
       />
