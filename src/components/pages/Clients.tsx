@@ -86,6 +86,15 @@ export function Clients() {
     return () => clearTimeout(timer);
   }, [fetchClients]);
 
+  // Subscribe to real-time updates for collaboration
+  useEffect(() => {
+    subscribeToRealtime();
+    
+    return () => {
+      unsubscribeFromRealtime();
+    };
+  }, [subscribeToRealtime, unsubscribeFromRealtime]);
+
   const filteredClients = useMemo(() => {
     return clients.filter(client => {
       const matchesSearch = client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
