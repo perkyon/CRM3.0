@@ -6,6 +6,8 @@ import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '../ui/sheet';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../ui/alert-dialog';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Avatar, AvatarFallback } from '../ui/avatar';
@@ -20,7 +22,11 @@ import {
   FolderOpen,
   Calendar,
   FileText,
-  History
+  History,
+  Eye,
+  Edit,
+  Trash2,
+  Loader2
 } from 'lucide-react';
 import { useUserStore } from '../../lib/stores/userStore';
 import { useProjects } from '../../contexts/ProjectContextNew';
@@ -55,6 +61,7 @@ export function Clients() {
     fetchClients,
     createClient,
     updateClient,
+    deleteClient,
     clearError
   } = useClientStore();
   
@@ -63,6 +70,8 @@ export function Clients() {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isClientDetailOpen, setIsClientDetailOpen] = useState(false);
   const [isNewClientOpen, setIsNewClientOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
 
   // Load clients on component mount
   React.useEffect(() => {
@@ -323,17 +332,36 @@ export function Clients() {
                     <TableCell>{getOwnerName(client.ownerId)}</TableCell>
                     <TableCell>{formatDate(client.lastActivity)}</TableCell>
                     <TableCell>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={(e: React.MouseEvent) => {
-                          e.stopPropagation();
-                          setSelectedClient(client);
-                          setIsClientDetailOpen(true);
-                        }}
-                      >
-                        <MoreHorizontal className="size-4" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                          >
+                            <MoreHorizontal className="size-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => {
+                            setSelectedClient(client);
+                            setIsClientDetailOpen(true);
+                          }}>
+                            <Eye className="size-4 mr-2" />
+                            Открыть
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              setClientToDelete(client);
+                              setIsDeleteDialogOpen(true);
+                            }}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="size-4 mr-2" />
+                            Удалить
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                   ))
@@ -369,6 +397,32 @@ export function Clients() {
         onOpenChange={setIsNewClientOpen}
         onClientCreate={handleClientCreate}
       />
+
+      {/* Delete Client Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить клиента?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Вы действительно хотите удалить клиента "{clientToDelete?.name}"? 
+              Это действие нельзя отменить. Все данные клиента будут безвозвратно утеряны.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isLoading}>
+              Отмена
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteClient}
+              disabled={isLoading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isLoading && <Loader2 className="size-4 mr-2 animate-spin" />}
+              Удалить клиента
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
