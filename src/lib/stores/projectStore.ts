@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { Project, CreateProjectRequest, UpdateProjectRequest, ProjectSearchParams } from '../../types';
 import { supabaseProjectService } from '../supabase/services/ProjectService';
 import { PaginatedResponse } from '../api/config';
+import { generateProjectId } from '../utils/idGenerator';
 
 interface ProjectState {
   // State
@@ -108,7 +109,14 @@ export const useProjectStore = create<ProjectState>()(
     try {
       set({ isLoading: true, error: null });
       
-      const newProject = await supabaseProjectService.createProject(projectData);
+      // Generate readable ID
+      const existingIds = get().projects.map(p => p.id);
+      const readableId = generateProjectId(existingIds);
+      
+      const newProject = await supabaseProjectService.createProject({
+        ...projectData,
+        id: readableId
+      } as any);
       
       set((state) => ({
         projects: [newProject, ...state.projects],

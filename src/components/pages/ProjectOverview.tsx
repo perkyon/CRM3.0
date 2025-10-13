@@ -31,15 +31,16 @@ import { DocumentManager } from '../documents/DocumentManager';
 import { MaterialsManager } from '../materials/MaterialsManager';
 import { SimpleEditDialog } from '../projects/SimpleEditDialog';
 import { ClientDetailDialog } from '../clients/ClientDetailDialog';
+import { StageSelector } from '../projects/StageSelector';
 import { formatCurrency, formatDate, getDaysUntilDue } from '../../lib/utils';
 import { StatusBadge } from '../ui/status-badge';
-import { Project } from '../../types';
+import { Project, ProjectStage } from '../../types';
 import { toast } from '../../lib/toast';
 
 export function ProjectOverview() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
-  const { projects, selectedProject, fetchProject } = useProjects();
+  const { projects, selectedProject, fetchProject, updateProject } = useProjects();
   const { clients } = useClientStore();
   const [project, setProject] = useState<Project | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -109,6 +110,18 @@ export function ProjectOverview() {
     }
   };
 
+  const handleStageChange = async (newStage: ProjectStage) => {
+    if (!project) return;
+    
+    try {
+      await updateProject(project.id, { stage: newStage });
+      setProject({ ...project, stage: newStage });
+      toast.success('Этап проекта обновлен');
+    } catch (error) {
+      toast.error('Ошибка обновления этапа');
+    }
+  };
+
   const getPriorityText = (priority: string) => {
     switch (priority) {
       case 'urgent': return 'Срочный';
@@ -163,9 +176,10 @@ export function ProjectOverview() {
               <div>
                 <p className="text-sm text-muted-foreground">Текущий этап</p>
                 <div className="mt-2">
-                  <StatusBadge status={project.stage}>
-                    {projectStageNames[project.stage as keyof typeof projectStageNames] || project.stage}
-                  </StatusBadge>
+                  <StageSelector 
+                    currentStage={project.stage}
+                    onStageChange={handleStageChange}
+                  />
                 </div>
               </div>
               <CheckCircle className="size-8 text-muted-foreground" />

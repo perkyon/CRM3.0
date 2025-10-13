@@ -3,6 +3,7 @@ import { Client, CreateClientRequest, UpdateClientRequest, ClientSearchParams } 
 import { supabaseClientService } from '../supabase/services/ClientService';
 import { PaginatedResponse } from '../api/config';
 import { realtimeService } from '../supabase/realtime';
+import { generateClientId } from '../utils/idGenerator';
 
 interface ClientState {
   // State
@@ -119,7 +120,14 @@ export const useClientStore = create<ClientState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const newClient = await supabaseClientService.createClient(clientData);
+      // Generate readable ID
+      const existingIds = get().clients.map(c => c.id);
+      const readableId = generateClientId(existingIds);
+      
+      const newClient = await supabaseClientService.createClient({
+        ...clientData,
+        id: readableId
+      } as any);
       
       set((state) => ({
         clients: [newClient, ...state.clients],
