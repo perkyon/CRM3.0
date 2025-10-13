@@ -52,16 +52,29 @@ export function ProjectOverview() {
       const localProject = projects.find(p => p.id === projectId);
       if (localProject) {
         setProject(localProject);
+        // Загружаем документы проекта
+        loadProjectDocuments(projectId);
       } else {
         // Если не найден локально, загружаем из API
         fetchProject(projectId).then(() => {
           if (selectedProject && selectedProject.id === projectId) {
             setProject(selectedProject);
+            loadProjectDocuments(projectId);
           }
         });
       }
     }
   }, [projectId, projects, selectedProject, fetchProject]);
+
+  const loadProjectDocuments = async (projectId: string) => {
+    try {
+      const { supabaseProjectService } = await import('../../lib/supabase/services/ProjectService');
+      const documents = await supabaseProjectService.getProjectDocuments(projectId);
+      setProject(prev => prev ? { ...prev, documents } : null);
+    } catch (error) {
+      console.error('Error loading project documents:', error);
+    }
+  };
 
   // Обновляем проект при изменении selectedProject
   useEffect(() => {

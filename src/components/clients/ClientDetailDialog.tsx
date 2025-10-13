@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
@@ -72,11 +72,31 @@ const documentCategoryLabels = {
 export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onClientUpdate }: ClientDetailDialogProps) {
   const { projects } = useProjects();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+
+  useEffect(() => {
+    if (client) {
+      setSelectedClient(client);
+      // Загружаем документы клиента
+      loadClientDocuments(client.id);
+    }
+  }, [client]);
+
+  const loadClientDocuments = async (clientId: string) => {
+    try {
+      const { supabaseClientService } = await import('../../lib/supabase/services/ClientService');
+      const documents = await supabaseClientService.getClientDocuments(clientId);
+      setSelectedClient(prev => prev ? { ...prev, documents } : null);
+    } catch (error) {
+      console.error('Error loading client documents:', error);
+    }
+  };
 
   if (!client) return null;
 
-  const clientProjects = projects.filter(p => p.clientId === client.id);
-  const primaryContact = client.contacts.find(c => c.isPrimary) || client.contacts[0];
+  const currentClient = selectedClient || client;
+  const clientProjects = projects.filter(p => p.clientId === currentClient.id);
+  const primaryContact = currentClient.contacts.find(c => c.isPrimary) || currentClient.contacts[0];
 
   const handleEdit = () => {
     setIsEditDialogOpen(true);
@@ -118,22 +138,22 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
             <div className="min-w-0 flex-1">
               <DialogTitle className="flex items-center gap-3 mb-3">
                 <Avatar className="size-10 shrink-0">
-                  <AvatarFallback>{getInitials(client.name)}</AvatarFallback>
+                  <AvatarFallback>{getInitials(currentClient.name)}</AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <div className="text-lg sm:text-xl font-medium truncate">{client.name}</div>
+                  <div className="text-lg sm:text-xl font-medium truncate">{currentClient.name}</div>
                   <div className="text-sm text-muted-foreground">
-                    {typeLabels[client.type] || client.type}
+                    {typeLabels[currentClient.type] || currentClient.type}
                   </div>
                 </div>
               </DialogTitle>
               
               <div className="flex flex-wrap items-center gap-2 mb-3">
-                <StatusBadge status={client.status}>
-                  {statusLabels[client.status]}
+                <StatusBadge status={currentClient.status}>
+                  {statusLabels[currentClient.status]}
                 </StatusBadge>
                 
-                {client.tags.map((tag) => (
+                {currentClient.tags.map((tag) => (
                   <Badge key={tag.id} variant="outline" className="text-xs">
                     <Tag className="size-3 mr-1" />
                     {tag.name}
@@ -399,20 +419,22 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
                 <div className="px-6 py-6 overflow-y-auto h-full">
                   <DocumentManager 
                     entityType="client"
-                    entityId={client.id}
-                    documents={client.documents || []}
-                    onDocumentAdd={(document) => {
-                      const updatedClient = {
-                        ...client,
-                        documents: [...(client.documents || []), document]
-                      };
-                      onClientUpdate?.(updatedClient);
-                    }}
+                    entityId={currentClient.id}
+                    documents={currentClient.documents || []}
+                onDocumentAdd={(document) => {
+                  const updatedClient = {
+                    ...currentClient,
+                    documents: [...(currentClient.documents || []), document]
+                  };
+                  setSelectedClient(updatedClient);
+                  onClientUpdate?.(updatedClient);
+                }}
                     onDocumentDelete={(documentId) => {
                       const updatedClient = {
-                        ...client,
-                        documents: (client.documents || []).filter(d => d.id !== documentId)
+                        ...currentClient,
+                        documents: (currentClient.documents || []).filter(d => d.id !== documentId)
                       };
+                      setSelectedClient(updatedClient);
                       onClientUpdate?.(updatedClient);
                     }}
                   />

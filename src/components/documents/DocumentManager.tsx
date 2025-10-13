@@ -106,22 +106,33 @@ export function DocumentManager({
     setIsUploading(true);
 
     try {
-      // Симуляция загрузки файла
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Загружаем файл в Supabase
+      let uploadedDocument;
+      
+      if (entityType === 'client') {
+        const { supabaseClientService } = await import('../../lib/supabase/services/ClientService');
+        uploadedDocument = await supabaseClientService.uploadClientDocument(entityId, file);
+      } else if (entityType === 'project') {
+        const { supabaseProjectService } = await import('../../lib/supabase/services/ProjectService');
+        uploadedDocument = await supabaseProjectService.uploadProjectDocument(entityId, file, selectedCategory);
+      } else {
+        throw new Error('Неизвестный тип сущности');
+      }
 
+      // Преобразуем ответ от Supabase в формат ClientDocument
       const newDocument: ClientDocument = {
-        id: `doc_${Date.now()}`,
-        clientId: entityType === 'client' ? entityId : '',
-        name: description || file.name,
-        originalName: file.name,
-        type: file.type as any,
-        category: selectedCategory,
-        size: file.size,
-        uploadedBy: 'current-user',
-        uploadedAt: new Date().toISOString(),
+        id: uploadedDocument.id,
+        clientId: entityType === 'client' ? entityId : uploadedDocument.project_id || '',
+        name: uploadedDocument.name,
+        originalName: uploadedDocument.original_name,
+        type: uploadedDocument.type as any,
+        category: uploadedDocument.category as any,
+        size: uploadedDocument.size,
+        uploadedBy: uploadedDocument.uploaded_by || 'current-user',
+        uploadedAt: uploadedDocument.created_at,
         version: 1,
         description: description || undefined,
-        url: URL.createObjectURL(file) // В реальном приложении это будет URL с сервера
+        url: uploadedDocument.url
       };
 
       onDocumentAdd(newDocument);
@@ -146,9 +157,22 @@ export function DocumentManager({
     }
   };
 
-  const handleDelete = (documentId: string) => {
-    onDocumentDelete(documentId);
-    toast.success('Документ удален');
+  const handleDelete = async (documentId: string) => {
+    try {
+      if (entityType === 'client') {
+        const { supabaseClientService } = await import('../../lib/supabase/services/ClientService');
+        await supabaseClientService.deleteClientDocument(entityId, documentId);
+      } else if (entityType === 'project') {
+        const { supabaseProjectService } = await import('../../lib/supabase/services/ProjectService');
+        await supabaseProjectService.deleteProjectDocument(entityId, documentId);
+      }
+      
+      onDocumentDelete(documentId);
+      toast.success('Документ удален');
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      toast.error('Ошибка при удалении документа');
+    }
   };
 
   const handleDownload = (document: ClientDocument) => {
