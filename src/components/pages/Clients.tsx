@@ -37,6 +37,7 @@ import { StatusBadge } from '../ui/status-badge';
 import { Client } from '../../types';
 import { ClientDetailDialog } from '../clients/ClientDetailDialog';
 import { NewClientDialog } from '../clients/NewClientDialog';
+import { DocumentManager } from '../documents/DocumentManager';
 import { toast } from 'sonner';
 
 const statusLabels = {
@@ -642,23 +643,29 @@ function ClientProfile({ client, projects, onNavigate }: {
         </TabsContent>
 
         <TabsContent value="files">
-          <Card>
-            <CardHeader>
-              <CardTitle>Файлы и документы</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <FileText className="size-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="font-medium mb-2">Нет файлов</h3>
-                <p className="text-muted-foreground mb-4">
-                  Файлы клиента будут отображаться здесь
-                </p>
-                <Button variant="outline">
-                  Загрузить файл
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <DocumentManager 
+            entityType="client"
+            entityId={client.id}
+            documents={client.documents || []}
+            onDocumentAdd={(document: any) => {
+              // Обновляем документы клиента
+              const updatedClient = {
+                ...client,
+                documents: [...(client.documents || []), document]
+              };
+              // TODO: Update client through API
+              toast.success('Документ добавлен к клиенту');
+            }}
+            onDocumentDelete={(documentId: string) => {
+              // Удаляем документ из клиента
+              const updatedClient = {
+                ...client,
+                documents: (client.documents || []).filter(doc => doc.id !== documentId)
+              };
+              // TODO: Update client through API
+              toast.success('Документ удален');
+            }}
+          />
         </TabsContent>
       </Tabs>
     </div>
