@@ -1,9 +1,29 @@
-import { useMemo } from 'react';
-import { useOptimizedUsers } from './useOptimizedData';
+import { useState, useEffect, useMemo } from 'react';
+import { supabaseUserService } from '../supabase/services/UserService';
 import { User } from '../../types';
 
 export function useUsers() {
-  const { data: users, loading, error, refetch } = useOptimizedUsers();
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await supabaseUserService.getUsers();
+      setUsers(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка загрузки пользователей');
+      console.error('Failed to load users:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
 
   const getUsersByRole = useMemo(() => (role: string) => {
     return users.filter(user => user.role === role);
@@ -25,7 +45,7 @@ export function useUsers() {
     users,
     loading,
     error,
-    loadUsers: refetch,
+    loadUsers,
     getUsersByRole,
     getManagers,
     getAdmins,

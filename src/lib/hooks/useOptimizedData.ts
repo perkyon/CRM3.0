@@ -158,10 +158,11 @@ export function useOptimizedData<T>({
 
 // Хук для оптимизированной загрузки пользователей
 export function useOptimizedUsers() {
-  const { supabaseUserService } = require('../supabase/services/UserService');
-  
   return useOptimizedData({
-    fetchFn: () => supabaseUserService.getUsers(),
+    fetchFn: async () => {
+      const { supabaseUserService } = await import('../supabase/services/UserService');
+      return supabaseUserService.getUsers();
+    },
     staleTime: 10 * 60 * 1000, // 10 минут
     cacheTime: 60 * 60 * 1000, // 1 час
   });
@@ -169,10 +170,11 @@ export function useOptimizedUsers() {
 
 // Хук для оптимизированной загрузки клиентов
 export function useOptimizedClients() {
-  const { supabaseClientService } = require('../supabase/services/ClientService');
-  
   return useOptimizedData({
-    fetchFn: () => supabaseClientService.getClients(),
+    fetchFn: async () => {
+      const { supabaseClientService } = await import('../supabase/services/ClientService');
+      return supabaseClientService.getClients();
+    },
     staleTime: 5 * 60 * 1000, // 5 минут
     cacheTime: 30 * 60 * 1000, // 30 минут
   });
@@ -180,10 +182,11 @@ export function useOptimizedClients() {
 
 // Хук для оптимизированной загрузки проектов
 export function useOptimizedProjects() {
-  const { supabaseProjectService } = require('../supabase/services/ProjectService');
-  
   return useOptimizedData({
-    fetchFn: () => supabaseProjectService.getProjects(),
+    fetchFn: async () => {
+      const { supabaseProjectService } = await import('../supabase/services/ProjectService');
+      return supabaseProjectService.getProjects();
+    },
     staleTime: 2 * 60 * 1000, // 2 минуты
     cacheTime: 15 * 60 * 1000, // 15 минут
   });
@@ -191,12 +194,13 @@ export function useOptimizedProjects() {
 
 // Хук для оптимизированной загрузки канбан досок
 export function useOptimizedKanbanBoards(projectId?: string) {
-  const { supabaseKanbanService } = require('../supabase/services/KanbanService');
-  
   return useOptimizedData({
-    fetchFn: () => projectId 
-      ? supabaseKanbanService.getBoardsByProject(projectId)
-      : supabaseKanbanService.getBoards(),
+    fetchFn: async () => {
+      const { supabaseKanbanService } = await import('../supabase/services/KanbanService');
+      return projectId 
+        ? supabaseKanbanService.getBoardsByProject(projectId)
+        : supabaseKanbanService.getBoards();
+    },
     dependencies: [projectId],
     staleTime: 1 * 60 * 1000, // 1 минута
     cacheTime: 10 * 60 * 1000, // 10 минут
