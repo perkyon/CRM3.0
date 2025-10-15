@@ -48,24 +48,45 @@ export function Dashboard() {
 
   // Подключаемся к realtime обновлениям для активности
   useEffect(() => {
-    const { realtimeService } = require('../../lib/supabase/realtime');
+    let unsubscribeProjects: any = null;
+    let unsubscribeClients: any = null;
     
-    // Подписываемся на изменения проектов и клиентов для обновления активности
-    const unsubscribeProjects = realtimeService.subscribeToProjects(
-      () => loadDashboardData(), // Перезагружаем данные при изменении проектов
-      () => loadDashboardData(),
-      () => loadDashboardData()
-    );
-    
-    const unsubscribeClients = realtimeService.subscribeToClients(
-      () => loadDashboardData(), // Перезагружаем данные при изменении клиентов
-      () => loadDashboardData(),
-      () => loadDashboardData()
-    );
+    const setupRealtime = async () => {
+      try {
+        const { realtimeService } = await import('../../lib/supabase/realtime');
+        
+        // Подписываемся на изменения проектов и клиентов для обновления активности
+        unsubscribeProjects = realtimeService.subscribeToProjects(
+          () => loadDashboardData(), // Перезагружаем данные при изменении проектов
+          () => loadDashboardData(),
+          () => loadDashboardData()
+        );
+        
+        unsubscribeClients = realtimeService.subscribeToClients(
+          () => loadDashboardData(), // Перезагружаем данные при изменении клиентов
+          () => loadDashboardData(),
+          () => loadDashboardData()
+        );
+      } catch (error) {
+        console.error('Error setting up realtime subscriptions:', error);
+      }
+    };
+
+    setupRealtime();
 
     return () => {
-      realtimeService.unsubscribe('projects');
-      realtimeService.unsubscribe('clients');
+      try {
+        if (unsubscribeProjects) {
+          const { realtimeService } = require('../../lib/supabase/realtime');
+          realtimeService.unsubscribe('projects');
+        }
+        if (unsubscribeClients) {
+          const { realtimeService } = require('../../lib/supabase/realtime');
+          realtimeService.unsubscribe('clients');
+        }
+      } catch (error) {
+        console.error('Error cleaning up realtime subscriptions:', error);
+      }
     };
   }, []);
 

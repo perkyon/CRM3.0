@@ -247,44 +247,57 @@ export const useProjectStore = create<ProjectState>()(
   },
 
   subscribeToRealtime: () => {
-    const { realtimeService } = require('../supabase/realtime');
-    
-    realtimeService.subscribeToProjects(
-      // onInsert - новый проект
-      (payload: any) => {
-        console.log('New project added via realtime:', payload);
-        set((state) => ({
-          projects: [payload.new, ...state.projects],
-        }));
-      },
-      // onUpdate - обновление проекта
-      (payload: any) => {
-        console.log('Project updated via realtime:', payload);
-        set((state) => ({
-          projects: state.projects.map(project =>
-            project.id === payload.new.id ? { ...project, ...payload.new } : project
-          ),
-          selectedProject: state.selectedProject?.id === payload.new.id 
-            ? { ...state.selectedProject, ...payload.new } 
-            : state.selectedProject,
-        }));
-      },
-      // onDelete - удаление проекта
-      (payload: any) => {
-        console.log('Project deleted via realtime:', payload);
-        set((state) => ({
-          projects: state.projects.filter(project => project.id !== payload.old.id),
-          selectedProject: state.selectedProject?.id === payload.old.id 
-            ? null 
-            : state.selectedProject,
-        }));
-      }
-    );
+    try {
+      import('../supabase/realtime').then(({ realtimeService }) => {
+        realtimeService.subscribeToProjects(
+          // onInsert - новый проект
+          (payload: any) => {
+            console.log('New project added via realtime:', payload);
+            set((state) => ({
+              projects: [payload.new, ...state.projects],
+            }));
+          },
+          // onUpdate - обновление проекта
+          (payload: any) => {
+            console.log('Project updated via realtime:', payload);
+            set((state) => ({
+              projects: state.projects.map(project =>
+                project.id === payload.new.id ? { ...project, ...payload.new } : project
+              ),
+              selectedProject: state.selectedProject?.id === payload.new.id 
+                ? { ...state.selectedProject, ...payload.new } 
+                : state.selectedProject,
+            }));
+          },
+          // onDelete - удаление проекта
+          (payload: any) => {
+            console.log('Project deleted via realtime:', payload);
+            set((state) => ({
+              projects: state.projects.filter(project => project.id !== payload.old.id),
+              selectedProject: state.selectedProject?.id === payload.old.id 
+                ? null 
+                : state.selectedProject,
+            }));
+          }
+        );
+      }).catch(error => {
+        console.error('Error importing realtime service:', error);
+      });
+    } catch (error) {
+      console.error('Error in subscribeToRealtime:', error);
+    }
   },
 
   unsubscribeFromRealtime: () => {
-    const { realtimeService } = require('../supabase/realtime');
-    realtimeService.unsubscribe('projects');
+    try {
+      import('../supabase/realtime').then(({ realtimeService }) => {
+        realtimeService.unsubscribe('projects');
+      }).catch(error => {
+        console.error('Error importing realtime service for unsubscribe:', error);
+      });
+    } catch (error) {
+      console.error('Error in unsubscribeFromRealtime:', error);
+    }
   },
     }),
     {

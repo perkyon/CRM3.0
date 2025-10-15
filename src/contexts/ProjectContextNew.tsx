@@ -58,14 +58,33 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     }
   }, [isAuthenticated, projects.length, fetchProjects]);
 
+  // Fallback: периодическое обновление если realtime не работает
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    
+    const interval = setInterval(() => {
+      fetchProjects().catch(console.error);
+    }, 60000); // Обновляем каждую минуту как fallback
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated, fetchProjects]);
+
   // Подключаемся к realtime обновлениям проектов
   useEffect(() => {
     if (!isAuthenticated) return;
     
-    subscribeToRealtime();
+    try {
+      subscribeToRealtime();
+    } catch (error) {
+      console.error('Error subscribing to realtime:', error);
+    }
     
     return () => {
-      unsubscribeFromRealtime();
+      try {
+        unsubscribeFromRealtime();
+      } catch (error) {
+        console.error('Error unsubscribing from realtime:', error);
+      }
     };
   }, [isAuthenticated, subscribeToRealtime, unsubscribeFromRealtime]);
 
