@@ -119,7 +119,6 @@ export class SupabaseKanbanService {
       .insert({
         project_id: boardData.projectId,
         title: boardData.title,
-        description: boardData.description,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -144,10 +143,9 @@ export class SupabaseKanbanService {
         defaultColumns.map(col => ({
           board_id: board.id,
           title: col.title,
+          stage: col.title.toLowerCase().replace(/\s+/g, '_'),
           position: col.position,
-          color: col.color,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
         }))
       );
 
@@ -199,10 +197,9 @@ export class SupabaseKanbanService {
       .insert({
         board_id: columnData.boardId,
         title: columnData.title,
+        stage: columnData.title.toLowerCase().replace(/\s+/g, '_'),
         position: columnData.position,
-        color: columnData.color || '#6b7280',
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
       })
       .select()
       .single();
