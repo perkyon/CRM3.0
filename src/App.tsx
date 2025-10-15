@@ -16,6 +16,7 @@ import './lib/supabase/test-components';
 import './lib/supabase/test-kanban-integration';
 import './lib/supabase/test-rls';
 import './lib/supabase/test-auth';
+import './lib/supabase/disable-rls-automatically';
 
 
 // Типы для параметров страниц
