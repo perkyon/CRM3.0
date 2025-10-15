@@ -31,6 +31,8 @@ interface ProjectState {
   setFilters: (filters: Partial<ProjectSearchParams>) => void;
   clearError: () => void;
   setLoading: (loading: boolean) => void;
+  subscribeToRealtime: () => void;
+  unsubscribeFromRealtime: () => void;
 }
 
 export const useProjectStore = create<ProjectState>()(
@@ -242,6 +244,47 @@ export const useProjectStore = create<ProjectState>()(
 
   setLoading: (loading: boolean) => {
     set({ isLoading: loading });
+  },
+
+  subscribeToRealtime: () => {
+    const { realtimeService } = require('../supabase/realtime');
+    
+    realtimeService.subscribeToProjects(
+      // onInsert - новый проект
+      (payload: any) => {
+        console.log('New project added via realtime:', payload);
+        set((state) => ({
+          projects: [payload.new, ...state.projects],
+        }));
+      },
+      // onUpdate - обновление проекта
+      (payload: any) => {
+        console.log('Project updated via realtime:', payload);
+        set((state) => ({
+          projects: state.projects.map(project =>
+            project.id === payload.new.id ? { ...project, ...payload.new } : project
+          ),
+          selectedProject: state.selectedProject?.id === payload.new.id 
+            ? { ...state.selectedProject, ...payload.new } 
+            : state.selectedProject,
+        }));
+      },
+      // onDelete - удаление проекта
+      (payload: any) => {
+        console.log('Project deleted via realtime:', payload);
+        set((state) => ({
+          projects: state.projects.filter(project => project.id !== payload.old.id),
+          selectedProject: state.selectedProject?.id === payload.old.id 
+            ? null 
+            : state.selectedProject,
+        }));
+      }
+    );
+  },
+
+  unsubscribeFromRealtime: () => {
+    const { realtimeService } = require('../supabase/realtime');
+    realtimeService.unsubscribe('projects');
   },
     }),
     {

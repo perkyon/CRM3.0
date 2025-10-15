@@ -46,6 +46,29 @@ export function Dashboard() {
     debugSupabaseConnection();
   }, []);
 
+  // Подключаемся к realtime обновлениям для активности
+  useEffect(() => {
+    const { realtimeService } = require('../../lib/supabase/realtime');
+    
+    // Подписываемся на изменения проектов и клиентов для обновления активности
+    const unsubscribeProjects = realtimeService.subscribeToProjects(
+      () => loadDashboardData(), // Перезагружаем данные при изменении проектов
+      () => loadDashboardData(),
+      () => loadDashboardData()
+    );
+    
+    const unsubscribeClients = realtimeService.subscribeToClients(
+      () => loadDashboardData(), // Перезагружаем данные при изменении клиентов
+      () => loadDashboardData(),
+      () => loadDashboardData()
+    );
+
+    return () => {
+      realtimeService.unsubscribe('projects');
+      realtimeService.unsubscribe('clients');
+    };
+  }, []);
+
   const loadDashboardData = async () => {
     try {
       setIsLoading(true);
@@ -290,25 +313,14 @@ export function Dashboard() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               Недавняя активность
-              <div className="flex gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={loadDashboardData}
-                  disabled={isLoading}
-                >
-                  <RefreshCw className={`size-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
-                  Обновить
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => navigate('/clients')}
-                >
-                  Все клиенты
-                  <ArrowRight className="size-4 ml-1" />
-                </Button>
-              </div>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => navigate('/clients')}
+              >
+                Все клиенты
+                <ArrowRight className="size-4 ml-1" />
+              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent>

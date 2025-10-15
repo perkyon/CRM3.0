@@ -45,6 +45,8 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     updateProductionSubStage,
     setSelectedProject,
     clearError,
+    subscribeToRealtime,
+    unsubscribeFromRealtime,
   } = useProjectStore();
 
   const { isAuthenticated } = useAuthStore();
@@ -56,16 +58,16 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     }
   }, [isAuthenticated, projects.length, fetchProjects]);
 
-  // Добавляем периодическое обновление проектов для синхронизации с активностью
+  // Подключаемся к realtime обновлениям проектов
   useEffect(() => {
     if (!isAuthenticated) return;
     
-    const interval = setInterval(() => {
-      fetchProjects().catch(console.error);
-    }, 30000); // Обновляем каждые 30 секунд
-
-    return () => clearInterval(interval);
-  }, [isAuthenticated, fetchProjects]);
+    subscribeToRealtime();
+    
+    return () => {
+      unsubscribeFromRealtime();
+    };
+  }, [isAuthenticated, subscribeToRealtime, unsubscribeFromRealtime]);
 
   const contextValue: ProjectContextType = {
     projects,
