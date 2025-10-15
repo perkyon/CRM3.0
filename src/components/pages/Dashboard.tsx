@@ -39,9 +39,7 @@ export function Dashboard() {
   useEffect(() => {
     loadDashboardData();
     // Test Supabase connection
-    testSupabaseConnection();
     // Run detailed debug
-    debugSupabaseConnection();
   }, []);
 
   // Подключаемся к realtime обновлениям для активности
