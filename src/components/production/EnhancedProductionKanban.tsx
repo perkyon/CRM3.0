@@ -153,7 +153,6 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
         await supabaseKanbanService.createColumn({
           boardId: newBoard.id,
           title: col.title,
-          stage: col.title.toLowerCase().replace(/\s+/g, '_'),
           position: col.position
         });
       }

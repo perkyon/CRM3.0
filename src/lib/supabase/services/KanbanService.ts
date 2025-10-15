@@ -17,13 +17,11 @@ export interface CreateKanbanColumnRequest {
   boardId: string;
   title: string;
   position: number;
-  color?: string;
 }
 
 export interface UpdateKanbanColumnRequest {
   title?: string;
   position?: number;
-  color?: string;
 }
 
 export interface CreateKanbanTaskRequest {
