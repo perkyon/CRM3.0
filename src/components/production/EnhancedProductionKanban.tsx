@@ -61,14 +61,14 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
             const projectBoards = await supabaseKanbanService.getProjectBoards(projectId);
             setBoards(projectBoards);
             
-            // If no boards found, create a local one
+            // If no boards found, create one in Supabase
             if (projectBoards.length === 0) {
-              createBoardForProject(projectId);
+              await createBoardForProject(projectId);
             }
           } catch (error) {
             console.error('Failed to load kanban boards from Supabase:', error);
-            // Fallback to creating a local board
-            createBoardForProject(projectId);
+            // Fallback to creating a board
+            await createBoardForProject(projectId);
           }
         } else {
           // Create a default board if no project specified
@@ -136,28 +136,37 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
     }
   }, [projectId, currentBoard]);
 
-  const createBoardForProject = (projectId: string) => {
+  const createBoardForProject = async (projectId: string) => {
     if (!projectId) return;
     
-    const newBoard: KanbanBoard = {
-      id: `BOARD-${projectId}`,
-      projectId: projectId,
-      title: `Производство проекта ${projectId}`,
-      columns: defaultKanbanColumns.map((col, index) => ({
-        id: `COL-${projectId}-${index}`,
-        title: col.title,
-        stage: col.title.toLowerCase().replace(/\s+/g, '_'),
-        order: col.position,
-        isDefault: true,
-        color: col.color
-      })),
-      tasks: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+    try {
+      // Создаем доску в Supabase
+      const newBoard = await supabaseKanbanService.createBoard({
+        projectId: projectId,
+        title: `Производство проекта ${projectId}`,
+        description: `Канбан-доска для проекта ${projectId}`
+      });
 
-    setBoards(prev => [...prev, newBoard]);
-    toast.success('Канбан-доска создана для проекта');
+      // Создаем колонки в Supabase
+      for (let i = 0; i < defaultKanbanColumns.length; i++) {
+        const col = defaultKanbanColumns[i];
+        await supabaseKanbanService.createColumn({
+          boardId: newBoard.id,
+          title: col.title,
+          stage: col.title.toLowerCase().replace(/\s+/g, '_'),
+          position: col.position
+        });
+      }
+
+      // Загружаем обновленную доску
+      const updatedBoards = await supabaseKanbanService.getProjectBoards(projectId);
+      setBoards(updatedBoards);
+      
+      toast.success('Канбан-доска создана для проекта');
+    } catch (error) {
+      console.error('Failed to create board in Supabase:', error);
+      toast.error('Ошибка создания канбан-доски');
+    }
   };
 
   const addColumn = (title: string) => {
@@ -413,7 +422,7 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
   }
 
   return (
-    <div className="p-6 lg:p-8 space-y-6 max-w-full overflow-x-hidden">
+    <div className="p-6 lg:p-8 space-y-6 max-w-full">
       {/* Header */}
       <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
         <div className="flex items-center gap-4">
@@ -507,7 +516,7 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
 
       {/* Kanban Board */}
       <div className="relative w-full overflow-hidden">
-        <div className="overflow-x-auto overflow-y-hidden bg-blue-50 p-4 rounded-lg" style={{ maxHeight: 'calc(100vh - 280px)' }}>
+        <div className="overflow-x-auto overflow-y-auto bg-blue-50 p-4 rounded-lg" style={{ maxHeight: 'calc(100vh - 280px)' }}>
           <div className="flex gap-4 pb-4" style={{ minWidth: 'max-content' }}>
           {currentBoard.columns
             .sort((a, b) => a.order - b.order)
