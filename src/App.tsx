@@ -18,6 +18,7 @@ import './lib/supabase/test-rls';
 import './lib/supabase/test-auth';
 import './lib/supabase/disable-rls-automatically';
 import './lib/supabase/create-auth-users';
+import './lib/supabase/test-project-kanban';
 
 
 // Типы для параметров страниц
