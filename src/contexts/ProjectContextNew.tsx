@@ -56,6 +56,17 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     }
   }, [isAuthenticated, projects.length, fetchProjects]);
 
+  // Добавляем периодическое обновление проектов для синхронизации с активностью
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    
+    const interval = setInterval(() => {
+      fetchProjects().catch(console.error);
+    }, 30000); // Обновляем каждые 30 секунд
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated, fetchProjects]);
+
   const contextValue: ProjectContextType = {
     projects,
     selectedProject,

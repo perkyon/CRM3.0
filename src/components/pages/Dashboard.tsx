@@ -290,14 +290,25 @@ export function Dashboard() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               Недавняя активность
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => navigate('/clients')}
-              >
-                Все клиенты
-                <ArrowRight className="size-4 ml-1" />
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={loadDashboardData}
+                  disabled={isLoading}
+                >
+                  <RefreshCw className={`size-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
+                  Обновить
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => navigate('/clients')}
+                >
+                  Все клиенты
+                  <ArrowRight className="size-4 ml-1" />
+                </Button>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
