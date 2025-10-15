@@ -16,7 +16,6 @@ import {
 import { useUsers } from '../../lib/hooks/useUsers';
 import { KanbanBoard, KanbanColumn, KanbanTask, User as UserType } from '../../types';
 import { supabaseKanbanService } from '../../lib/supabase/services/KanbanService';
-import { testKanbanConnection, createTestKanbanBoard } from '../../lib/supabase/test-kanban';
 import { ModernKanbanColumn, AddColumnCard } from './ModernKanbanColumn';
 import { ModernTaskDetail } from './ModernTaskDetail';
 import { EmptyKanbanState, ErrorState, LoadingState } from '../ui/empty-state';
@@ -55,26 +54,16 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
       try {
         setIsLoading(true);
         
-        // Test connection first
-        const connectionOk = await testKanbanConnection();
-        console.log('🔧 Kanban connection test:', connectionOk);
+        // Load boards from Supabase
         
         if (projectId) {
           try {
             const projectBoards = await supabaseKanbanService.getProjectBoards(projectId);
-            console.log('📊 Loaded boards:', projectBoards);
             setBoards(projectBoards);
             
-            // If no boards found, create a test one
+            // If no boards found, create a local one
             if (projectBoards.length === 0) {
-              console.log('🔧 No boards found, creating test board...');
-              const testBoard = await createTestKanbanBoard(projectId);
-              if (testBoard) {
-                setBoards([testBoard]);
-              } else {
-                // Fallback to local board
-                createBoardForProject(projectId);
-              }
+              createBoardForProject(projectId);
             }
           } catch (error) {
             console.error('Failed to load kanban boards from Supabase:', error);

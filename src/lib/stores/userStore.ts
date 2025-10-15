@@ -34,7 +34,6 @@ export const useUserStore = create<UserState>((set, get) => ({
     
     // Кэширование: не загружаем повторно в течение 60 секунд
     if (state.lastFetchTime && (now - state.lastFetchTime) < 60000 && state.users.length > 0) {
-      console.log('Using cached users data');
       return;
     }
     

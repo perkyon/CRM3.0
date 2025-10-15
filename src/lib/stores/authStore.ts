@@ -105,7 +105,6 @@ export const useAuthStore = create<AuthState>()(
               return;
             }
           } catch (supabaseError: any) {
-            console.log('Supabase auth failed, using fallback:', supabaseError.message);
             // Если Supabase не работает, используем fallback
           }
           
@@ -130,7 +129,6 @@ export const useAuthStore = create<AuthState>()(
           // Выход из Supabase
           await supabase.auth.signOut();
         } catch (error) {
-          console.log('Supabase logout failed:', error);
         }
         
         set({

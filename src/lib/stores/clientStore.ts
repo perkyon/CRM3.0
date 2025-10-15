@@ -59,7 +59,6 @@ export const useClientStore = create<ClientState>((set, get) => ({
     
     // Кэширование: не загружаем повторно в течение 30 секунд
     if (state.lastFetchTime && (now - state.lastFetchTime) < 30000 && state.clients.length > 0) {
-      console.log('Using cached clients data');
       return;
     }
     
@@ -213,14 +212,12 @@ export const useClientStore = create<ClientState>((set, get) => ({
     realtimeService.subscribeToClients(
       // onInsert
       (payload) => {
-        console.log('New client added:', payload);
         set((state) => ({
           clients: [payload.new, ...state.clients],
         }));
       },
       // onUpdate
       (payload) => {
-        console.log('Client updated:', payload);
         set((state) => ({
           clients: state.clients.map(client =>
             client.id === payload.new.id ? { ...client, ...payload.new } : client
@@ -229,7 +226,6 @@ export const useClientStore = create<ClientState>((set, get) => ({
       },
       // onDelete
       (payload) => {
-        console.log('Client deleted:', payload);
         set((state) => ({
           clients: state.clients.filter(client => client.id !== payload.old.id),
         }));

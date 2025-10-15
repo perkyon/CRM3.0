@@ -10,15 +10,6 @@ import { RolesAndPermissions } from './components/pages/RolesAndPermissions';
 import { LoginPage } from './components/auth/LoginPage';
 import { ProjectProvider } from './contexts/ProjectContextNew';
 import { useAuth } from './contexts/AuthContext';
-import './lib/supabase/debug-kanban';
-import './lib/supabase/run-seed';
-import './lib/supabase/test-components';
-import './lib/supabase/test-kanban-integration';
-import './lib/supabase/test-rls';
-import './lib/supabase/test-auth';
-import './lib/supabase/disable-rls-automatically';
-import './lib/supabase/create-auth-users';
-import './lib/supabase/test-project-kanban';
 
 
 // Типы для параметров страниц

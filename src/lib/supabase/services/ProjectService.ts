@@ -86,7 +86,6 @@ export class SupabaseProjectService {
       updated_at: new Date().toISOString(),
     };
 
-    console.log('Creating project with data:', projectToInsert);
 
     const { data: project, error: projectError } = await supabase
       .from(TABLES.PROJECTS)

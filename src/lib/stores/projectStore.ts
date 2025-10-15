@@ -252,14 +252,12 @@ export const useProjectStore = create<ProjectState>()(
         realtimeService.subscribeToProjects(
           // onInsert - новый проект
           (payload: any) => {
-            console.log('New project added via realtime:', payload);
             set((state) => ({
               projects: [payload.new, ...state.projects],
             }));
           },
           // onUpdate - обновление проекта
           (payload: any) => {
-            console.log('Project updated via realtime:', payload);
             set((state) => ({
               projects: state.projects.map(project =>
                 project.id === payload.new.id ? { ...project, ...payload.new } : project
@@ -271,7 +269,6 @@ export const useProjectStore = create<ProjectState>()(
           },
           // onDelete - удаление проекта
           (payload: any) => {
-            console.log('Project deleted via realtime:', payload);
             set((state) => ({
               projects: state.projects.filter(project => project.id !== payload.old.id),
               selectedProject: state.selectedProject?.id === payload.old.id 
