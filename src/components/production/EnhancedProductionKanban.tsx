@@ -12,12 +12,13 @@ import {
   Search,
   X
 } from 'lucide-react';
-import { mockUsers } from '../../lib/mockData';
+import { useUsers } from '../../lib/hooks/useUsers';
 import { KanbanBoard, KanbanColumn, KanbanTask, User as UserType } from '../../types';
 import { supabaseKanbanService } from '../../lib/supabase/services/KanbanService';
 import { testKanbanConnection, createTestKanbanBoard } from '../../lib/supabase/test-kanban';
 import { ModernKanbanColumn, AddColumnCard } from './ModernKanbanColumn';
 import { ModernTaskDetail } from './ModernTaskDetail';
+import { EmptyKanbanState, ErrorState, LoadingState } from '../ui/empty-state';
 
 // Default kanban columns
 const defaultKanbanColumns = [
@@ -42,6 +43,7 @@ export function EnhancedProductionKanban({ projectId, onNavigate }: EnhancedProd
   const [boards, setBoards] = useState<KanbanBoard[]>([]);
   const [selectedTask, setSelectedTask] = useState<KanbanTask | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { users } = useUsers();
 
   // Load boards from Supabase
   useEffect(() => {
@@ -403,14 +405,16 @@ export function EnhancedProductionKanban({ projectId, onNavigate }: EnhancedProd
   if (!currentBoard) {
     return (
       <div className="p-6 lg:p-8">
-        <div className="text-center py-16">
-          <h2 className="text-xl font-medium mb-4">Канбан-доска не найдена</h2>
-          {projectId && (
-            <Button onClick={() => createBoardForProject(projectId)}>
-              Создать доску для проекта
-            </Button>
-          )}
-        </div>
+        {isLoading ? (
+          <LoadingState 
+            title="Загрузка канбан-доски..."
+            description="Получаем данные из базы"
+          />
+        ) : (
+          <EmptyKanbanState 
+            onCreateBoard={() => projectId && createBoardForProject(projectId)}
+          />
+        )}
       </div>
     );
   }
@@ -461,7 +465,7 @@ export function EnhancedProductionKanban({ projectId, onNavigate }: EnhancedProd
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Все исполнители</SelectItem>
-                      {mockUsers.map(user => (
+                      {users.map(user => (
                         <SelectItem key={user.id} value={user.id}>{user.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -556,7 +560,7 @@ export function EnhancedProductionKanban({ projectId, onNavigate }: EnhancedProd
                 setSelectedTask(null);
               }}
               onClose={() => setSelectedTask(null)}
-              users={mockUsers}
+              users={users}
               columns={currentBoard.columns}
             />
           )}

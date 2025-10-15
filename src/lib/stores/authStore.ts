@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User, LoginRequest, LoginResponse } from '../../types';
 import { apiService } from '../api/client';
+import { supabase } from '../supabase/config';
+import { supabaseUserService } from '../supabase/services/UserService';
 
 interface AuthState {
   // State
@@ -37,7 +39,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true, error: null });
           
-          // Тестовый логин для Сыроежкина (Админ)
+          // Тестовый логин для Сыроежкина (Админ) - fallback
           if (credentials.email === 'syroejkin@workshop.ru' && credentials.password === 'admin123') {
             const adminUser: User = {
               id: '9fc4d042-f598-487c-a383-cccfe0e219db',
@@ -68,6 +70,45 @@ export const useAuthStore = create<AuthState>()(
             return;
           }
           
+          // Попытка входа через Supabase
+          try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+              email: credentials.email,
+              password: credentials.password,
+            });
+            
+            if (error) {
+              throw new Error(error.message);
+            }
+            
+            if (data.user) {
+              // Получаем данные пользователя из нашей таблицы users
+              const userData = await supabaseUserService.getUser(data.user.id);
+              
+              set({
+                user: userData,
+                accessToken: data.session?.access_token || null,
+                refreshToken: data.session?.refresh_token || null,
+                isAuthenticated: true,
+                isLoading: false,
+                error: null,
+              });
+              
+              // Сохраняем токены
+              if (data.session?.access_token) {
+                localStorage.setItem('auth_token', data.session.access_token);
+              }
+              if (data.session?.refresh_token) {
+                localStorage.setItem('refresh_token', data.session.refresh_token);
+              }
+              
+              return;
+            }
+          } catch (supabaseError: any) {
+            console.log('Supabase auth failed, using fallback:', supabaseError.message);
+            // Если Supabase не работает, используем fallback
+          }
+          
           // Если неверные данные
           throw new Error('Неверный email или пароль');
           
@@ -84,7 +125,14 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      logout: () => {
+      logout: async () => {
+        try {
+          // Выход из Supabase
+          await supabase.auth.signOut();
+        } catch (error) {
+          console.log('Supabase logout failed:', error);
+        }
+        
         set({
           user: null,
           accessToken: null,
@@ -100,26 +148,25 @@ export const useAuthStore = create<AuthState>()(
       },
 
       refreshAuth: async () => {
-        const { refreshToken } = get();
-        if (!refreshToken) {
-          get().logout();
-          return;
-        }
-
         try {
-          const response = await apiService.post<{ accessToken: string }>('/auth/refresh', {
-            refreshToken,
-          });
+          const { data, error } = await supabase.auth.refreshSession();
           
-          const { accessToken } = response.data;
+          if (error) {
+            get().logout();
+            return;
+          }
           
-          set({
-            accessToken,
-            isLoading: false,
-            error: null,
-          });
-          
-          localStorage.setItem('auth_token', accessToken);
+          if (data.session) {
+            set({
+              accessToken: data.session.access_token,
+              refreshToken: data.session.refresh_token,
+              isLoading: false,
+              error: null,
+            });
+            
+            localStorage.setItem('auth_token', data.session.access_token);
+            localStorage.setItem('refresh_token', data.session.refresh_token);
+          }
           
         } catch (error: any) {
           get().logout();

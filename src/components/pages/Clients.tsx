@@ -39,6 +39,7 @@ import { ClientDetailDialog } from '../clients/ClientDetailDialog';
 import { NewClientDialog } from '../clients/NewClientDialog';
 import { DocumentManager } from '../documents/DocumentManager';
 import { toast } from 'sonner';
+import { EmptyClientsState, ErrorState, LoadingState } from '../ui/empty-state';
 
 const statusLabels = {
   lead: 'Лид',
@@ -292,10 +293,14 @@ export function Clients() {
                   </TableRow>
                 ) : filteredClients.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
-                      <div className="text-muted-foreground">
-                        {searchQuery || statusFilter !== 'all' ? 'Клиенты не найдены' : 'Нет клиентов'}
-                      </div>
+                    <TableCell colSpan={7} className="p-0">
+                      {searchQuery || statusFilter !== 'all' ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>Клиенты не найдены</p>
+                        </div>
+                      ) : (
+                        <EmptyClientsState onCreateClient={() => setIsNewClientOpen(true)} />
+                      )}
                     </TableCell>
                   </TableRow>
                 ) : (

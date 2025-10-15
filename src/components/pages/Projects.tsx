@@ -24,19 +24,22 @@ import {
 
   Loader2
 } from 'lucide-react';
-import { mockUsers, projectStageNames, stageOrder } from '../../lib/mockData';
+import { projectStageNames, stageOrder } from '../../lib/constants';
+import { useUsers } from '../../lib/hooks/useUsers';
 import { formatCurrency, formatDate, getDaysUntilDue } from '../../lib/utils';
 import { StatusBadge } from '../ui/status-badge';
 import { useAnalytics, CRM_EVENTS } from '../../lib/hooks/useAnalytics';
 import { Project, ProjectStage } from '../../types';
 import { useProjects } from '../../contexts/ProjectContextNew';
 import { useClientStore } from '../../lib/stores/clientStore';
+import { EmptyProjectsState, ErrorState, LoadingState } from '../ui/empty-state';
 
 export function Projects() {
   const navigate = useNavigate();
   const { projects, createProject, updateProject, deleteProject } = useProjects();
   const { clients } = useClientStore();
   const { trackUserAction } = useAnalytics();
+  const { users, getUsersByRole } = useUsers();
   const [searchQuery, setSearchQuery] = useState('');
   const [stageFilter, setStageFilter] = useState<string>('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -46,6 +49,7 @@ export function Projects() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // Состояния для фильтров
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
@@ -295,7 +299,7 @@ export function Projects() {
                     <SelectValue placeholder="Выберите менеджера" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockUsers.filter(user => user.role === 'Manager').map((user) => (
+                    {getUsersByRole('Manager').map((user) => (
                       <SelectItem key={user.id} value={user.id}>
                         {user.name}
                       </SelectItem>
@@ -313,7 +317,7 @@ export function Projects() {
                     <SelectValue placeholder="Выберите начальника цеха" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockUsers.filter(user => user.role === 'Master').map((user) => (
+                    {getUsersByRole('Master').map((user) => (
                       <SelectItem key={user.id} value={user.id}>
                         {user.name}
                       </SelectItem>
@@ -466,7 +470,7 @@ export function Projects() {
             <TableBody>
               {filteredProjects.map((project) => {
                 const client = clients.find(c => c.id === project.clientId);
-                const manager = mockUsers.find(u => u.id === project.managerId);
+                const manager = users.find(u => u.id === project.managerId);
                 const daysUntilDue = getDaysUntilDue(project.dueDate);
                 
                 return (
@@ -571,10 +575,27 @@ export function Projects() {
             </TableBody>
           </Table>
 
-          {filteredProjects.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>Проекты не найдены</p>
-            </div>
+          {filteredProjects.length === 0 && !isLoading && !error && (
+            <EmptyProjectsState onCreateProject={() => setIsCreateDialogOpen(true)} />
+          )}
+          
+          {error && (
+            <ErrorState 
+              title="Ошибка загрузки проектов"
+              description={error}
+              onRetry={() => {
+                setError(null);
+                // Перезагрузить проекты
+                window.location.reload();
+              }}
+            />
+          )}
+          
+          {isLoading && (
+            <LoadingState 
+              title="Загрузка проектов..."
+              description="Получаем данные из базы"
+            />
           )}
         </CardContent>
       </Card>
@@ -635,7 +656,7 @@ export function Projects() {
                   <SelectValue placeholder="Выберите менеджера" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockUsers.filter(user => user.role === 'Manager').map((user) => (
+                  {getUsersByRole('Manager').map((user) => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.name}
                     </SelectItem>
@@ -653,7 +674,7 @@ export function Projects() {
                   <SelectValue placeholder="Выберите начальника цеха" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockUsers.filter(user => user.role === 'Master').map((user) => (
+                  {getUsersByRole('Master').map((user) => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.name}
                     </SelectItem>

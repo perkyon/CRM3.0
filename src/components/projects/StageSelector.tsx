@@ -4,7 +4,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Check, ChevronDown } from 'lucide-react';
 import { ProjectStage } from '../../types';
-import { projectStageNames } from '../../lib/mockData';
+import { projectStageNames } from '../../lib/constants';
 
 interface StageSelectorProps {
   currentStage: ProjectStage;

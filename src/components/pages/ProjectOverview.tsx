@@ -24,7 +24,8 @@ import {
   Plus,
   Warehouse
 } from 'lucide-react';
-import { mockUsers, projectStageNames, stageOrder, productionSubStages, productionSubStageOrder } from '../../lib/mockData';
+import { projectStageNames, stageOrder, productionSubStages, productionSubStageOrder } from '../../lib/constants';
+import { useUsers } from '../../lib/hooks/useUsers';
 import { useProjects } from '../../contexts/ProjectContextNew';
 import { useClientStore } from '../../lib/stores/clientStore';
 import { DocumentManager } from '../documents/DocumentManager';
@@ -42,6 +43,7 @@ export function ProjectOverview() {
   const navigate = useNavigate();
   const { projects, selectedProject, fetchProject, updateProject } = useProjects();
   const { clients } = useClientStore();
+  const { users } = useUsers();
   const [project, setProject] = useState<Project | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
@@ -101,8 +103,8 @@ export function ProjectOverview() {
   }
 
   const client = clients.find((c: any) => c.id === project.clientId);
-  const manager = mockUsers.find(u => u.id === project.managerId);
-  const foreman = mockUsers.find(u => u.id === project.foremanId);
+  const manager = users.find(u => u.id === project.managerId);
+  const foreman = users.find(u => u.id === project.foremanId);
   
   const daysLeft = project.dueDate ? getDaysUntilDue(project.dueDate) : 0;
   const progress = getProjectProgress(project.stage);

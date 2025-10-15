@@ -2,7 +2,7 @@ import React, { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { ToastProvider } from '../components/ui/custom-toaster';
-import { ProjectProvider } from '../contexts/ProjectContext';
+import { ProjectProvider } from '../contexts/ProjectContextNew';
 
 // Mock providers for testing
 const AllTheProviders = ({ children }: { children: React.ReactNode }) => {

@@ -20,7 +20,7 @@ import {
   Settings
 } from 'lucide-react';
 import { KanbanTask } from '../../types';
-import { mockUsers } from '../../lib/mockData';
+import { useUsers } from '../../lib/hooks/useUsers';
 
 interface ModernKanbanCardProps {
   task: KanbanTask;
@@ -30,13 +30,14 @@ interface ModernKanbanCardProps {
 
 export function ModernKanbanCard({ task, onClick, onDragStart }: ModernKanbanCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const { users } = useUsers();
   
   const completedTasks = task.checklist.filter(item => item.completed).length;
   const totalTasks = task.checklist.length;
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
   
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date();
-  const assignee = task.assigneeId ? mockUsers.find(u => u.id === task.assigneeId) : null;
+  const assignee = task.assigneeId ? users.find(u => u.id === task.assigneeId) : null;
 
   const getPriorityColor = () => {
     switch (task.priority) {

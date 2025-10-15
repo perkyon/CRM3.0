@@ -28,7 +28,7 @@ import {
 import { Client, ClientTag } from '../../types';
 import { formatPhone, getInitials } from '../../lib/utils';
 import { toast } from '../../lib/toast';
-import { mockUsers } from '../../lib/mockData';
+import { useUsers } from '../../lib/hooks/useUsers';
 import { DocumentManager } from '../documents/DocumentManager';
 
 interface EditClientDialogProps {
@@ -62,6 +62,7 @@ const channelLabels = {
 export function EditClientDialog({ client, open, onOpenChange, onClientUpdate }: EditClientDialogProps) {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const { getManagersAndAdmins } = useUsers();
   
   // Состояние формы
   const [formData, setFormData] = useState({
@@ -420,7 +421,7 @@ export function EditClientDialog({ client, open, onOpenChange, onClientUpdate }:
                             <SelectValue placeholder="Выберите ответственного" />
                           </SelectTrigger>
                           <SelectContent>
-                            {mockUsers.filter(user => user.role === 'Manager' || user.role === 'Admin').map(user => (
+                            {getManagersAndAdmins().map(user => (
                               <SelectItem key={user.id} value={user.id}>
                                 {user.name}
                               </SelectItem>
