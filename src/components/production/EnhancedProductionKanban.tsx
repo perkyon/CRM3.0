@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -39,7 +40,10 @@ interface DraggedItem {
   sourceColumnId?: string;
 }
 
-export function EnhancedProductionKanban({ projectId, onNavigate }: EnhancedProductionKanbanProps) {
+export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate }: EnhancedProductionKanbanProps) {
+  const { projectId: urlProjectId } = useParams<{ projectId: string }>();
+  const projectId = propProjectId || urlProjectId;
+  
   const [boards, setBoards] = useState<KanbanBoard[]>([]);
   const [selectedTask, setSelectedTask] = useState<KanbanTask | null>(null);
   const [isLoading, setIsLoading] = useState(true);
