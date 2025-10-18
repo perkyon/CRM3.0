@@ -168,30 +168,46 @@ export function ProductionManager() {
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {projectComponents.map(component => (
-                  <Card 
-                    key={component.id}
-                    className="cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => setNavigationState(prev => ({ 
-                      ...prev, 
-                      selectedComponentId: component.id 
-                    }))}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-3">
-                        <Package className="size-8 text-muted-foreground" />
-                        <div>
-                          <h3 className="font-medium">{component.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {component.subComponents?.length || 0} элементов
-                          </p>
+              {projectComponents.length === 0 ? (
+                <Card>
+                  <CardContent className="p-12 text-center">
+                    <Package className="size-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Нет компонентов</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Сначала создайте компоненты на предыдущем шаге
+                    </p>
+                    <Button onClick={() => setNavigationState(prev => ({ ...prev, currentStep: 'components' }))}>
+                      <ArrowLeft className="size-4 mr-2" />
+                      Создать компоненты
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {projectComponents.map(component => (
+                    <Card 
+                      key={component.id}
+                      className="cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => setNavigationState(prev => ({ 
+                        ...prev, 
+                        selectedComponentId: component.id 
+                      }))}
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                          <Package className="size-8 text-muted-foreground" />
+                          <div>
+                            <h3 className="font-medium">{component.name}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {component.subComponents?.length || 0} элементов
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
           );
         }
@@ -226,48 +242,68 @@ export function ProductionManager() {
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {projectSubComponents.map(subComponent => (
-                  <Card 
-                    key={subComponent.id}
-                    className="cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => setNavigationState(prev => ({ 
+              {projectSubComponents.length === 0 ? (
+                <Card>
+                  <CardContent className="p-12 text-center">
+                    <Settings className="size-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Нет элементов</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Сначала создайте элементы на предыдущем шаге
+                    </p>
+                    <Button onClick={() => setNavigationState(prev => ({ 
                       ...prev, 
-                      selectedSubComponentId: subComponent.id 
-                    }))}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-3">
-                        <Settings className="size-8 text-muted-foreground" />
-                        <div>
-                          <h3 className="font-medium">{subComponent.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {subComponent.productionStages?.length || 0} этапов
-                          </p>
-                          <div className="flex gap-1 mt-2">
-                            {subComponent.productionStages?.map(stage => (
-                              <Badge 
-                                key={stage.id} 
-                                variant={stage.status === 'completed' ? 'default' : 'outline'}
-                                className="text-xs"
-                              >
-                                {stage.status === 'completed' ? (
-                                  <CheckCircle className="size-3 mr-1" />
-                                ) : stage.status === 'in_progress' ? (
-                                  <Play className="size-3 mr-1" />
-                                ) : (
-                                  <Clock className="size-3 mr-1" />
-                                )}
-                                {stage.name}
-                              </Badge>
-                            ))}
+                      currentStep: 'subcomponents',
+                      selectedComponentId: undefined
+                    }))}>
+                      <ArrowLeft className="size-4 mr-2" />
+                      Создать элементы
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {projectSubComponents.map(subComponent => (
+                    <Card 
+                      key={subComponent.id}
+                      className="cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => setNavigationState(prev => ({ 
+                        ...prev, 
+                        selectedSubComponentId: subComponent.id 
+                      }))}
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                          <Settings className="size-8 text-muted-foreground" />
+                          <div>
+                            <h3 className="font-medium">{subComponent.name}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {subComponent.productionStages?.length || 0} этапов
+                            </p>
+                            <div className="flex gap-1 mt-2">
+                              {subComponent.productionStages?.map(stage => (
+                                <Badge 
+                                  key={stage.id} 
+                                  variant={stage.status === 'completed' ? 'default' : 'outline'}
+                                  className="text-xs"
+                                >
+                                  {stage.status === 'completed' ? (
+                                    <CheckCircle className="size-3 mr-1" />
+                                  ) : stage.status === 'in_progress' ? (
+                                    <Play className="size-3 mr-1" />
+                                  ) : (
+                                    <Clock className="size-3 mr-1" />
+                                  )}
+                                  {stage.name}
+                                </Badge>
+                              ))}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
           );
         }
