@@ -76,6 +76,18 @@ export function ProductionManager() {
 
   const loadProjectData = async () => {
     try {
+      // Временно загружаем из localStorage
+      const componentsData = localStorage.getItem(`project-components-${projectId}`);
+      const subComponentsData = localStorage.getItem(`project-subcomponents-${projectId}`);
+      
+      if (componentsData) {
+        setProjectComponents(JSON.parse(componentsData));
+      }
+      
+      if (subComponentsData) {
+        setProjectSubComponents(JSON.parse(subComponentsData));
+      }
+      
       // TODO: Загрузить компоненты и подкомпоненты проекта из API
       // const components = await productionService.getProjectComponents(projectId);
       // const subComponents = await productionService.getProjectSubComponents(projectId);
@@ -92,6 +104,8 @@ export function ProductionManager() {
   };
 
   const handleComponentsNext = () => {
+    // Перезагружаем данные
+    loadProjectData();
     setNavigationState(prev => ({
       ...prev,
       currentStep: 'subcomponents'
@@ -104,6 +118,8 @@ export function ProductionManager() {
   };
 
   const handleSubComponentsNext = () => {
+    // Перезагружаем данные
+    loadProjectData();
     setNavigationState(prev => ({
       ...prev,
       currentStep: 'production'
@@ -335,23 +351,6 @@ export function ProductionManager() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Breadcrumb */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="p-6 lg:p-8">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/projects')}>
-              <ArrowLeft className="size-4 mr-2" />
-              К проектам
-            </Button>
-            <div className="border-l border-border h-6"></div>
-            <div>
-              <h1 className="text-xl font-medium">{getCurrentStepTitle()}</h1>
-              <p className="text-sm text-muted-foreground">{getCurrentStepDescription()}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="flex-1">
         {renderCurrentStep()}

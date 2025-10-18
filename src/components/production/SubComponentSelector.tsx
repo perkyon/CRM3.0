@@ -199,17 +199,47 @@ export function SubComponentSelector({
 
     setLoading(true);
     try {
-      // TODO: Создать подкомпоненты через API
-      for (const subComponentType of selectedSubComponents) {
-        // await productionService.createProjectSubComponent({
-        //   componentId,
-        //   subComponentType,
-        //   name: subComponentNames[subComponentType],
-        //   quantity: 1
-        // });
+      // Временно создаем моковые подкомпоненты для демонстрации
+      const newSubComponents = selectedSubComponents.map(subComponentType => ({
+        id: `temp-${Date.now()}-${subComponentType}`,
+        componentId,
+        subComponentType,
+        name: subComponentNames[subComponentType],
+        quantity: 1,
+        status: 'planned',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }));
+      
+      // Получаем projectId из первого компонента
+      const componentsData = localStorage.getItem(`project-components-*`);
+      let projectId = '';
+      
+      if (componentsData) {
+        const components = JSON.parse(componentsData);
+        const component = components.find((c: any) => c.id === componentId);
+        if (component) {
+          projectId = component.projectId;
+        }
       }
       
+      // TODO: Создать подкомпоненты через API
+      // for (const subComponentType of selectedSubComponents) {
+      //   await productionService.createProjectSubComponent({
+      //     componentId,
+      //     subComponentType,
+      //     name: subComponentNames[subComponentType],
+      //     quantity: 1
+      //   });
+      // }
+      
       toast.success(`Создано ${selectedSubComponents.length} подкомпонентов`);
+      
+      // Сохраняем во временное хранилище
+      const existingData = localStorage.getItem(`project-subcomponents-${projectId}`);
+      const existing = existingData ? JSON.parse(existingData) : [];
+      localStorage.setItem(`project-subcomponents-${projectId}`, JSON.stringify([...existing, ...newSubComponents]));
+      
       onNext();
     } catch (error) {
       console.error('Error creating sub-components:', error);

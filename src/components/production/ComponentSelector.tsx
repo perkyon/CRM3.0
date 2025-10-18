@@ -150,17 +150,33 @@ export function ComponentSelector({ projectId, onComponentSelect, onNext }: Comp
 
     setLoading(true);
     try {
+      // Временно создаем моковые компоненты для демонстрации
+      const newComponents = selectedComponents.map(componentType => ({
+        id: `temp-${Date.now()}-${componentType}`,
+        projectId,
+        componentType,
+        name: componentNames[componentType],
+        quantity: 1,
+        status: 'planned',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }));
+      
       // TODO: Создать компоненты через API
-      for (const componentType of selectedComponents) {
-        // await productionService.createProjectComponent({
-        //   projectId,
-        //   componentType,
-        //   name: componentNames[componentType],
-        //   quantity: 1
-        // });
-      }
+      // for (const componentType of selectedComponents) {
+      //   await productionService.createProjectComponent({
+      //     projectId,
+      //     componentType,
+      //     name: componentNames[componentType],
+      //     quantity: 1
+      //   });
+      // }
       
       toast.success(`Создано ${selectedComponents.length} компонентов`);
+      
+      // Сохраняем во временное хранилище
+      localStorage.setItem(`project-components-${projectId}`, JSON.stringify(newComponents));
+      
       onNext();
     } catch (error) {
       console.error('Error creating components:', error);
