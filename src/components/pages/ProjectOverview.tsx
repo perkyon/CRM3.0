@@ -177,7 +177,7 @@ export function ProjectOverview() {
             Редактировать
           </Button>
           <Button onClick={() => navigate(`/production/${project.id}`)}>
-            <Settings className="size-4 mr-2" />
+            <Package className="size-4 mr-2" />
             Перейти к производству
           </Button>
         </div>
@@ -518,7 +518,7 @@ export function ProjectOverview() {
                   className="h-12"
                   onClick={() => navigate(`/production/${project.id}`)}
                 >
-                  <Settings className="size-4" />
+                  <Package className="size-4" />
                   <span className="sr-only">Производство</span>
                 </Button>
                 <Button 

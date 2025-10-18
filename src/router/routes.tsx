@@ -8,6 +8,7 @@ const Clients = lazy(() => import('../components/pages/Clients').then(module => 
 const Projects = lazy(() => import('../components/pages/Projects').then(module => ({ default: module.Projects })));
 const ProjectOverview = lazy(() => import('../components/pages/ProjectOverview').then(module => ({ default: module.ProjectOverview })));
 const EnhancedProductionKanban = lazy(() => import('../components/production/EnhancedProductionKanban').then(module => ({ default: module.EnhancedProductionKanban })));
+const ProductionManager = lazy(() => import('../components/production/ProductionManager').then(module => ({ default: module.ProductionManager })));
 const RolesAndPermissions = lazy(() => import('../components/pages/RolesAndPermissions').then(module => ({ default: module.RolesAndPermissions })));
 // const WorkflowDemo = lazy(() => import('../components/demo/WorkflowDemo').then(module => ({ default: module.WorkflowDemo })));
 
@@ -53,7 +54,7 @@ export const routes: RouteObject[] = [
       },
       {
         path: 'production/:projectId',
-        element: <EnhancedProductionKanban />
+        element: <ProductionManager />
       },
       {
         path: 'inventory',

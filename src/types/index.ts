@@ -455,3 +455,198 @@ export interface UserSearchParams extends SearchParams {
   role?: string;
   active?: boolean;
 }
+
+// Production Types
+export type ComponentType = 
+  | 'kitchen'      // Кухня
+  | 'living_room'  // Гостинная
+  | 'bedroom'      // Спальня
+  | 'wardrobe'     // Гардеробная
+  | 'bathroom'     // Ванная
+  | 'children_room' // Детская
+  | 'office'       // Офис
+  | 'hallway'      // Прихожая
+  | 'balcony'      // Балкон
+  | 'other';       // Прочее
+
+export type SubComponentType = 
+  | 'sink'         // Раковина
+  | 'kitchen_set'  // Гарнитур
+  | 'cabinet'      // Шкаф
+  | 'table'        // Стол
+  | 'chair'        // Стул
+  | 'bed'          // Кровать
+  | 'wardrobe'     // Шкаф-купе
+  | 'sofa'         // Диван
+  | 'tv_stand'     // ТВ-тумба
+  | 'shelf'        // Полка
+  | 'mirror'       // Зеркало
+  | 'bathroom_set' // Ванная комплект
+  | 'other';       // Прочее
+
+export type ProductionStageType = 
+  | 'cnc_cutting'     // ЧПУ/раскрой
+  | 'pre_assembly'    // Предсборка
+  | 'sanding'         // Шлифовка
+  | 'painting'        // Покраска
+  | 'quality_control' // Контроль качества
+  | 'packaging'       // Упаковка
+  | 'delivery'        // Доставка
+  | 'installation';   // Монтаж
+
+export type ProductionTaskStatus = 
+  | 'pending'      // Ожидает
+  | 'in_progress'  // В работе
+  | 'completed'    // Завершено
+  | 'on_hold'      // Приостановлено
+  | 'cancelled';   // Отменено
+
+export interface ProjectComponent {
+  id: string;
+  projectId: string;
+  componentType: ComponentType;
+  name: string;
+  description?: string;
+  quantity: number;
+  status: string;
+  subComponents?: ProjectSubComponent[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectSubComponent {
+  id: string;
+  componentId: string;
+  subComponentType: SubComponentType;
+  name: string;
+  description?: string;
+  quantity: number;
+  dimensions?: {
+    width?: number;
+    height?: number;
+    depth?: number;
+  };
+  material?: string;
+  color?: string;
+  status: string;
+  productionStages?: ProductionStage[];
+  materials?: SubComponentMaterial[];
+  files?: SubComponentFile[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductionStage {
+  id: string;
+  subComponentId: string;
+  stageType: ProductionStageType;
+  name: string;
+  description?: string;
+  orderIndex: number;
+  estimatedHours?: number;
+  actualHours?: number;
+  status: ProductionTaskStatus;
+  assigneeId?: string;
+  assignee?: User;
+  startDate?: string;
+  endDate?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SubComponentMaterial {
+  id: string;
+  subComponentId: string;
+  materialName: string;
+  materialType?: string;
+  quantity: number;
+  unit: string;
+  costPerUnit?: number;
+  totalCost?: number;
+  supplier?: string;
+  createdAt: string;
+}
+
+export interface SubComponentFile {
+  id: string;
+  subComponentId: string;
+  name: string;
+  originalName: string;
+  type: DocumentType;
+  category: DocumentCategory;
+  size: number;
+  url: string;
+  uploadedBy: string;
+  uploadedAt: string;
+}
+
+export interface ComponentTemplate {
+  id: string;
+  componentType: ComponentType;
+  name: string;
+  description?: string;
+  subComponents: Array<{
+    type: SubComponentType;
+    name: string;
+    quantity: number;
+  }>;
+  productionStages: Array<{
+    type: ProductionStageType;
+    name: string;
+    order: number;
+    estimatedHours: number;
+  }>;
+  isDefault: boolean;
+  createdAt: string;
+}
+
+// Production API Types
+export interface CreateProjectComponentRequest {
+  projectId: string;
+  componentType: ComponentType;
+  name: string;
+  description?: string;
+  quantity?: number;
+}
+
+export interface CreateProjectSubComponentRequest {
+  componentId: string;
+  subComponentType: SubComponentType;
+  name: string;
+  description?: string;
+  quantity?: number;
+  dimensions?: ProjectSubComponent['dimensions'];
+  material?: string;
+  color?: string;
+}
+
+export interface CreateProductionStageRequest {
+  subComponentId: string;
+  stageType: ProductionStageType;
+  name: string;
+  description?: string;
+  orderIndex: number;
+  estimatedHours?: number;
+  assigneeId?: string;
+}
+
+export interface UpdateProductionStageRequest {
+  name?: string;
+  description?: string;
+  estimatedHours?: number;
+  actualHours?: number;
+  status?: ProductionTaskStatus;
+  assigneeId?: string;
+  startDate?: string;
+  endDate?: string;
+  notes?: string;
+}
+
+// Production Navigation Types
+export interface ProductionNavigationState {
+  currentStep: 'components' | 'subcomponents' | 'production';
+  selectedComponentId?: string;
+  selectedSubComponentId?: string;
+  projectId: string;
+}
