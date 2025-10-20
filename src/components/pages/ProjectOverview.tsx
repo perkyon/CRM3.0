@@ -33,9 +33,10 @@ import { MaterialsManager } from '../materials/MaterialsManager';
 import { SimpleEditDialog } from '../projects/SimpleEditDialog';
 import { ClientDetailDialog } from '../clients/ClientDetailDialog';
 import { StageSelector } from '../projects/StageSelector';
+import { ProductionTree } from '../production/ProductionTree';
 import { formatCurrency, formatDate, getDaysUntilDue } from '../../lib/utils';
 import { StatusBadge } from '../ui/status-badge';
-import { Project, ProjectStage } from '../../types';
+import { Project, ProjectStage, KanbanTask, ProductionItem } from '../../types';
 import { toast } from '../../lib/toast';
 
 export function ProjectOverview() {
@@ -47,6 +48,8 @@ export function ProjectOverview() {
   const [project, setProject] = useState<Project | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<KanbanTask | null>(null);
+  const [selectedItem, setSelectedItem] = useState<ProductionItem | null>(null);
 
   useEffect(() => {
     if (projectId) {
@@ -177,7 +180,7 @@ export function ProjectOverview() {
             Редактировать
           </Button>
           <Button onClick={() => navigate(`/production/${project.id}`)}>
-            <Package className="size-4 mr-2" />
+            <Settings className="size-4 mr-2" />
             Перейти к производству
           </Button>
         </div>
@@ -325,8 +328,9 @@ export function ProjectOverview() {
 
           {/* Project Tabs */}
           <Tabs defaultValue="timeline" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="timeline">Этапы</TabsTrigger>
+              <TabsTrigger value="production">Дерево производства</TabsTrigger>
               <TabsTrigger value="documents">Документы</TabsTrigger>
             </TabsList>
             
@@ -466,6 +470,21 @@ export function ProjectOverview() {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            <TabsContent value="production" className="space-y-4">
+              <ProductionTree 
+                projectId={project.id}
+                onTaskClick={(task) => {
+                  setSelectedTask(task);
+                  // Navigate to kanban with task selected
+                  navigate(`/production/${project.id}`, { state: { selectedTaskId: task.id } });
+                }}
+                onItemClick={(item) => {
+                  setSelectedItem(item);
+                  toast.info(`Изделие: ${item.name}`);
+                }}
+              />
+            </TabsContent>
             
             <TabsContent value="documents" className="space-y-4">
               <DocumentManager 
@@ -518,7 +537,7 @@ export function ProjectOverview() {
                   className="h-12"
                   onClick={() => navigate(`/production/${project.id}`)}
                 >
-                  <Package className="size-4" />
+                  <Settings className="size-4" />
                   <span className="sr-only">Производство</span>
                 </Button>
                 <Button 
