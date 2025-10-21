@@ -477,7 +477,7 @@ export function ProjectOverview() {
                 onTaskClick={(task) => {
                   setSelectedTask(task);
                   // Navigate to kanban with task selected
-                  navigate(`/production/${project.id}`, { state: { selectedTaskId: task.id } });
+                  navigate(`/production/${project.id}/kanban`, { state: { selectedTaskId: task.id } });
                 }}
                 onItemClick={(item) => {
                   setSelectedItem(item);

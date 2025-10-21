@@ -35,13 +35,6 @@ export function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load dashboard data
-  useEffect(() => {
-    loadDashboardData();
-    // Test Supabase connection
-    // Run detailed debug
-  }, []);
-
   // Подключаемся к realtime обновлениям для активности
   useEffect(() => {
     let unsubscribeProjects: any = null;
