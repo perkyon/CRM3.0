@@ -7,7 +7,7 @@
 DO $$ 
 DECLARE
   test_project_id UUID;
-  board_id UUID;
+  v_board_id UUID;
   col_queue_id UUID;
   col_progress_id UUID;
   col_done_id UUID;
@@ -45,35 +45,35 @@ BEGIN
   END IF;
   
   -- Create kanban board for this project if it doesn't exist
-  SELECT id INTO board_id FROM kanban_boards WHERE project_id = test_project_id LIMIT 1;
+  SELECT id INTO v_board_id FROM kanban_boards WHERE project_id = test_project_id LIMIT 1;
   
-  IF board_id IS NULL THEN
+  IF v_board_id IS NULL THEN
     INSERT INTO kanban_boards (project_id, title, created_at)
     VALUES (test_project_id, 'Производство проекта #103', NOW())
-    RETURNING id INTO board_id;
+    RETURNING id INTO v_board_id;
     
     -- Create columns
     INSERT INTO kanban_columns (board_id, title, stage, position, created_at)
     VALUES 
-      (board_id, 'В очереди', 'queue', 0, NOW())
+      (v_board_id, 'В очереди', 'queue', 0, NOW())
     RETURNING id INTO col_queue_id;
     
     INSERT INTO kanban_columns (board_id, title, stage, position, created_at)
     VALUES 
-      (board_id, 'В работе', 'in_progress', 1, NOW())
+      (v_board_id, 'В работе', 'in_progress', 1, NOW())
     RETURNING id INTO col_progress_id;
     
     INSERT INTO kanban_columns (board_id, title, stage, position, created_at)
     VALUES 
-      (board_id, 'Завершено', 'done', 2, NOW())
+      (v_board_id, 'Завершено', 'done', 2, NOW())
     RETURNING id INTO col_done_id;
     
     RAISE NOTICE 'Created kanban board and columns';
   ELSE
     -- Get existing column IDs
-    SELECT id INTO col_queue_id FROM kanban_columns WHERE board_id = board_id AND stage = 'queue' LIMIT 1;
-    SELECT id INTO col_progress_id FROM kanban_columns WHERE board_id = board_id AND stage = 'in_progress' LIMIT 1;
-    SELECT id INTO col_done_id FROM kanban_columns WHERE board_id = board_id AND stage = 'done' LIMIT 1;
+    SELECT id INTO col_queue_id FROM kanban_columns WHERE board_id = v_board_id AND stage = 'queue' LIMIT 1;
+    SELECT id INTO col_progress_id FROM kanban_columns WHERE board_id = v_board_id AND stage = 'in_progress' LIMIT 1;
+    SELECT id INTO col_done_id FROM kanban_columns WHERE board_id = v_board_id AND stage = 'done' LIMIT 1;
   END IF;
 
   -- Create production items hierarchy
@@ -150,9 +150,9 @@ BEGIN
     position,
     created_at
   ) VALUES 
-    (board_id, col_done_id, comp_countertop_id, 'Раскрой камня', 'Вырезать по размерам 2400x600x40мм', 'done', 'high', 0, NOW() - INTERVAL '2 days'),
-    (board_id, col_progress_id, comp_countertop_id, 'Полировка кромок', 'Полировка всех видимых кромок', 'in_progress', 'high', 1, NOW() - INTERVAL '1 day'),
-    (board_id, col_queue_id, comp_countertop_id, 'Вырез под мойку', 'Вырез отверстия 500x400мм', 'todo', 'medium', 2, NOW());
+    (v_board_id, col_done_id, comp_countertop_id, 'Раскрой камня', 'Вырезать по размерам 2400x600x40мм', 'done', 'high', 0, NOW() - INTERVAL '2 days'),
+    (v_board_id, col_progress_id, comp_countertop_id, 'Полировка кромок', 'Полировка всех видимых кромок', 'in_progress', 'high', 1, NOW() - INTERVAL '1 day'),
+    (v_board_id, col_queue_id, comp_countertop_id, 'Вырез под мойку', 'Вырез отверстия 500x400мм', 'todo', 'medium', 2, NOW());
   
   -- 3. Component: Frame (Cabinet)
   INSERT INTO production_items (
@@ -197,10 +197,10 @@ BEGIN
     position,
     created_at
   ) VALUES 
-    (board_id, col_done_id, comp_frame_id, 'Раскрой ЛДСП', 'Распилить детали по карте раскроя', 'done', 'medium', 0, NOW() - INTERVAL '3 days'),
-    (board_id, col_progress_id, comp_frame_id, 'Кромкование', 'Приклеить кромку 2мм на видимые торцы', 'in_progress', 'medium', 1, NOW()),
-    (board_id, col_queue_id, comp_frame_id, 'Сверление', 'Присадка под полкодержатели и петли', 'todo', 'medium', 2, NOW()),
-    (board_id, col_queue_id, comp_frame_id, 'Сборка каркаса', 'Собрать тумбу с применением конфирматов', 'todo', 'medium', 3, NOW());
+    (v_board_id, col_done_id, comp_frame_id, 'Раскрой ЛДСП', 'Распилить детали по карте раскроя', 'done', 'medium', 0, NOW() - INTERVAL '3 days'),
+    (v_board_id, col_progress_id, comp_frame_id, 'Кромкование', 'Приклеить кромку 2мм на видимые торцы', 'in_progress', 'medium', 1, NOW()),
+    (v_board_id, col_queue_id, comp_frame_id, 'Сверление', 'Присадка под полкодержатели и петли', 'todo', 'medium', 2, NOW()),
+    (v_board_id, col_queue_id, comp_frame_id, 'Сборка каркаса', 'Собрать тумбу с применением конфирматов', 'todo', 'medium', 3, NOW());
   
   -- 4. Component: Facades (Veneer)
   INSERT INTO production_items (
@@ -245,9 +245,9 @@ BEGIN
     position,
     created_at
   ) VALUES 
-    (board_id, col_queue_id, comp_facades_id, 'Изготовление фасадов', 'МДФ + шпонирование дуба', 'todo', 'low', 0, NOW()),
-    (board_id, col_queue_id, comp_facades_id, 'Покраска', 'Лак матовый 2 слоя', 'todo', 'low', 1, NOW()),
-    (board_id, col_queue_id, comp_facades_id, 'Установка петель', 'Врезать петли на фасады', 'todo', 'low', 2, NOW());
+    (v_board_id, col_queue_id, comp_facades_id, 'Изготовление фасадов', 'МДФ + шпонирование дуба', 'todo', 'low', 0, NOW()),
+    (v_board_id, col_queue_id, comp_facades_id, 'Покраска', 'Лак матовый 2 слоя', 'todo', 'low', 1, NOW()),
+    (v_board_id, col_queue_id, comp_facades_id, 'Установка петель', 'Врезать петли на фасады', 'todo', 'low', 2, NOW());
   
   -- 5. Component: LED Lighting
   INSERT INTO production_items (
@@ -292,12 +292,12 @@ BEGIN
     position,
     created_at
   ) VALUES 
-    (board_id, col_queue_id, comp_led_id, 'Монтаж ленты', 'Приклеить ленту в алюминиевый профиль', 'todo', 'low', 0, NOW()),
-    (board_id, col_queue_id, comp_led_id, 'Подключение', 'Подключить к блоку питания 12V', 'todo', 'low', 1, NOW());
+    (v_board_id, col_queue_id, comp_led_id, 'Монтаж ленты', 'Приклеить ленту в алюминиевый профиль', 'todo', 'low', 0, NOW()),
+    (v_board_id, col_queue_id, comp_led_id, 'Подключение', 'Подключить к блоку питания 12V', 'todo', 'low', 1, NOW());
 
   RAISE NOTICE 'Successfully created production hierarchy with % items and tasks', 5;
   RAISE NOTICE 'Project ID: %', test_project_id;
-  RAISE NOTICE 'Board ID: %', board_id;
+  RAISE NOTICE 'Board ID: %', v_board_id;
   
 END $$;
 

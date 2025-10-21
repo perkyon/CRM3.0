@@ -58,20 +58,24 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
         
         if (projectId) {
           try {
+            console.log('[Kanban] Loading boards for project:', projectId);
             const projectBoards = await supabaseKanbanService.getProjectBoards(projectId);
+            console.log('[Kanban] Loaded boards:', projectBoards);
             setBoards(projectBoards);
             
             // If no boards found, create one in Supabase
             if (projectBoards.length === 0) {
+              console.log('[Kanban] No boards found, creating...');
               await createBoardForProject(projectId);
             }
           } catch (error) {
-            console.error('Failed to load kanban boards from Supabase:', error);
+            console.error('[Kanban] Failed to load kanban boards from Supabase:', error);
             // Fallback to creating a board
             await createBoardForProject(projectId);
           }
         } else {
           // Create a default board if no project specified
+          console.log('[Kanban] No projectId, creating default board');
           const defaultBoard: KanbanBoard = {
             id: 'default-board',
             projectId: 'default',
@@ -91,7 +95,7 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
           setBoards([defaultBoard]);
         }
       } catch (error) {
-        console.error('Failed to load kanban boards:', error);
+        console.error('[Kanban] Failed to load kanban boards:', error);
         // Create default board on error
         const defaultBoard: KanbanBoard = {
           id: 'default-board',
@@ -108,7 +112,7 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
           tasks: [],
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
-        };
+          };
         setBoards([defaultBoard]);
       } finally {
         setIsLoading(false);
