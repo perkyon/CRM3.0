@@ -2,18 +2,39 @@
 // No mock data - only configuration constants
 
 // Project stage names and order
-export const projectStageNames = {
+export const projectStageNames: Record<string, string> = {
   brief: 'Бриф',
-  design: 'Дизайн',
-  approval: 'Согласование',
+  preliminary_design: 'Предварительный дизайн',
+  client_approval: 'Согласование с заказчиком',
+  tech_project: 'Создание технического проекта у технолога',
+  tech_approval: 'Согласование ТП с начальником цеха',
   production: 'Производство',
-  assembly: 'Сборка',
+  quality_check: 'Проверка качества',
+  packaging: 'Упаковка',
   delivery: 'Доставка',
+  installation: 'Монтаж',
   completed: 'Завершен',
-  cancelled: 'Отменен'
+  cancelled: 'Отменен',
+  // Legacy values for backward compatibility
+  design: 'Дизайн',
+  procurement: 'Закупка',
+  assembly: 'Сборка',
+  done: 'Завершен'
 };
 
-export const stageOrder = ['brief', 'design', 'approval', 'production', 'assembly', 'delivery', 'completed'];
+export const stageOrder = [
+  'brief',
+  'preliminary_design',
+  'client_approval',
+  'tech_project',
+  'tech_approval',
+  'production',
+  'quality_check',
+  'packaging',
+  'delivery',
+  'installation',
+  'completed'
+];
 
 // Production sub-stages for detailed production tracking
 export const productionSubStages = {
@@ -27,6 +48,21 @@ export const productionSubStages = {
 };
 
 export const productionSubStageOrder = ['cutting', 'edging', 'drilling', 'assembly', 'finishing', 'quality_check', 'packaging'];
+
+// Production stages with icons for UI
+export const PRODUCTION_STAGES = [
+  { value: 'purchase', label: 'Закупка материала', icon: '🛒' },
+  { value: 'cutting_cnc', label: 'Раскрой / присадка / ЧПУ', icon: '🪚' },
+  { value: 'edging', label: 'Кромка', icon: '📏' },
+  { value: 'preassembly', label: 'Предсборка', icon: '🔧' },
+  { value: 'sanding', label: 'Шлифовка', icon: '🧽' },
+  { value: 'painting_1', label: 'Покраска (1-й слой)', icon: '🎨' },
+  { value: 'sanding_2', label: 'Шлифовка (2-я)', icon: '🧽' },
+  { value: 'painting_2', label: 'Покраска (2-й слой)', icon: '🎨' },
+  { value: 'qa', label: 'ОТК контроль QA', icon: '✓' },
+  { value: 'packaging', label: 'Упаковка', icon: '📦' },
+  { value: 'delivery', label: 'Доставка / Монтаж', icon: '🚚' },
+];
 
 // User roles
 export const userRoles = {

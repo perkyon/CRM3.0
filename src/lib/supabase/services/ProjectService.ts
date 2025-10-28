@@ -10,13 +10,13 @@ export class SupabaseProjectService {
     
     let query = supabase
       .from(TABLES.PROJECTS)
-      .select('*')
+      .select('*, code')
       .range((page - 1) * limit, page * limit - 1)
       .order('created_at', { ascending: false });
 
     // Apply filters
     if (search) {
-      query = query.or(`title.ilike.%${search}%,site_address.ilike.%${search}%`);
+      query = query.or(`title.ilike.%${search}%,site_address.ilike.%${search}%,code.ilike.%${search}%`);
     }
     if (stage) {
       query = query.eq('stage', stage);
@@ -37,8 +37,24 @@ export class SupabaseProjectService {
       throw handleApiError(error, 'SupabaseProjectService.getProjects');
     }
 
+    // Transform snake_case to camelCase
+    const transformedData = (data || []).map(project => ({
+      ...project,
+      clientId: project.client_id,
+      siteAddress: project.site_address,
+      managerId: project.manager_id,
+      foremanId: project.foreman_id,
+      startDate: project.start_date,
+      dueDate: project.due_date,
+      productionSubStage: project.production_sub_stage,
+      riskNotes: project.risk_notes,
+      briefComplete: project.brief_complete,
+      createdAt: project.created_at,
+      updatedAt: project.updated_at,
+    }));
+
     return {
-      data: data || [],
+      data: transformedData,
       pagination: {
         page,
         limit,
@@ -50,9 +66,9 @@ export class SupabaseProjectService {
 
   // Get single project by ID
   async getProject(id: string): Promise<Project> {
-    const { data, error } = await supabase
+    const { data: project, error } = await supabase
       .from(TABLES.PROJECTS)
-      .select('*')
+      .select('*, code')
       .eq('id', id)
       .single();
 
@@ -60,7 +76,21 @@ export class SupabaseProjectService {
       throw new Error(`Failed to fetch project: ${error.message}`);
     }
 
-    return data;
+    // Transform snake_case to camelCase
+    return {
+      ...project,
+      clientId: project.client_id,
+      siteAddress: project.site_address,
+      managerId: project.manager_id,
+      foremanId: project.foreman_id,
+      startDate: project.start_date,
+      dueDate: project.due_date,
+      productionSubStage: project.production_sub_stage,
+      riskNotes: project.risk_notes,
+      briefComplete: project.brief_complete,
+      createdAt: project.created_at,
+      updatedAt: project.updated_at,
+    };
   }
 
   // Create new project
@@ -87,15 +117,31 @@ export class SupabaseProjectService {
     };
 
 
+    console.log('📝 Creating project with data:', projectToInsert);
+    
     const { data: project, error: projectError } = await supabase
       .from(TABLES.PROJECTS)
       .insert(projectToInsert)
-      .select()
+      .select('*, code')
       .single();
 
     if (projectError) {
-      throw new Error(`Failed to create project: ${projectError.message}`);
+      console.error('❌ Project creation error:', projectError);
+      console.error('Error details:', {
+        message: projectError.message,
+        details: projectError.details,
+        hint: projectError.hint,
+        code: projectError.code
+      });
+      throw new Error(`Failed to create project: ${projectError.message}. ${projectError.hint || ''}`);
     }
+
+    if (!project) {
+      console.error('❌ Project created but no data returned');
+      throw new Error('Failed to create project - no data returned. Check RLS policies or run add-project-code.sql');
+    }
+    
+    console.log('✅ Project created successfully:', project);
 
     // Create default kanban board
     const { data: board, error: boardError } = await supabase
@@ -158,23 +204,31 @@ export class SupabaseProjectService {
 
   // Update existing project
   async updateProject(id: string, projectData: UpdateProjectRequest): Promise<Project> {
-    const { documents, ...projectInfo } = projectData;
+    const { documents, code, ...projectInfo } = projectData as any;
 
-    // Update project basic info
+    // Build update object, filtering out undefined values
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (projectInfo.title !== undefined) updateData.title = projectInfo.title;
+    if (projectInfo.siteAddress !== undefined) updateData.site_address = projectInfo.siteAddress;
+    if (projectInfo.clientId !== undefined) updateData.client_id = projectInfo.clientId;
+    if (projectInfo.managerId !== undefined) updateData.manager_id = projectInfo.managerId;
+    if (projectInfo.foremanId !== undefined) updateData.foreman_id = projectInfo.foremanId;
+    if (projectInfo.startDate !== undefined) updateData.start_date = projectInfo.startDate;
+    if (projectInfo.dueDate !== undefined) updateData.due_date = projectInfo.dueDate;
+    if (projectInfo.budget !== undefined) updateData.budget = projectInfo.budget;
+    if (projectInfo.priority !== undefined) updateData.priority = projectInfo.priority;
+    if (projectInfo.stage !== undefined) updateData.stage = projectInfo.stage;
+    if (projectInfo.productionSubStage !== undefined) updateData.production_sub_stage = projectInfo.productionSubStage;
+    if (projectInfo.riskNotes !== undefined) updateData.risk_notes = projectInfo.riskNotes;
+    if (projectInfo.briefComplete !== undefined) updateData.brief_complete = projectInfo.briefComplete;
+
+    // Update project basic info (code is read-only, managed by DB trigger)
     const { error: projectError } = await supabase
       .from(TABLES.PROJECTS)
-      .update({
-        ...projectInfo,
-        client_id: projectInfo.clientId,
-        manager_id: projectInfo.managerId || '9fc4d042-f598-487c-a383-cccfe0e219db',
-        foreman_id: projectInfo.foremanId,
-        start_date: projectInfo.startDate,
-        due_date: projectInfo.dueDate,
-        production_sub_stage: projectInfo.productionSubStage,
-        risk_notes: projectInfo.riskNotes,
-        brief_complete: projectInfo.briefComplete,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', id);
 
     if (projectError) {

@@ -29,7 +29,6 @@ import { Client, ClientTag } from '../../types';
 import { formatPhone, getInitials } from '../../lib/utils';
 import { toast } from '../../lib/toast';
 import { useUsers } from '../../lib/hooks/useUsers';
-import { DocumentManager } from '../documents/DocumentManager';
 
 interface EditClientDialogProps {
   client: Client | null;
@@ -184,12 +183,18 @@ export function EditClientDialog({ client, open, onOpenChange, onClientUpdate }:
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('🔵 handleSubmit called');
     e.preventDefault();
     
-    if (!validateForm() || !client) {
+    const isValid = validateForm();
+    console.log('📝 Form validation:', { isValid, hasClient: !!client });
+    
+    if (!isValid || !client) {
+      console.log('❌ Form validation failed or no client');
       return;
     }
 
+    console.log('✅ Starting save...');
     setLoading(true);
     
     try {
@@ -230,6 +235,7 @@ export function EditClientDialog({ client, open, onOpenChange, onClientUpdate }:
         }
       };
       
+      console.log('📤 Sending client data:', JSON.stringify(updatedClient, null, 2));
       onClientUpdate(updatedClient);
       
       toast('Данные клиента успешно обновлены', { type: 'success' });
@@ -272,34 +278,32 @@ export function EditClientDialog({ client, open, onOpenChange, onClientUpdate }:
         
         {/* Заголовок */}
         <DialogHeader className="px-4 sm:px-6 py-4 border-b border-border shrink-0">
-          <div className="flex flex-col gap-4">
-            <div className="flex gap-2 shrink-0 order-1 sm:order-none">
-              <Button variant="outline" size="sm" onClick={handleCancel} disabled={loading} className="flex-1 sm:flex-none">
+          <div className="flex items-center justify-between gap-4">
+            <DialogTitle className="flex items-center gap-3 min-w-0 flex-1">
+              <Avatar className="size-10 shrink-0">
+                <AvatarFallback>{getInitials(client.name)}</AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <div className="text-lg sm:text-xl font-medium truncate">{client.name}</div>
+                <div className="text-sm text-muted-foreground">
+                  Редактирование клиента
+                </div>
+              </div>
+            </DialogTitle>
+            
+            <div className="flex gap-2 shrink-0">
+              <Button variant="outline" size="sm" onClick={handleCancel} disabled={loading}>
                 <X className="size-4 sm:mr-2" />
                 <span className="hidden sm:inline">Отмена</span>
               </Button>
               <Button 
                 size="sm" 
                 onClick={handleSubmit} 
-                disabled={loading} 
-                className="flex-1 sm:flex-none"
+                disabled={loading}
               >
                 <Save className="size-4 sm:mr-2" />
                 <span className="hidden sm:inline">{loading ? 'Сохранение...' : 'Сохранить'}</span>
               </Button>
-            </div>
-            <div className="min-w-0 flex-1">
-              <DialogTitle className="flex items-center gap-3">
-                <Avatar className="size-10 shrink-0">
-                  <AvatarFallback>{getInitials(client.name)}</AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <div className="text-lg sm:text-xl font-medium truncate">{client.name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    Редактирование клиента
-                  </div>
-                </div>
-              </DialogTitle>
             </div>
           </div>
         </DialogHeader>
@@ -308,11 +312,10 @@ export function EditClientDialog({ client, open, onOpenChange, onClientUpdate }:
         <form onSubmit={handleSubmit} className="flex-1 min-h-0 flex flex-col">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
             <div className="px-4 sm:px-6 pt-4 shrink-0">
-              <TabsList className="grid w-full grid-cols-4 h-auto p-1">
-                <TabsTrigger value="overview" className="text-xs sm:text-sm py-2">Обзор</TabsTrigger>
-                <TabsTrigger value="contacts" className="text-xs sm:text-sm py-2">Контакты</TabsTrigger>
-                <TabsTrigger value="addresses" className="text-xs sm:text-sm py-2">Адреса</TabsTrigger>
-                <TabsTrigger value="additional" className="text-xs sm:text-sm py-2">Документы</TabsTrigger>
+              <TabsList className="!grid w-full grid-cols-3">
+                <TabsTrigger value="overview">Обзор</TabsTrigger>
+                <TabsTrigger value="contacts">Контакты</TabsTrigger>
+                <TabsTrigger value="addresses">Адреса</TabsTrigger>
               </TabsList>
             </div>
 
@@ -421,7 +424,7 @@ export function EditClientDialog({ client, open, onOpenChange, onClientUpdate }:
                             <SelectValue placeholder="Выберите ответственного" />
                           </SelectTrigger>
                           <SelectContent>
-                            {getManagersAndAdmins().map(user => (
+                            {getManagersAndAdmins.map(user => (
                               <SelectItem key={user.id} value={user.id}>
                                 {user.name}
                               </SelectItem>
@@ -676,31 +679,6 @@ export function EditClientDialog({ client, open, onOpenChange, onClientUpdate }:
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
-
-              {/* Документы */}
-              <TabsContent value="additional" className="space-y-4 sm:space-y-6 mt-4 sm:mt-6 m-0">
-                <DocumentManager 
-                  entityType="client"
-                  entityId={client.id}
-                  documents={client.documents}
-                  onDocumentAdd={(document) => {
-                    // Обновляем документы клиента
-                    const updatedClient = {
-                      ...client,
-                      documents: [...(client.documents || []), document]
-                    };
-                    onClientUpdate(updatedClient);
-                  }}
-                  onDocumentDelete={(documentId) => {
-                    // Удаляем документ из клиента
-                    const updatedClient = {
-                      ...client,
-                      documents: (client.documents || []).filter(doc => doc.id !== documentId)
-                    };
-                    onClientUpdate(updatedClient);
-                  }}
-                />
               </TabsContent>
             </div>
           </Tabs>

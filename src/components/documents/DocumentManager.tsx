@@ -111,7 +111,7 @@ export function DocumentManager({
       
       if (entityType === 'client') {
         const { supabaseClientService } = await import('../../lib/supabase/services/ClientService');
-        uploadedDocument = await supabaseClientService.uploadClientDocument(entityId, file);
+        uploadedDocument = await supabaseClientService.uploadClientDocument(entityId, file, selectedCategory, description);
       } else if (entityType === 'project') {
         const { supabaseProjectService } = await import('../../lib/supabase/services/ProjectService');
         uploadedDocument = await supabaseProjectService.uploadProjectDocument(entityId, file, selectedCategory);
@@ -120,20 +120,24 @@ export function DocumentManager({
       }
 
       // Преобразуем ответ от Supabase в формат ClientDocument
+      console.log('Raw uploadedDocument:', uploadedDocument);
+      
       const newDocument: ClientDocument = {
         id: uploadedDocument.id,
-        clientId: entityType === 'client' ? entityId : uploadedDocument.project_id || '',
-        name: uploadedDocument.name,
-        originalName: uploadedDocument.original_name,
+        clientId: entityType === 'client' ? entityId : (uploadedDocument.project_id || ''),
+        name: uploadedDocument.name || uploadedDocument.original_name || file.name,
+        originalName: uploadedDocument.original_name || file.name,
         type: uploadedDocument.type as any,
         category: uploadedDocument.category as any,
         size: uploadedDocument.size,
-        uploadedBy: uploadedDocument.uploaded_by || 'current-user',
-        uploadedAt: uploadedDocument.created_at,
+        uploadedBy: uploadedDocument.uploaded_by || 'unknown',
+        uploadedAt: uploadedDocument.created_at || new Date().toISOString(),
         version: 1,
-        description: description || undefined,
+        description: uploadedDocument.description || description,
         url: uploadedDocument.url
       };
+
+      console.log('Transformed newDocument:', newDocument);
 
       onDocumentAdd(newDocument);
 
@@ -175,23 +179,74 @@ export function DocumentManager({
     }
   };
 
-  const handleDownload = (document: ClientDocument) => {
-    if (document.url) {
-      const link = window.document.createElement('a');
-      link.href = document.url;
-      link.download = document.originalName;
-      link.click();
+  const handleDownload = async (document: ClientDocument) => {
+    if (!document.url) return;
+
+    try {
+      // Получаем supabase client
+      const { supabase } = await import('../../lib/supabase/config');
+      
+      // Извлекаем путь файла из URL
+      const urlParts = document.url.split('/');
+      const bucketIndex = urlParts.findIndex(part => part === 'public') + 1;
+      
+      if (bucketIndex === 0) {
+        console.error('Invalid URL format:', document.url);
+        toast.error('Неверный формат URL документа');
+        return;
+      }
+
+      const bucketName = urlParts[bucketIndex];
+      const filePath = urlParts.slice(bucketIndex + 1).join('/');
+
+      console.log('💾 Downloading document:', { bucketName, filePath });
+      
+      // Генерируем signed URL для скачивания
+      const { data, error } = await supabase.storage
+        .from(bucketName)
+        .createSignedUrl(filePath, 3600, {
+          download: document.originalName || true // Скачивать с оригинальным именем
+        });
+
+      if (error) {
+        console.error('Error creating signed URL:', error);
+        toast.error(`Ошибка при скачивании документа: ${error.message}`);
+        return;
+      }
+
+      if (data?.signedUrl) {
+        const link = window.document.createElement('a');
+        link.href = data.signedUrl;
+        link.download = document.originalName;
+        link.click();
+      }
+    } catch (error: any) {
+      console.error('Error downloading document:', error);
+      toast.error(`Ошибка при скачивании документа: ${error.message || 'Неизвестная ошибка'}`);
     }
   };
 
   const handleView = (document: ClientDocument) => {
-    if (document.url) {
-      window.open(document.url, '_blank');
+    if (!document.url) {
+      toast.error('URL документа не найден');
+      return;
     }
+
+    // Создаем временную ссылку и кликаем по ней
+    const link = window.document.createElement('a');
+    link.href = document.url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.style.display = 'none';
+    
+    window.document.body.appendChild(link);
+    link.click();
+    window.document.body.removeChild(link);
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="space-y-6">
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -446,6 +501,7 @@ export function DocumentManager({
           </div>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }

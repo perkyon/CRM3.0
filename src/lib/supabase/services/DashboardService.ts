@@ -274,16 +274,61 @@ export class SupabaseDashboardService {
   async getKPIs(): Promise<DashboardKPIs> {
     const stats = await this.getDashboardStats();
 
+    // Calculate shop load and projects in production
+    const { ordersInProgress, shopLoadPercent } = await this.getShopLoad();
+
     return {
-      totalProjects: stats.totalProjects,
-      activeProjects: stats.activeProjects,
-      completedProjects: stats.completedProjects,
-      totalClients: stats.totalClients,
+      ordersInProgress,
+      shopLoadPercent,
+      overdueTasks: stats.upcomingDeadlines.filter(d => d.daysLeft < 0).length,
       monthlyRevenue: stats.monthlyRevenue,
-      averageProjectValue: stats.averageProjectValue,
-      projectsInProduction: stats.projectsByStage.find(s => s.stage === 'production')?.count || 0,
-      overdueProjects: stats.upcomingDeadlines.filter(d => d.daysLeft < 0).length,
+      monthlyMargin: 0, // TODO: Calculate from actual data
+      materialDeficit: 0, // TODO: Integrate with materials system
     };
+  }
+
+  // Calculate shop load based on production items
+  private async getShopLoad(): Promise<{ ordersInProgress: number; shopLoadPercent: number }> {
+    try {
+      // Get all projects in production stage
+      const { data: productionProjects, error: projectsError } = await supabase
+        .from(TABLES.PROJECTS)
+        .select('id')
+        .eq('stage', 'production');
+
+      if (projectsError) throw projectsError;
+
+      if (!productionProjects || productionProjects.length === 0) {
+        return { ordersInProgress: 0, shopLoadPercent: 0 };
+      }
+
+      const projectIds = productionProjects.map(p => p.id);
+
+      // Get all production items for these projects
+      const { data: items, error: itemsError } = await supabase
+        .from('production_items')
+        .select('progress')
+        .in('project_id', projectIds);
+
+      if (itemsError) throw itemsError;
+
+      if (!items || items.length === 0) {
+        return { ordersInProgress: productionProjects.length, shopLoadPercent: 0 };
+      }
+
+      // Calculate average unfinished work (100 - average progress)
+      const totalProgress = items.reduce((sum, item) => sum + item.progress, 0);
+      const averageProgress = totalProgress / items.length;
+      const shopLoadPercent = Math.round(100 - averageProgress);
+
+      return {
+        ordersInProgress: productionProjects.length,
+        shopLoadPercent: Math.max(0, Math.min(100, shopLoadPercent)), // Clamp between 0-100
+      };
+    } catch (error) {
+      console.error('Error calculating shop load:', error);
+      return { ordersInProgress: 0, shopLoadPercent: 0 };
+    }
   }
 
   // Get project performance metrics

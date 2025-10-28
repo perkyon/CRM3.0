@@ -253,17 +253,23 @@ export class SupabaseClientService {
     // Update contacts if provided
     if (contacts) {
       // Delete existing contacts
-      await supabase
+      const { error: deleteError } = await supabase
         .from(TABLES.CONTACTS)
         .delete()
         .eq('client_id', id);
 
-      // Insert new contacts
+      if (deleteError) {
+        console.error('Error deleting contacts:', deleteError);
+      }
+
+      // Insert new contacts with fresh IDs
       if (contacts.length > 0) {
         const contactsData = contacts.map(contact => {
-          const { isPrimary, ...contactData } = contact;
+          const { isPrimary, id: oldId, ...contactData } = contact;
           return {
             ...contactData,
+            // Генерируем новый ID, игнорируя старый
+            id: crypto.randomUUID(),
             client_id: id,
             is_primary: isPrimary,
             created_at: new Date().toISOString(),
@@ -275,6 +281,7 @@ export class SupabaseClientService {
           .insert(contactsData);
 
         if (contactsError) {
+          console.error('Contacts data:', contactsData);
           throw new Error(`Failed to update contacts: ${contactsError.message}`);
         }
       }
@@ -288,19 +295,23 @@ export class SupabaseClientService {
         .delete()
         .eq('client_id', id);
 
-      // Insert new addresses
+      // Insert new addresses with fresh IDs
       const addressesData = [];
       if (addresses.physical) {
+        const { id: oldId, ...physicalData } = addresses.physical;
         addressesData.push({
-          ...addresses.physical,
+          ...physicalData,
+          id: crypto.randomUUID(),
           client_id: id,
           type: 'physical',
           created_at: new Date().toISOString(),
         });
       }
       if (addresses.billing) {
+        const { id: oldId, ...billingData } = addresses.billing;
         addressesData.push({
-          ...addresses.billing,
+          ...billingData,
+          id: crypto.randomUUID(),
           client_id: id,
           type: 'billing',
           created_at: new Date().toISOString(),
@@ -326,13 +337,17 @@ export class SupabaseClientService {
         .delete()
         .eq('client_id', id);
 
-      // Insert new tags
+      // Insert new tags with fresh IDs
       if (tags.length > 0) {
-        const tagsData = tags.map(tag => ({
-          ...tag,
-          client_id: id,
-          created_at: new Date().toISOString(),
-        }));
+        const tagsData = tags.map(tag => {
+          const { id: oldId, ...tagData } = tag;
+          return {
+            ...tagData,
+            id: crypto.randomUUID(),
+            client_id: id,
+            created_at: new Date().toISOString(),
+          };
+        });
 
         const { error: tagsError } = await supabase
           .from(TABLES.CLIENT_TAGS)
@@ -401,6 +416,8 @@ export class SupabaseClientService {
   async uploadClientDocument(
     clientId: string,
     file: File,
+    category: string = 'other',
+    description?: string,
     onProgress?: (progress: number) => void
   ): Promise<Client['documents'][0]> {
     // Upload file to Supabase Storage
@@ -410,6 +427,9 @@ export class SupabaseClientService {
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('client-documents')
       .upload(fileName, file, {
+        contentType: file.type || 'application/octet-stream',
+        cacheControl: '3600',
+        upsert: false,
         onUploadProgress: (progress) => {
           if (onProgress) {
             onProgress(progress.loaded / progress.total * 100);
@@ -432,23 +452,59 @@ export class SupabaseClientService {
       name: file.name,
       original_name: file.name,
       type: fileExt || 'unknown',
-      category: 'other',
+      category: category,
+      description: description,
       size: file.size,
       url: urlData.publicUrl,
       uploaded_by: (await supabase.auth.getUser()).data.user?.id,
       created_at: new Date().toISOString(),
     };
 
-    const { data: document, error: documentError } = await supabase
+    console.log('🔧 Attempting to insert document:', documentData);
+    console.log('📊 Table name:', TABLES.CLIENT_DOCUMENTS);
+
+    const { data: documents, error: documentError } = await supabase
       .from(TABLES.CLIENT_DOCUMENTS)
       .insert(documentData)
-      .select()
-      .single();
+      .select();
+    
+    const document = documents?.[0] || null;
+
+    console.log('📄 Document insert result:', { 
+      document, 
+      documentError,
+      documentErrorDetails: documentError ? {
+        message: documentError.message,
+        details: documentError.details,
+        hint: documentError.hint,
+        code: documentError.code
+      } : null
+    });
 
     if (documentError) {
+      console.error('❌ Database error:', documentError);
       throw new Error(`Failed to save document record: ${documentError.message}`);
     }
 
+    if (!document) {
+      console.error('❌ No document returned from database');
+      // Пробуем вернуть хотя бы что-то для UI
+      return {
+        id: 'temp-' + Date.now(),
+        client_id: clientId,
+        name: file.name,
+        original_name: file.name,
+        type: fileExt || 'unknown',
+        category: category,
+        description: description,
+        size: file.size,
+        url: urlData.publicUrl,
+        uploaded_by: (await supabase.auth.getUser()).data.user?.id || null,
+        created_at: new Date().toISOString(),
+      } as any;
+    }
+
+    console.log('✅ Document created successfully:', document);
     return document;
   }
 

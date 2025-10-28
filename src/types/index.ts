@@ -91,6 +91,7 @@ export interface Address {
 
 export interface Project {
   id: string;
+  code?: string; // Короткий читаемый ID (PRJ-001, PRJ-002, etc.)
   clientId: string;
   title: string;
   siteAddress: string;
@@ -110,12 +111,21 @@ export interface Project {
 
 export type ProjectStage = 
   | 'brief' 
-  | 'design' 
+  | 'preliminary_design'
+  | 'client_approval'
   | 'tech_project'
-  | 'procurement' 
+  | 'tech_approval'
   | 'production'
-  | 'assembly' 
-  | 'delivery' 
+  | 'quality_check'
+  | 'packaging'
+  | 'delivery'
+  | 'installation'
+  | 'completed'
+  | 'cancelled'
+  // Legacy values for backward compatibility
+  | 'design' 
+  | 'procurement'
+  | 'assembly'
   | 'done';
 
 export type ProductionSubStage = 

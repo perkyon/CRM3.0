@@ -24,7 +24,7 @@ import {
   Plus,
   Warehouse
 } from 'lucide-react';
-import { projectStageNames, stageOrder, productionSubStages, productionSubStageOrder } from '../../lib/constants';
+import { projectStageNames, stageOrder } from '../../lib/constants';
 import { useUsers } from '../../lib/hooks/useUsers';
 import { useProjects } from '../../contexts/ProjectContextNew';
 import { useClientStore } from '../../lib/stores/clientStore';
@@ -33,10 +33,9 @@ import { MaterialsManager } from '../materials/MaterialsManager';
 import { SimpleEditDialog } from '../projects/SimpleEditDialog';
 import { ClientDetailDialog } from '../clients/ClientDetailDialog';
 import { StageSelector } from '../projects/StageSelector';
-import { ProductionTree } from '../production/ProductionTree';
 import { formatCurrency, formatDate, getDaysUntilDue } from '../../lib/utils';
 import { StatusBadge } from '../ui/status-badge';
-import { Project, ProjectStage, KanbanTask, ProductionItem } from '../../types';
+import { Project, ProjectStage } from '../../types';
 import { toast } from '../../lib/toast';
 
 export function ProjectOverview() {
@@ -48,8 +47,6 @@ export function ProjectOverview() {
   const [project, setProject] = useState<Project | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<KanbanTask | null>(null);
-  const [selectedItem, setSelectedItem] = useState<ProductionItem | null>(null);
 
   useEffect(() => {
     if (projectId) {
@@ -167,7 +164,7 @@ export function ProjectOverview() {
           <div className="border-l border-border h-6"></div>
           <div>
             <h1 className="text-2xl font-medium">{project.title}</h1>
-            <p className="text-muted-foreground">ID: {project.id}</p>
+            <p className="text-muted-foreground">ID: {project.code || project.id}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -328,9 +325,8 @@ export function ProjectOverview() {
 
           {/* Project Tabs */}
           <Tabs defaultValue="timeline" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="timeline">Этапы</TabsTrigger>
-              <TabsTrigger value="production">Дерево производства</TabsTrigger>
               <TabsTrigger value="documents">Документы</TabsTrigger>
             </TabsList>
             
@@ -348,22 +344,17 @@ export function ProjectOverview() {
                       <div className={`
                         inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium
                         ${project.stage === 'brief' ? 'bg-orange-100 text-orange-700' :
-                          project.stage === 'done' ? 'bg-green-100 text-green-700' :
+                          (project.stage === 'completed' || project.stage === 'done') ? 'bg-green-100 text-green-700' :
                           'bg-blue-100 text-blue-700'
                         }
                       `}>
                         <div className={`size-2 rounded-full
                           ${project.stage === 'brief' ? 'bg-orange-500' :
-                            project.stage === 'done' ? 'bg-green-500' :
+                            (project.stage === 'completed' || project.stage === 'done') ? 'bg-green-500' :
                             'bg-blue-500'
                           }
                         `} />
                         {projectStageNames[project.stage as keyof typeof projectStageNames] || project.stage}
-                        {project.stage === 'production' && project.productionSubStage && (
-                          <span className="text-xs text-muted-foreground">
-                            · {productionSubStages[project.productionSubStage as keyof typeof productionSubStages] || project.productionSubStage}
-                          </span>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -427,41 +418,6 @@ export function ProjectOverview() {
                                 )}
                               </div>
                             </div>
-
-                            {/* Production Sub-stages */}
-                            {stage === 'production' && (isCurrent || isCompleted) && (
-                              <div className="ml-9 space-y-1 pb-2">
-                                {productionSubStageOrder.map((subStage: string, subIndex: number) => {
-                                  const isSubCompleted = isCurrent && project.productionSubStage && 
-                                    productionSubStageOrder.indexOf(project.productionSubStage) > subIndex;
-                                  const isSubCurrent = isCurrent && project.productionSubStage === subStage;
-                                  const allSubCompleted = isCompleted; // Если основной этап завершен, то все подэтапы завершены
-                                  
-                                  return (
-                                    <div key={subStage} className="flex items-center gap-2 py-1">
-                                      <div className={`
-                                        size-3 rounded-full
-                                        ${allSubCompleted || isSubCompleted ? 'bg-green-400' :
-                                          isSubCurrent ? 'bg-blue-400' :
-                                          'bg-gray-200'
-                                        }
-                                      `} />
-                                      <span className={`text-xs
-                                        ${allSubCompleted || isSubCompleted ? 'text-green-600' :
-                                          isSubCurrent ? 'text-blue-600' :
-                                          'text-muted-foreground'
-                                        }
-                                      `}>
-                                        {productionSubStages[subStage as keyof typeof productionSubStages]}
-                                        {isSubCurrent && (
-                                          <span className="ml-2 text-blue-500">• текущий</span>
-                                        )}
-                                      </span>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
                           </div>
                         );
                       })}
@@ -469,21 +425,6 @@ export function ProjectOverview() {
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
-
-            <TabsContent value="production" className="space-y-4">
-              <ProductionTree 
-                projectId={project.id}
-                onTaskClick={(task) => {
-                  setSelectedTask(task);
-                  // Navigate to kanban with task selected
-                  navigate(`/production/${project.id}/kanban`, { state: { selectedTaskId: task.id } });
-                }}
-                onItemClick={(item) => {
-                  setSelectedItem(item);
-                  toast.info(`Изделие: ${item.name}`);
-                }}
-              />
             </TabsContent>
             
             <TabsContent value="documents" className="space-y-4">

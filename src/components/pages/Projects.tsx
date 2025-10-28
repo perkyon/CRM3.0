@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -37,9 +37,9 @@ import { EmptyProjectsState, ErrorState, LoadingState } from '../ui/empty-state'
 export function Projects() {
   const navigate = useNavigate();
   const { projects, createProject, updateProject, deleteProject } = useProjects();
-  const { clients } = useClientStore();
+  const { clients, fetchClients } = useClientStore();
   const { trackUserAction } = useAnalytics();
-  const { users, getUsersByRole } = useUsers();
+  const { users, getUsersByRole, loading: usersLoading } = useUsers();
   const [searchQuery, setSearchQuery] = useState('');
   const [stageFilter, setStageFilter] = useState<string>('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -69,7 +69,15 @@ export function Projects() {
     priority: 'medium' as Project['priority']
   });
 
-
+  // Загрузка клиентов при монтировании
+  useEffect(() => {
+    console.log('🔄 Loading clients...');
+    fetchClients().then(() => {
+      console.log('✅ Clients loaded:', clients.length);
+    }).catch((err) => {
+      console.error('❌ Failed to load clients:', err);
+    });
+  }, [fetchClients]);
 
   // Получение прогресса по стадиям
   const getStageProgress = (stage: ProjectStage): number => {
@@ -131,8 +139,10 @@ export function Projects() {
         budget: '',
         priority: 'medium'
       });
-    } catch (error) {
-      toast('Ошибка при создании проекта', { type: 'error' });
+    } catch (error: any) {
+      console.error('❌ Ошибка создания проекта:', error);
+      const errorMessage = error?.message || error?.toString() || 'Неизвестная ошибка';
+      toast(`Ошибка при создании проекта: ${errorMessage}`, { type: 'error' });
     } finally {
       setIsLoading(false);
     }
@@ -140,14 +150,24 @@ export function Projects() {
 
   // Функция редактирования проекта
   const handleEditProject = async () => {
+    console.log('📝 Starting project update...');
+    console.log('Selected project:', selectedProject);
+    console.log('New project data:', newProject);
+    
     if (!selectedProject || !newProject.title || !newProject.clientId || !newProject.managerId) {
+      console.error('❌ Missing required fields:', {
+        hasSelectedProject: !!selectedProject,
+        hasTitle: !!newProject.title,
+        hasClientId: !!newProject.clientId,
+        hasManagerId: !!newProject.managerId
+      });
       toast.error('Заполните обязательные поля');
       return;
     }
 
     setIsLoading(true);
     try {
-      await updateProject(selectedProject.id, {
+      const updateData = {
         clientId: newProject.clientId,
         title: newProject.title,
         siteAddress: newProject.siteAddress,
@@ -157,13 +177,20 @@ export function Projects() {
         dueDate: newProject.dueDate,
         budget: parseFloat(newProject.budget) || 0,
         priority: newProject.priority
-      });
+      };
+      
+      console.log('📤 Sending update data:', updateData);
+      
+      const result = await updateProject(selectedProject.id, updateData);
+      
+      console.log('✅ Project updated successfully:', result);
       
       toast.success('Проект успешно обновлен');
       setIsEditDialogOpen(false);
       setSelectedProject(null);
     } catch (error) {
-      toast('Ошибка при обновлении проекта', { type: 'error' });
+      console.error('❌ Error updating project:', error);
+      toast.error(`Ошибка при обновлении проекта: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
     } finally {
       setIsLoading(false);
     }
@@ -190,15 +217,15 @@ export function Projects() {
   const openEditDialog = (project: Project) => {
     setSelectedProject(project);
     setNewProject({
-      title: project.title,
-      clientId: project.clientId,
-      siteAddress: project.siteAddress,
-      managerId: project.managerId,
-      foremanId: project.foremanId,
-      startDate: project.startDate,
-      dueDate: project.dueDate,
-      budget: project.budget.toString(),
-      priority: project.priority
+      title: project.title || '',
+      clientId: project.clientId || '',
+      siteAddress: project.siteAddress || '',
+      managerId: project.managerId || '',
+      foremanId: project.foremanId || '',
+      startDate: project.startDate || '',
+      dueDate: project.dueDate || '',
+      budget: project.budget?.toString() || '',
+      priority: project.priority || 'medium'
     });
     setIsEditDialogOpen(true);
   };
@@ -215,6 +242,7 @@ export function Projects() {
       const matchesSearch = !searchQuery || 
         project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         project.siteAddress.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         project.id.toLowerCase().includes(searchQuery.toLowerCase());
       
       const matchesStage = stageFilter === 'all' || project.stage === stageFilter;
@@ -294,16 +322,25 @@ export function Projects() {
                 <Select 
                   value={newProject.managerId} 
                   onValueChange={(value) => setNewProject({...newProject, managerId: value})}
+                  disabled={usersLoading}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Выберите менеджера" />
+                    <SelectValue placeholder={usersLoading ? "Загрузка..." : "Выберите менеджера"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {getUsersByRole('Manager').map((user) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.name}
-                      </SelectItem>
-                    ))}
+                    {usersLoading ? (
+                      <div className="p-2 text-sm text-muted-foreground">Загрузка пользователей...</div>
+                    ) : getUsersByRole('Manager').length === 0 ? (
+                      <div className="p-2 text-sm text-muted-foreground">
+                        Нет пользователей с ролью "Менеджер"
+                      </div>
+                    ) : (
+                      getUsersByRole('Manager').map((user) => (
+                        <SelectItem key={user.id} value={user.id}>
+                          {user.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -312,16 +349,25 @@ export function Projects() {
                 <Select 
                   value={newProject.foremanId} 
                   onValueChange={(value) => setNewProject({...newProject, foremanId: value})}
+                  disabled={usersLoading}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Выберите начальника цеха" />
+                    <SelectValue placeholder={usersLoading ? "Загрузка..." : "Выберите начальника цеха"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {getUsersByRole('Master').map((user) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.name}
-                      </SelectItem>
-                    ))}
+                    {usersLoading ? (
+                      <div className="p-2 text-sm text-muted-foreground">Загрузка пользователей...</div>
+                    ) : getUsersByRole('Master').length === 0 ? (
+                      <div className="p-2 text-sm text-muted-foreground">
+                        Нет пользователей с ролью "Мастер"
+                      </div>
+                    ) : (
+                      getUsersByRole('Master').map((user) => (
+                        <SelectItem key={user.id} value={user.id}>
+                          {user.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -490,7 +536,7 @@ export function Projects() {
                       <div>
                         <div className="font-medium">{project.title}</div>
                         <div className="text-sm text-muted-foreground">
-                          {project.id} • {manager?.name}
+                          {project.code || project.id} • {manager?.name}
                         </div>
                       </div>
                     </TableCell>
@@ -651,16 +697,25 @@ export function Projects() {
               <Select 
                 value={newProject.managerId} 
                 onValueChange={(value) => setNewProject({...newProject, managerId: value})}
+                disabled={usersLoading}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Выберите менеджера" />
+                  <SelectValue placeholder={usersLoading ? "Загрузка..." : "Выберите менеджера"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {getUsersByRole('Manager').map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.name}
-                    </SelectItem>
-                  ))}
+                  {usersLoading ? (
+                    <div className="p-2 text-sm text-muted-foreground">Загрузка пользователей...</div>
+                  ) : getUsersByRole('Manager').length === 0 ? (
+                    <div className="p-2 text-sm text-muted-foreground">
+                      Нет пользователей с ролью "Менеджер"
+                    </div>
+                  ) : (
+                    getUsersByRole('Manager').map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -669,16 +724,25 @@ export function Projects() {
               <Select 
                 value={newProject.foremanId} 
                 onValueChange={(value) => setNewProject({...newProject, foremanId: value})}
+                disabled={usersLoading}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Выберите начальника цеха" />
+                  <SelectValue placeholder={usersLoading ? "Загрузка..." : "Выберите начальника цеха"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {getUsersByRole('Master').map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.name}
-                    </SelectItem>
-                  ))}
+                  {usersLoading ? (
+                    <div className="p-2 text-sm text-muted-foreground">Загрузка пользователей...</div>
+                  ) : getUsersByRole('Master').length === 0 ? (
+                    <div className="p-2 text-sm text-muted-foreground">
+                      Нет пользователей с ролью "Мастер"
+                    </div>
+                  ) : (
+                    getUsersByRole('Master').map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>

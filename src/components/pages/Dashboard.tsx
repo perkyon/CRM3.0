@@ -23,6 +23,7 @@ import { useAnalytics, CRM_EVENTS } from '../../lib/hooks/useAnalytics';
 import { supabaseDashboardService, DashboardStats } from '../../lib/supabase/services/DashboardService';
 import { toast } from '../../lib/toast';
 import { DashboardKPIs } from '../../types';
+import { realtimeService } from '../../lib/supabase/realtime';
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -34,6 +35,11 @@ export function Dashboard() {
   const [kpis, setKpis] = useState<DashboardKPIs | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Load initial data
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
 
   // Подключаемся к realtime обновлениям для активности
   useEffect(() => {
@@ -66,11 +72,9 @@ export function Dashboard() {
     return () => {
       try {
         if (unsubscribeProjects) {
-          const { realtimeService } = require('../../lib/supabase/realtime');
           realtimeService.unsubscribe('projects');
         }
         if (unsubscribeClients) {
-          const { realtimeService } = require('../../lib/supabase/realtime');
           realtimeService.unsubscribe('clients');
         }
       } catch (error) {

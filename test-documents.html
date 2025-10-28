@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Documents API</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Document Storage Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        const SUPABASE_URL = 'https://xhclmypcklndxqzkhgfk.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhoY2xteXBja2xuZHhxemtoZ2ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgxMDIzNTcsImV4cCI6MjA3MzY3ODM1N30.p4MmkvF4zwCQQB1zXxjYhr2tXSk_e6kG3b8GM0MAs_k';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        async function testDocuments() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                // 1. Получаем все документы
+                const { data: documents, error: docsError } = await supabase
+                    .from('client_documents')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+                
+                if (docsError) {
+                    results.innerHTML += `<p style="color: red;">Error fetching documents: ${docsError.message}</p>`;
+                    console.error('Documents error:', docsError);
+                } else {
+                    results.innerHTML += `<h2>Documents in DB: ${documents.length}</h2>`;
+                    results.innerHTML += '<pre>' + JSON.stringify(documents, null, 2) + '</pre>';
+                }
+                
+                // 2. Проверяем storage buckets
+                const { data: buckets, error: bucketsError } = await supabase
+                    .storage
+                    .listBuckets();
+                
+                if (bucketsError) {
+                    results.innerHTML += `<p style="color: red;">Error fetching buckets: ${bucketsError.message}</p>`;
+                } else {
+                    results.innerHTML += `<h2>Storage Buckets:</h2>`;
+                    results.innerHTML += '<pre>' + JSON.stringify(buckets, null, 2) + '</pre>';
+                }
+                
+                // 3. Проверяем файлы в client-documents bucket
+                const { data: files, error: filesError } = await supabase
+                    .storage
+                    .from('client-documents')
+                    .list();
+                
+                if (filesError) {
+                    results.innerHTML += `<p style="color: red;">Error fetching files: ${filesError.message}</p>`;
+                } else {
+                    results.innerHTML += `<h2>Files in client-documents bucket:</h2>`;
+                    results.innerHTML += '<pre>' + JSON.stringify(files, null, 2) + '</pre>';
+                }
+                
+                // 4. Если есть документы, пробуем создать signed URL для первого
+                if (documents && documents.length > 0) {
+                    const firstDoc = documents[0];
+                    results.innerHTML += `<h2>Testing Signed URL for: ${firstDoc.name}</h2>`;
+                    
+                    // Парсим путь из URL
+                    const urlParts = firstDoc.url.split('/');
+                    const bucketIndex = urlParts.findIndex(part => part === 'public') + 1;
+                    const bucketName = urlParts[bucketIndex];
+                    const filePath = urlParts.slice(bucketIndex + 1).join('/');
+                    
+                    results.innerHTML += `<p>Bucket: ${bucketName}<br>Path: ${filePath}</p>`;
+                    
+                    const { data: signedData, error: signedError } = await supabase
+                        .storage
+                        .from(bucketName)
+                        .createSignedUrl(filePath, 3600);
+                    
+                    if (signedError) {
+                        results.innerHTML += `<p style="color: red;">Error creating signed URL: ${signedError.message}</p>`;
+                    } else {
+                        results.innerHTML += `<p style="color: green;">✅ Signed URL created successfully!</p>`;
+                        results.innerHTML += `<p><a href="${signedData.signedUrl}" target="_blank">Open Document</a></p>`;
+                    }
+                }
+                
+            } catch (error) {
+                results.innerHTML += `<p style="color: red;">Unexpected error: ${error.message}</p>`;
+                console.error('Test error:', error);
+            }
+        }
+        
+        // Запускаем тест
+        testDocuments();
+    </script>
+</body>
+</html>
+

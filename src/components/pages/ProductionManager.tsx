@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -10,84 +10,364 @@ import {
   Search, 
   Plus,
   Settings,
-  ListTree
+  ListTree,
+  Trash2,
+  MoreVertical,
+  Edit,
+  FolderOpen
 } from 'lucide-react';
-import { ProductionTree } from '../production/ProductionTree';
-import { supabaseProductionItemService } from '../../lib/supabase/services/ProductionItemService';
-import { ProductionItem, KanbanTask } from '../../types';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
+import { 
+  productionManagementService,
+  ProductionZone,
+  ProductionItem as ProdItem,
+  ProductionComponent
+} from '../../lib/supabase/services/ProductionManagementService';
 import { useProjects } from '../../contexts/ProjectContextNew';
 import { toast } from '../../lib/toast';
 import { cn } from '../../lib/utils';
+import { ZoneDialog } from '../production/ZoneDialog';
+import { DeleteZoneDialog } from '../production/DeleteZoneDialog';
+import { ItemDialog, ItemFormData } from '../production/ItemDialog';
+import { DeleteItemDialog } from '../production/DeleteItemDialog';
+import { ItemDetailsPanel } from '../production/ItemDetailsPanel';
+import { ComponentDialog, ComponentFormData } from '../production/ComponentDialog';
+import { useProductionRealtime } from '../../lib/hooks/useProductionRealtime';
 
 export function ProductionManager() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const { projects } = useProjects();
   
-  const [items, setItems] = useState<ProductionItem[]>([]);
-  const [selectedItem, setSelectedItem] = useState<ProductionItem | null>(null);
+  const [zones, setZones] = useState<ProductionZone[]>([]);
+  const [items, setItems] = useState<ProdItem[]>([]);
+  const [selectedZone, setSelectedZone] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<ProdItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Zone dialog states
+  const [isZoneDialogOpen, setIsZoneDialogOpen] = useState(false);
+  const [zoneDialogMode, setZoneDialogMode] = useState<'create' | 'edit'>('create');
+  const [editingZone, setEditingZone] = useState<ProductionZone | null>(null);
+  
+  // Delete zone dialog states
+  const [isDeleteZoneDialogOpen, setIsDeleteZoneDialogOpen] = useState(false);
+  const [deletingZone, setDeletingZone] = useState<ProductionZone | null>(null);
+  
+  // Item dialog states
+  const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
+  const [itemDialogMode, setItemDialogMode] = useState<'create' | 'edit'>('create');
+  const [editingItem, setEditingItem] = useState<ProdItem | null>(null);
+  
+  // Delete item dialog states
+  const [isDeleteItemDialogOpen, setIsDeleteItemDialogOpen] = useState(false);
+  const [deletingItem, setDeletingItem] = useState<ProdItem | null>(null);
+
+  // Component dialog states
+  const [isComponentDialogOpen, setIsComponentDialogOpen] = useState(false);
+  const [componentDialogMode, setComponentDialogMode] = useState<'create' | 'edit'>('create');
+  const [editingComponent, setEditingComponent] = useState<ProductionComponent | null>(null);
+  const [deletingComponent, setDeletingComponent] = useState<ProductionComponent | null>(null);
 
   const project = projects.find(p => p.id === projectId);
 
-  useEffect(() => {
-    if (projectId) {
-      loadProductionItems();
-    }
-  }, [projectId]);
-
-  const loadProductionItems = async () => {
+  const loadProductionData = useCallback(async () => {
     if (!projectId) return;
     
     try {
       setIsLoading(true);
-      const data = await supabaseProductionItemService.getProjectProductionTree(projectId);
-      setItems(data);
+      
+      // Load zones and items
+      const [zonesData, itemsData] = await Promise.all([
+        productionManagementService.getProjectZones(projectId),
+        productionManagementService.getProjectItems(projectId)
+      ]);
+      
+      setZones(zonesData);
+      setItems(itemsData);
       
       // Auto-select first item
-      if (data.length > 0 && !selectedItem) {
-        setSelectedItem(data[0]);
+      if (itemsData.length > 0 && !selectedItem) {
+        setSelectedItem(itemsData[0]);
       }
     } catch (error) {
-      console.error('Error loading production items:', error);
+      console.error('Error loading production data:', error);
       toast.error('Ошибка загрузки производства');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [projectId, selectedItem]);
 
-  // Group items by category/zone
-  const zones = React.useMemo(() => {
-    const grouped = new Map<string, ProductionItem[]>();
-    
-    items.forEach(item => {
-      // Use first word of name as zone, or "Общее"
-      const zone = item.name.split(' ')[0] || 'Общее';
-      if (!grouped.has(zone)) {
-        grouped.set(zone, []);
-      }
-      grouped.get(zone)?.push(item);
-    });
-    
-    return Array.from(grouped.entries()).map(([name, items]) => ({
-      name,
-      items,
-      progress: items.length > 0 
-        ? Math.round(items.reduce((sum, item) => sum + item.progressPercent, 0) / items.length)
-        : 0,
-      completed: items.filter(i => i.status === 'completed').length,
-      total: items.length
-    }));
-  }, [items]);
+  // Initial data load
+  useEffect(() => {
+    if (projectId) {
+      loadProductionData();
+    } else {
+      setIsLoading(false);
+    }
+  }, [projectId, loadProductionData]);
 
-  const [selectedZone, setSelectedZone] = useState<string | null>(null);
+  // Real-time subscription
+  useProductionRealtime({
+    projectId,
+    onUpdate: loadProductionData,
+  });
 
   // Filter items by selected zone
   const filteredItems = React.useMemo(() => {
     if (!selectedZone) return items;
-    return items.filter(item => item.name.startsWith(selectedZone));
-  }, [items, selectedZone]);
+    const zone = zones.find(z => z.id === selectedZone);
+    return items.filter(item => item.zone_id === zone?.id);
+  }, [items, selectedZone, zones]);
+
+  // Handle create zone
+  const handleCreateZone = async (name: string) => {
+    if (!projectId) return;
+    
+    try {
+      await productionManagementService.createZone(projectId, name);
+      await loadProductionData();
+      toast.success('Зона успешно создана');
+    } catch (error) {
+      console.error('Error creating zone:', error);
+      toast.error('Ошибка при создании зоны');
+      throw error;
+    }
+  };
+
+  // Handle edit zone
+  const handleEditZone = async (name: string) => {
+    if (!editingZone) return;
+    
+    try {
+      await productionManagementService.updateZoneName(editingZone.id, name);
+      await loadProductionData();
+      toast.success('Зона успешно переименована');
+    } catch (error) {
+      console.error('Error updating zone:', error);
+      toast.error('Ошибка при обновлении зоны');
+      throw error;
+    }
+  };
+
+  // Handle delete zone
+  const handleDeleteZone = async () => {
+    if (!deletingZone) return;
+    
+    try {
+      await productionManagementService.deleteZone(deletingZone.id);
+      // Refresh data
+      await loadProductionData();
+      toast.success('Зона успешно удалена');
+      
+      // Clear selection if deleted zone was selected
+      if (selectedZone === deletingZone.id) {
+        setSelectedZone(null);
+      }
+      
+      // Close dialog
+      setIsDeleteZoneDialogOpen(false);
+      setDeletingZone(null);
+    } catch (error) {
+      console.error('Error deleting zone:', error);
+      toast.error('Ошибка при удалении зоны');
+    }
+  };
+
+  // Open delete zone dialog
+  const openDeleteZoneDialog = (zone: ProductionZone) => {
+    setDeletingZone(zone);
+    setIsDeleteZoneDialogOpen(true);
+  };
+
+  // Open create zone dialog
+  const openCreateZoneDialog = () => {
+    setZoneDialogMode('create');
+    setEditingZone(null);
+    setIsZoneDialogOpen(true);
+  };
+
+  // Open edit zone dialog
+  const openEditZoneDialog = (zone: ProductionZone) => {
+    setZoneDialogMode('edit');
+    setEditingZone(zone);
+    setIsZoneDialogOpen(true);
+  };
+
+  // Handle create item
+  const handleCreateItem = async (itemData: ItemFormData) => {
+    if (!projectId || !selectedZone) return;
+    
+    try {
+      await productionManagementService.createItem(
+        projectId,
+        selectedZone,
+        itemData.code,
+        itemData.name,
+        itemData.quantity || 1,
+        itemData.currentStage
+      );
+      
+      // Reload data to show new item
+      await loadProductionData();
+      
+      toast.success('Изделие успешно создано');
+    } catch (error) {
+      console.error('Error creating item:', error);
+      toast.error('Ошибка при создании изделия');
+      throw error;
+    }
+  };
+
+  // Handle edit item
+  const handleEditItem = async (itemData: ItemFormData) => {
+    if (!editingItem) return;
+    
+    try {
+      await productionManagementService.updateItem(
+        editingItem.id,
+        itemData.code,
+        itemData.name,
+        itemData.quantity || 1,
+        itemData.currentStage
+      );
+      
+      await loadProductionData();
+      toast.success('Изделие успешно обновлено');
+    } catch (error) {
+      console.error('Error updating item:', error);
+      toast.error('Ошибка при обновлении изделия');
+      throw error;
+    }
+  };
+
+  // Handle delete item
+  const handleDeleteItem = async () => {
+    if (!deletingItem) return;
+    
+    try {
+      await productionManagementService.deleteItem(deletingItem.id);
+      
+      // Refresh data
+      await loadProductionData();
+      toast.success('Изделие успешно удалено');
+      
+      // Clear selection if deleted item was selected
+      if (selectedItem?.id === deletingItem.id) {
+        setSelectedItem(null);
+      }
+      
+      // Close dialog
+      setIsDeleteItemDialogOpen(false);
+      setDeletingItem(null);
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      toast.error('Ошибка при удалении изделия');
+    }
+  };
+
+  // Open create item dialog
+  const openCreateItemDialog = () => {
+    if (!selectedZone) {
+      toast.error('Выберите зону для добавления изделия');
+      return;
+    }
+    setItemDialogMode('create');
+    setEditingItem(null);
+    setIsItemDialogOpen(true);
+  };
+
+  // Open edit item dialog
+  const openEditItemDialog = (item: ProdItem) => {
+    setItemDialogMode('edit');
+    setEditingItem(item);
+    setIsItemDialogOpen(true);
+  };
+
+  // Open delete item dialog
+  const openDeleteItemDialog = (item: ProdItem) => {
+    setDeletingItem(item);
+    setIsDeleteItemDialogOpen(true);
+  };
+
+  // Handle component add
+  const handleComponentAdd = () => {
+    if (!selectedItem) {
+      toast.error('Выберите изделие для добавления компонента');
+      return;
+    }
+    setComponentDialogMode('create');
+    setEditingComponent(null);
+    setIsComponentDialogOpen(true);
+  };
+
+  // Handle component edit
+  const handleComponentEdit = (component: ProductionComponent) => {
+    setComponentDialogMode('edit');
+    setEditingComponent(component);
+    setIsComponentDialogOpen(true);
+  };
+
+  // Handle component delete
+  const handleComponentDelete = (component: ProductionComponent) => {
+    setDeletingComponent(component);
+  };
+
+  // Confirm component delete
+  const confirmComponentDelete = async () => {
+    if (!deletingComponent) return;
+    
+    try {
+      await productionManagementService.deleteComponent(deletingComponent.id);
+      // Reload production data
+      await loadProductionData();
+      toast.success('Компонент успешно удален');
+      
+      // Close dialog
+      setDeletingComponent(null);
+    } catch (error) {
+      console.error('Error deleting component:', error);
+      toast.error('Ошибка при удалении компонента');
+    }
+  };
+
+  // Handle component save
+  const handleComponentSave = async (componentData: ComponentFormData) => {
+    if (!selectedItem && componentDialogMode === 'create') return;
+    
+    try {
+      if (componentDialogMode === 'create') {
+        await productionManagementService.createComponent(
+          selectedItem!.id,
+          componentData.name,
+          componentData.material,
+          componentData.quantity,
+          componentData.unit,
+          componentData.templateId
+        );
+        toast.success('Компонент успешно добавлен');
+      } else if (componentDialogMode === 'edit' && editingComponent) {
+        // Update component (note: ProductionManagementService doesn't have updateComponent yet)
+        // For now, we'll show a message
+        toast.info('Функция редактирования компонента скоро будет доступна');
+        return;
+      }
+      
+      // Reload production data to refresh the item details panel
+      await loadProductionData();
+    } catch (error) {
+      console.error('Error saving component:', error);
+      toast.error('Ошибка при сохранении компонента');
+      throw error;
+    }
+  };
 
   if (isLoading) {
     return (
@@ -127,32 +407,28 @@ export function ProductionManager() {
               </div>
             </div>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => navigate(`/production/${projectId}`)}
-            >
-              <Settings className="size-4 mr-2" />
-              Канбан доска
-            </Button>
-            <Button size="sm">
-              <Plus className="size-4 mr-2" />
-              Добавить изделие
-            </Button>
-          </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar - Zones */}
-        <div className="w-64 border-r bg-muted/30 p-4 overflow-y-auto">
+        <div className="w-64 border-r bg-muted/30 p-4 overflow-y-auto flex-shrink-0">
           <div className="space-y-2">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase">
               Зоны
             </h3>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={openCreateZoneDialog}
+                className="h-6 w-6 p-0"
+                title="Добавить зону"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
             
             <button
               onClick={() => setSelectedZone(null)}
@@ -167,16 +443,24 @@ export function ProductionManager() {
               </div>
             </button>
 
-            {zones.map(zone => (
-              <button
-                key={zone.name}
-                onClick={() => setSelectedZone(zone.name)}
+            {zones.map(zone => {
+              const zoneItems = items.filter(item => item.zone_id === zone.id);
+              const completedItems = zoneItems.filter(item => item.progress === 100).length;
+              
+              return (
+                <div
+                  key={zone.id}
                 className={cn(
-                  "w-full text-left p-3 rounded-lg transition-colors",
-                  selectedZone === zone.name 
+                    "group relative rounded-lg transition-colors",
+                    selectedZone === zone.id 
                     ? "bg-primary text-primary-foreground" 
                     : "hover:bg-accent"
                 )}
+                >
+                  <div className="flex items-center">
+                    <button
+                      onClick={() => setSelectedZone(zone.id)}
+                      className="flex-1 text-left p-3"
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium">{zone.name}</span>
@@ -185,16 +469,55 @@ export function ProductionManager() {
                 <div className="space-y-1">
                   <Progress value={zone.progress} className="h-1" />
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{zone.completed} / {zone.total} изд.</span>
+                          <span>{completedItems} / {zoneItems.length} изд.</span>
+                        </div>
+                      </div>
+                    </button>
+                    
+                    {/* Dropdown menu */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0 mr-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEditZoneDialog(zone);
+                          }}
+                        >
+                          <Edit className="mr-2 h-4 w-4" />
+                          Переименовать
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openDeleteZoneDialog(zone);
+                          }}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Удалить
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
-              </button>
-            ))}
+              );
+            })}
           </div>
         </div>
 
         {/* Center - Items List */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="w-80 border-r overflow-y-auto flex-shrink-0">
           <div className="p-6">
             {/* Search */}
             <div className="mb-6">
@@ -209,188 +532,235 @@ export function ProductionManager() {
               </div>
             </div>
 
-            {/* Stats */}
-            <div className="mb-6">
+            {/* Stats + Add Button */}
+            <div className="mb-6 flex items-center justify-between">
+              <div>
               <div className="text-sm text-muted-foreground">
                 ИЗДЕЛИЯ
               </div>
               <div className="text-2xl font-semibold">
                 {filteredItems.length} шт.
               </div>
+              </div>
+              <Button
+                onClick={openCreateItemDialog}
+                size="sm"
+                className="gap-2"
+                disabled={!selectedZone}
+              >
+                <Plus className="h-4 w-4" />
+                Добавить изделие
+              </Button>
             </div>
 
             {/* Items Table */}
-            <div className="space-y-2">
-              <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-muted-foreground uppercase">
-                <div className="col-span-5">Название</div>
-                <div className="col-span-3">Этап</div>
-                <div className="col-span-2">%</div>
-                <div className="col-span-2">Мастер</div>
-              </div>
-
-              {filteredItems
-                .filter(item => 
+            {(() => {
+              const searchFilteredItems = filteredItems.filter(item => 
                   !searchQuery || 
                   item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                   item.code?.toLowerCase().includes(searchQuery.toLowerCase())
-                )
-                .map(item => (
-                  <button
-                    key={item.id}
-                    onClick={() => setSelectedItem(item)}
-                    className={cn(
-                      "w-full grid grid-cols-12 gap-4 px-4 py-3 rounded-lg text-left transition-colors",
-                      selectedItem?.id === item.id 
-                        ? "bg-primary/10 border border-primary" 
-                        : "hover:bg-accent border border-transparent"
-                    )}
-                  >
-                    <div className="col-span-5">
-                      <div className="font-medium">{item.name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {item.code || item.type === 'furniture' ? 'Изделие' : 'Компонент'}
+              );
+
+              return searchFilteredItems.length > 0 && (
+                <div className="space-y-2">
+                  {searchFilteredItems.map(item => {
+                    const isCompleted = item.current_stage === 'completed';
+                    const isInProgress = item.current_stage && item.current_stage !== 'plan' && !isCompleted;
+                    const zoneName = zones.find(z => z.id === item.zone_id)?.name || 'Без зоны';
+                    
+                    return (
+                      <div key={item.id} className="flex items-stretch gap-2 group">
+                        <button
+                          onClick={() => setSelectedItem(item)}
+                          className={cn(
+                            "flex-1 p-4 rounded-lg transition-all duration-200 border text-left",
+                            selectedItem?.id === item.id 
+                              ? "bg-primary/5 border-primary shadow-sm" 
+                              : "hover:bg-accent/50 border-transparent hover:border-border"
+                          )}
+                        >
+                          {/* Header with name and badge */}
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              <div className={cn(
+                                "w-2.5 h-2.5 rounded-full flex-shrink-0",
+                                isCompleted ? "bg-green-500" :
+                                isInProgress ? "bg-blue-500" :
+                                "bg-gray-300"
+                              )} />
+                              <div className="min-w-0 flex-1">
+                                <div className="font-semibold text-foreground truncate">{item.name}</div>
+                                <div className="text-xs text-muted-foreground mt-0.5">
+                                  {item.code || 'Изделие'} • {zoneName}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <Badge 
+                              variant={isCompleted ? 'default' : isInProgress ? 'secondary' : 'outline'}
+                              className={cn(
+                                "font-medium flex-shrink-0",
+                                isCompleted && "bg-green-100 text-green-800 hover:bg-green-100",
+                                isInProgress && "bg-blue-100 text-blue-800 hover:bg-blue-100"
+                              )}
+                            >
+                              {item.current_stage === 'completed' ? '✓ Готово' :
+                               item.current_stage === 'cutting' ? '🪚 Раскрой' :
+                               item.current_stage === 'edging' ? '📏 Кромка' :
+                               item.current_stage === 'drilling' ? '🔩 Присадка' :
+                               item.current_stage === 'assembly' ? '🔨 Сборка' :
+                               item.current_stage === 'finishing' ? '🎨 Отделка' :
+                               item.current_stage === 'packaging' ? '📦 Упаковка' :
+                               '📋 План'}
+                            </Badge>
+                          </div>
+                          
+                          {/* Progress Bar */}
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-muted-foreground">Прогресс</span>
+                              <span className="font-semibold">{item.progress}%</span>
+                            </div>
+                            <Progress value={item.progress} className="h-1.5" />
+                          </div>
+                        </button>
+                        
+                        {/* Dropdown Menu - to the right of card */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-auto w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center self-start mt-1"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEditItemDialog(item);
+                              }}
+                            >
+                              <Edit className="mr-2 h-4 w-4" />
+                              Редактировать
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openDeleteItemDialog(item);
+                              }}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Удалить
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
-                    </div>
-                    <div className="col-span-3">
-                      <Badge variant={
-                        item.status === 'completed' ? 'default' :
-                        item.status === 'in_progress' ? 'secondary' :
-                        'outline'
-                      }>
-                        {item.status === 'completed' ? 'Готово' :
-                         item.status === 'in_progress' ? item.tasks?.[0]?.title.split(' ')[0] || 'В работе' :
-                         item.status === 'on_hold' ? 'Пауза' :
-                         'План'}
-                      </Badge>
-                    </div>
-                    <div className="col-span-2">
-                      <div className="font-medium">{item.progressPercent}%</div>
-                    </div>
-                    <div className="col-span-2">
-                      <div className="text-sm text-muted-foreground">
-                        {item.tasks?.find(t => t.assigneeId)?.assigneeId?.substring(0, 6) || '—'}
-                      </div>
-                    </div>
-                  </button>
-                ))}
-            </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         </div>
 
         {/* Right Sidebar - Details */}
         {selectedItem && (
-          <div className="w-96 border-l bg-muted/30 overflow-y-auto">
-            <div className="p-6 space-y-6">
-              {/* Item Header */}
-              <div>
-                <h2 className="text-xl font-semibold mb-1">{selectedItem.name}</h2>
-                <p className="text-sm text-muted-foreground">
-                  {selectedItem.code ? `${selectedItem.code} • ` : ''}
-                  {selectedItem.type === 'furniture' ? 'Изделие' : 'Компонент'} • {selectedItem.progressPercent}%
-                </p>
-              </div>
-
-              {/* Category & Stage */}
-              <div>
-                <div className="text-xs font-semibold text-muted-foreground mb-2">
-                  КАТЕГОРИЯ
-                </div>
-                <Badge variant="outline" className="mb-4">
-                  {selectedItem.name.split(' ')[0]}
-                </Badge>
-
-                <div className="text-xs font-semibold text-muted-foreground mb-2">
-                  ЭТАП
-                </div>
-                <Badge variant={
-                  selectedItem.status === 'completed' ? 'default' :
-                  selectedItem.status === 'in_progress' ? 'secondary' :
-                  'outline'
-                }>
-                  {selectedItem.status === 'completed' ? 'Готово' :
-                   selectedItem.status === 'in_progress' ? 'В работе' :
-                   selectedItem.status === 'on_hold' ? 'На паузе' :
-                   'Запланировано'}
-                </Badge>
-
-                {selectedItem.createdAt && (
-                  <>
-                    <div className="text-xs font-semibold text-muted-foreground mb-2 mt-4">
-                      НАЧАЛО
-                    </div>
-                    <div className="text-sm">
-                      {new Date(selectedItem.createdAt).toLocaleDateString('ru-RU')}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Components */}
-              {selectedItem.children && selectedItem.children.length > 0 && (
-                <div>
-                  <div className="text-xs font-semibold text-muted-foreground mb-3">
-                    КОМПОНЕНТЫ
-                  </div>
-                  <div className="space-y-2">
-                    {selectedItem.children.map(child => (
-                      <div 
-                        key={child.id}
-                        className="p-3 rounded-lg border bg-background"
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="font-medium text-sm">{child.name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {child.tasks?.length || 0}/{child.tasks?.length || 0}
-                          </div>
-                        </div>
-                        {child.material?.name && (
-                          <div className="text-xs text-muted-foreground">
-                            {child.material.name}
-                          </div>
-                        )}
-                        {child.specs && (
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {(child.specs as any).width && (child.specs as any).height && 
-                              `${(child.specs as any).width}x${(child.specs as any).height}`}
-                            {(child.specs as any).depth && `x${(child.specs as any).depth}`}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Tasks/Steps */}
-              {selectedItem.tasks && selectedItem.tasks.length > 0 && (
-                <div>
-                  <div className="text-xs font-semibold text-muted-foreground mb-3">
-                    ЭТАПЫ
-                  </div>
-                  <div className="space-y-2">
-                    {selectedItem.tasks.map(task => (
-                      <div 
-                        key={task.id}
-                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors cursor-pointer"
-                      >
-                        <div className={cn(
-                          "size-2 rounded-full",
-                          task.columnId?.includes('done') ? "bg-green-500" :
-                          task.columnId?.includes('progress') ? "bg-blue-500" :
-                          "bg-gray-300"
-                        )} />
-                        <div className="flex-1 text-sm">
-                          {task.title}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+          <div className="flex-1 bg-muted/30 overflow-y-auto shadow-lg">
+            <ItemDetailsPanel
+              item={selectedItem}
+              onEdit={openEditItemDialog}
+              onDelete={openDeleteItemDialog}
+              onComponentAdd={handleComponentAdd}
+              onComponentEdit={handleComponentEdit}
+              onComponentDelete={handleComponentDelete}
+            />
           </div>
         )}
       </div>
+
+      {/* Zone Dialog */}
+      <ZoneDialog
+        open={isZoneDialogOpen}
+        onOpenChange={setIsZoneDialogOpen}
+        onSave={zoneDialogMode === 'create' ? handleCreateZone : handleEditZone}
+        initialName={editingZone?.name || ''}
+        mode={zoneDialogMode}
+      />
+
+      {/* Delete Zone Dialog */}
+      <DeleteZoneDialog
+        open={isDeleteZoneDialogOpen}
+        onOpenChange={setIsDeleteZoneDialogOpen}
+        onConfirm={handleDeleteZone}
+        zoneName={deletingZone?.name || ''}
+      />
+
+      {/* Item Dialog */}
+      <ItemDialog
+        open={isItemDialogOpen}
+        onOpenChange={setIsItemDialogOpen}
+        onSave={itemDialogMode === 'create' ? handleCreateItem : handleEditItem}
+        initialData={editingItem ? {
+          code: editingItem.code,
+          name: editingItem.name,
+          quantity: editingItem.quantity,
+          currentStage: editingItem.current_stage || 'plan',
+        } : undefined}
+        mode={itemDialogMode}
+      />
+
+      {/* Delete Item Dialog */}
+      <DeleteItemDialog
+        open={isDeleteItemDialogOpen}
+        onOpenChange={setIsDeleteItemDialogOpen}
+        onConfirm={handleDeleteItem}
+        itemName={deletingItem?.name || ''}
+      />
+
+      {/* Component Dialog */}
+      <ComponentDialog
+        open={isComponentDialogOpen}
+        onOpenChange={setIsComponentDialogOpen}
+        onSave={handleComponentSave}
+        initialData={editingComponent ? {
+          name: editingComponent.name,
+          quantity: editingComponent.quantity,
+          unit: editingComponent.unit,
+        } : undefined}
+        mode={componentDialogMode}
+      />
+
+      {/* Delete Component Confirmation Dialog */}
+      {deletingComponent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-background rounded-lg p-6 max-w-md w-full mx-4 shadow-lg">
+            <h2 className="text-lg font-semibold mb-2">Удалить компонент?</h2>
+            <p className="text-sm text-muted-foreground mb-6">
+              Вы уверены, что хотите удалить компонент <span className="font-semibold">"{deletingComponent.name}"</span>? Это действие нельзя отменить.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setDeletingComponent(null)}
+              >
+                Отмена
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmComponentDelete}
+              >
+                Удалить
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -36,6 +36,7 @@ import { StatusBadge } from '../ui/status-badge';
 import { toast } from '../../lib/toast';
 import { EditClientDialog } from './EditClientDialog';
 import { DocumentManager } from '../documents/DocumentManager';
+import { projectStageNames } from '../../lib/constants';
 
 interface ClientDetailDialogProps {
   client: Client | null;
@@ -177,26 +178,11 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
 
         <div className="flex-1 min-h-0 flex flex-col">
           <Tabs defaultValue="overview" className="flex-1 flex flex-col">
-            <div className="px-6 pt-6 pb-0 shrink-0 border-b">
-              <TabsList className="w-full h-auto p-0 bg-transparent border-0 rounded-none flex justify-start gap-0">
-                <TabsTrigger 
-                  value="overview" 
-                  className="text-sm py-3 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none bg-transparent"
-                >
-                  Обзор
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="projects" 
-                  className="text-sm py-3 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none bg-transparent"
-                >
-                  Проекты
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="documents" 
-                  className="text-sm py-3 px-6 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none bg-transparent"
-                >
-                  Документы
-                </TabsTrigger>
+            <div className="px-4 sm:px-6 pt-6 pb-4 shrink-0">
+              <TabsList className="!grid w-full grid-cols-3">
+                <TabsTrigger value="overview">Обзор</TabsTrigger>
+                <TabsTrigger value="projects">Проекты</TabsTrigger>
+                <TabsTrigger value="documents">Документы</TabsTrigger>
               </TabsList>
             </div>
 
@@ -379,7 +365,7 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
                                 </div>
                               </div>
                               <StatusBadge status={project.stage}>
-                                {project.stage}
+                                {projectStageNames[project.stage] || project.stage}
                               </StatusBadge>
                             </div>
                           ))}
@@ -401,41 +387,78 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
 
               <TabsContent value="projects" className="mt-0 m-0 h-full">
                 <div className="px-6 py-6 overflow-y-auto h-full">
-                  <div className="text-center py-16">
-                    <Star className="size-12 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="font-medium mb-2">Проекты клиента</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Все проекты для этого клиента будут отображаться здесь
-                    </p>
-                    <Button onClick={() => onNavigate('projects')}>
-                      <Plus className="size-4 mr-2" />
-                      Создать проект
-                    </Button>
-                  </div>
+                  {clientProjects.length === 0 ? (
+                    <div className="text-center py-16">
+                      <Star className="size-12 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="font-medium mb-2">Проекты клиента</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Все проекты для этого клиента будут отображаться здесь
+                      </p>
+                      <Button onClick={() => onNavigate('projects')}>
+                        <Plus className="size-4 mr-2" />
+                        Создать проект
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {clientProjects.map((project) => (
+                        <Card 
+                          key={project.id}
+                          className="cursor-pointer hover:bg-muted/50 transition-colors"
+                          onClick={() => onNavigate('project-overview', { projectId: project.id })}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h4 className="font-medium truncate">{project.title}</h4>
+                                  <StatusBadge status={project.stage}>
+                                    {projectStageNames[project.stage] || project.stage}
+                                  </StatusBadge>
+                                </div>
+                                <div className="text-sm text-muted-foreground space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <Calendar className="size-4" />
+                                    <span>Создан: {formatDate(project.createdAt)}</span>
+                                  </div>
+                                  {project.dueDate && (
+                                    <div className="flex items-center gap-2">
+                                      <Calendar className="size-4" />
+                                      <span>Срок: {formatDate(project.dueDate)}</span>
+                                    </div>
+                                  )}
+                                  <div className="flex items-center gap-2">
+                                    <Activity className="size-4" />
+                                    <span>Бюджет: {formatCurrency(project.budget)}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </TabsContent>
 
               <TabsContent value="documents" className="mt-0 m-0 h-full">
-                <div className="px-6 py-6 overflow-y-auto h-full">
+                <div className="px-6 py-6 h-full">
                   <DocumentManager 
                     entityType="client"
                     entityId={currentClient.id}
                     documents={currentClient.documents || []}
-                onDocumentAdd={(document) => {
-                  const updatedClient = {
-                    ...currentClient,
-                    documents: [...(currentClient.documents || []), document]
-                  };
-                  setSelectedClient(updatedClient);
-                  onClientUpdate?.(updatedClient);
+                onDocumentAdd={async (document) => {
+                  console.log('📄 Document added:', document);
+                  // Перезагружаем документы из БД
+                  await loadClientDocuments(currentClient.id);
+                  console.log('✅ Documents reloaded');
+                  onClientUpdate?.({ ...currentClient, documents: [...(currentClient.documents || []), document] });
                 }}
-                    onDocumentDelete={(documentId) => {
-                      const updatedClient = {
-                        ...currentClient,
-                        documents: (currentClient.documents || []).filter(d => d.id !== documentId)
-                      };
-                      setSelectedClient(updatedClient);
-                      onClientUpdate?.(updatedClient);
+                    onDocumentDelete={async (documentId) => {
+                      // Перезагружаем документы из БД
+                      await loadClientDocuments(currentClient.id);
+                      onClientUpdate?.({ ...currentClient, documents: (currentClient.documents || []).filter(d => d.id !== documentId) });
                     }}
                   />
                 </div>

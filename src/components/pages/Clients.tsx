@@ -405,23 +405,36 @@ export function Clients() {
         onClientUpdate={async (updatedClient) => {
           try {
             console.log('Updating client:', updatedClient.id);
+            console.log('📥 Client data to save:', JSON.stringify({
+              name: updatedClient.name,
+              company: updatedClient.company,
+              type: updatedClient.type,
+              status: updatedClient.status,
+              source: updatedClient.source,
+              preferredChannel: updatedClient.preferredChannel,
+              ownerId: updatedClient.ownerId,
+              notes: updatedClient.notes,
+              contacts: updatedClient.contacts,
+              addresses: updatedClient.addresses,
+            }, null, 2));
+            
             await updateClient(updatedClient.id, {
               name: updatedClient.name,
               company: updatedClient.company,
               type: updatedClient.type,
               status: updatedClient.status,
-              source: updatedClient.source || 'manual',
+              source: updatedClient.source,
               preferredChannel: updatedClient.preferredChannel,
               ownerId: updatedClient.ownerId,
               notes: updatedClient.notes,
               contacts: updatedClient.contacts,
               addresses: updatedClient.addresses,
             });
-            console.log('Client updated successfully');
+            console.log('✅ Client updated successfully');
             // Refresh list to show changes
             await fetchClients();
           } catch (error: any) {
-            console.error('Error updating client:', error);
+            console.error('❌ Error updating client:', error);
             toast.error(`Ошибка при обновлении клиента: ${error.message}`);
             throw error; // Re-throw so EditClientDialog knows it failed
           }
