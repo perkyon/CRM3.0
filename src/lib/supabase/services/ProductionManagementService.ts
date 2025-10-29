@@ -7,7 +7,7 @@ export interface ProductionZone {
   project_id: string;
   name: string;
   items_count: number;
-  progress: number;
+  progress_percent: number;
   color: string;
   position: number;
   created_at: string;
@@ -21,7 +21,7 @@ export interface ProductionItem {
   code: string;
   name: string;
   quantity: number;
-  progress: number;
+  progress_percent: number;
   current_stage: string | null;
   position: number;
   created_at: string;
@@ -100,7 +100,7 @@ export interface ProductionProject {
   id: string;
   title: string;
   client: string;
-  progress: number;
+  progress_percent: number;
   due_date: string;
   zones: ProductionZone[];
   items: ProductionItem[];
@@ -261,14 +261,14 @@ class ProductionManagementService {
       const items = await this.getProjectItems(projectId);
 
       // Calculate overall progress
-      const totalProgress = items.reduce((sum, item) => sum + item.progress, 0);
+      const totalProgress = items.reduce((sum, item) => sum + item.progress_percent, 0);
       const avgProgress = items.length > 0 ? Math.round(totalProgress / items.length) : 0;
 
       return {
         id: project.id,
         title: project.title,
         client: client?.name || 'Unknown',
-        progress: avgProgress,
+        progress_percent: avgProgress,
         due_date: project.due_date || '',
         zones,
         items
@@ -279,11 +279,11 @@ class ProductionManagementService {
   }
 
   // Update item progress
-  async updateItemProgress(itemId: string, progress: number): Promise<void> {
+  async updateItemProgress(itemId: string, progress_percent: number): Promise<void> {
     try {
-      const { error } = await supabase
+      const { error} = await supabase
         .from('production_items')
-        .update({ progress })
+        .update({ progress_percent })
         .eq('id', itemId);
 
       if (error) throw error;
@@ -337,7 +337,7 @@ class ProductionManagementService {
           name,
           color: color || 'bg-blue-100',
           items_count: 0,
-          progress: 0,
+          progress_percent: 0,
           position: 0
         })
         .select()
@@ -397,7 +397,7 @@ class ProductionManagementService {
           name,
           quantity,
           current_stage: currentStage || 'plan',
-          progress: 0,
+          progress_percent: 0,
           position: 0
         })
         .select()
@@ -1220,22 +1220,22 @@ class ProductionManagementService {
         // No components = 0% progress
         await supabase
           .from('production_items')
-          .update({ progress: 0 })
+          .update({ progress_percent: 0 })
           .eq('id', itemId);
         return 0;
       }
 
       // Calculate average progress of all components
       const totalProgress = components.reduce((sum, c) => sum + c.progress, 0);
-      const progress = Math.round(totalProgress / components.length);
+      const progress_percent = Math.round(totalProgress / components.length);
 
       // Update item progress
       await supabase
         .from('production_items')
-        .update({ progress })
+        .update({ progress_percent })
         .eq('id', itemId);
 
-      return progress;
+      return progress_percent;
     } catch (error) {
       throw handleApiError(error, 'ProductionManagementService.recalculateItemProgress');
     }
@@ -1249,7 +1249,7 @@ class ProductionManagementService {
       // Get all items for this zone
       const { data: items, error } = await supabase
         .from('production_items')
-        .select('progress')
+        .select('progress_percent')
         .eq('zone_id', zoneId);
 
       if (error) throw error;
@@ -1258,22 +1258,22 @@ class ProductionManagementService {
         // No items = 0% progress
         await supabase
           .from('production_zones')
-          .update({ progress: 0 })
+          .update({ progress_percent: 0 })
           .eq('id', zoneId);
         return 0;
       }
 
       // Calculate average progress of all items
-      const totalProgress = items.reduce((sum, i) => sum + i.progress, 0);
-      const progress = Math.round(totalProgress / items.length);
+      const totalProgress = items.reduce((sum, i) => sum + i.progress_percent, 0);
+      const progress_percent = Math.round(totalProgress / items.length);
 
       // Update zone progress
       await supabase
         .from('production_zones')
-        .update({ progress })
+        .update({ progress_percent })
         .eq('id', zoneId);
 
-      return progress;
+      return progress_percent;
     } catch (error) {
       throw handleApiError(error, 'ProductionManagementService.recalculateZoneProgress');
     }
