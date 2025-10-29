@@ -227,3 +227,4 @@ MIT License - см. файл [LICENSE](LICENSE)
 ---
 
 **Сделано с ❤️ для мебельных мастерских**
+# trigger rebuild
