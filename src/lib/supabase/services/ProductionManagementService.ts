@@ -17,13 +17,18 @@ export interface ProductionZone {
 export interface ProductionItem {
   id: string;
   project_id: string;
+  parent_id?: string | null;
   zone_id: string;
+  type: 'furniture' | 'component' | 'part';
   code: string;
   name: string;
   quantity: number;
+  unit: string;
+  status: string;
   progress_percent: number;
   current_stage: string | null;
   position: number;
+  notes?: string | null;
   created_at: string;
   updated_at: string;
   components?: ProductionComponent[];
@@ -385,7 +390,8 @@ class ProductionManagementService {
     code: string,
     name: string,
     quantity: number,
-    currentStage?: string
+    currentStage?: string,
+    type: 'furniture' | 'component' | 'part' = 'furniture'
   ): Promise<ProductionItem> {
     try {
       const { data, error } = await supabase
@@ -393,10 +399,13 @@ class ProductionManagementService {
         .insert({
           project_id: projectId,
           zone_id: zoneId,
+          type,
           code,
           name,
           quantity,
-          current_stage: currentStage || 'plan',
+          unit: 'шт',
+          current_stage: currentStage || 'not_started',
+          status: 'planned',
           progress_percent: 0,
           position: 0
         })
