@@ -232,16 +232,10 @@ export function DocumentManager({
       return;
     }
 
-    // Создаем временную ссылку и кликаем по ней
-    const link = window.document.createElement('a');
-    link.href = document.url;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.style.display = 'none';
+    console.log('👁️ Opening document:', document.url);
     
-    window.document.body.appendChild(link);
-    link.click();
-    window.document.body.removeChild(link);
+    // Просто открываем URL в новой вкладке
+    window.open(document.url, '_blank', 'noopener,noreferrer');
   };
 
   return (

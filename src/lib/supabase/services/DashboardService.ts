@@ -307,7 +307,7 @@ export class SupabaseDashboardService {
       // Get all production items for these projects
       const { data: items, error: itemsError } = await supabase
         .from('production_items')
-        .select('progress')
+        .select('progress_percent')
         .in('project_id', projectIds);
 
       if (itemsError) throw itemsError;
@@ -317,7 +317,7 @@ export class SupabaseDashboardService {
       }
 
       // Calculate average unfinished work (100 - average progress)
-      const totalProgress = items.reduce((sum, item) => sum + item.progress, 0);
+      const totalProgress = items.reduce((sum, item) => sum + (item.progress_percent || 0), 0);
       const averageProgress = totalProgress / items.length;
       const shopLoadPercent = Math.round(100 - averageProgress);
 
