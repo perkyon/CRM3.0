@@ -297,20 +297,6 @@ class ProductionManagementService {
     }
   }
 
-  // Update component progress
-  async updateComponentProgress(componentId: string, progress: number): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('production_components')
-        .update({ progress })
-        .eq('id', componentId);
-
-      if (error) throw error;
-    } catch (error) {
-      throw handleApiError(error, 'ProductionManagementService.updateComponentProgress');
-    }
-  }
-
   // Update stage status
   async updateStageStatus(
     stageId: string, 
@@ -699,52 +685,6 @@ class ProductionManagementService {
     componentId: string,
     name: string,
     quantity: number,
-    unit: string
-  ): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('production_component_parts')
-        .insert({
-          component_id: componentId,
-          name,
-          quantity,
-          unit
-        });
-
-      if (error) throw error;
-    } catch (error) {
-      throw handleApiError(error, 'ProductionManagementService.addComponentPart');
-    }
-  }
-
-  // Add material to component
-  async addComponentMaterial(
-    componentId: string,
-    name: string,
-    color?: string,
-    thickness?: string
-  ): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('production_component_materials')
-        .insert({
-          component_id: componentId,
-          name,
-          color,
-          thickness
-        });
-
-      if (error) throw error;
-    } catch (error) {
-      throw handleApiError(error, 'ProductionManagementService.addComponentMaterial');
-    }
-  }
-
-  // Add part to component
-  async addComponentPart(
-    componentId: string,
-    name: string,
-    quantity: number,
     width?: number,
     height?: number,
     depth?: number,
@@ -803,60 +743,6 @@ class ProductionManagementService {
       if (error) throw error;
     } catch (error) {
       throw handleApiError(error, 'ProductionManagementService.deleteComponentPart');
-    }
-  }
-
-  // Update component stage
-  async updateComponentStage(
-    componentId: string,
-    stage: string,
-    status: 'pending' | 'in_progress' | 'completed'
-  ): Promise<void> {
-    try {
-      // Check if stage tracking exists
-      const { data: existing } = await supabase
-        .from('production_component_stage_tracking')
-        .select('id')
-        .eq('component_id', componentId)
-        .eq('stage', stage)
-        .single();
-
-      if (existing) {
-        // Update existing
-        const updateData: any = { status };
-        if (status === 'in_progress') updateData.started_at = new Date().toISOString();
-        if (status === 'completed') updateData.completed_at = new Date().toISOString();
-
-        const { error } = await supabase
-          .from('production_component_stage_tracking')
-          .update(updateData)
-          .eq('id', existing.id);
-
-        if (error) throw error;
-      } else {
-        // Create new
-        const { error } = await supabase
-          .from('production_component_stage_tracking')
-          .insert({
-            component_id: componentId,
-            stage,
-            status,
-            started_at: status === 'in_progress' ? new Date().toISOString() : null,
-            completed_at: status === 'completed' ? new Date().toISOString() : null,
-          });
-
-        if (error) throw error;
-      }
-
-      // Update component's current_stage
-      const { error: updateError } = await supabase
-        .from('production_components')
-        .update({ current_stage: stage })
-        .eq('id', componentId);
-
-      if (updateError) throw updateError;
-    } catch (error) {
-      throw handleApiError(error, 'ProductionManagementService.updateComponentStage');
     }
   }
 
