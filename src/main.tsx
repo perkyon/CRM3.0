@@ -10,14 +10,14 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import { PerformanceTracker } from "./components/monitoring/PerformanceTracker";
 import { PWAMonitor } from "./components/monitoring/PWAMonitor";
 import { ErrorBoundary } from "./components/error/ErrorBoundary";
-// import { initializeAuth } from "./lib/supabase/auth-setup"; // Отключено - теперь вход через форму
+import { initializeAuth } from "./lib/supabase/auth-setup";
 import "./index.css";
 
 // Initialize Sentry
 import "./sentry.client.config";
 
-// Автоматический вход отключен - используйте форму входа
-console.log('🔐 Войдите используя форму на главной странице');
+// Initialize authentication
+initializeAuth();
 
 createRoot(document.getElementById("root")!).render(
   <ErrorBoundary>
