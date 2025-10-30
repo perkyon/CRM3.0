@@ -6,30 +6,20 @@ export const SUPABASE_CONFIG = {
   anonKey: (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlrZHRpdHVraHN2c3ZuYm5za2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2Nzg3MjAsImV4cCI6MjA3NzI1NDcyMH0.tjCfpEG30rxaCuu22EmV3kKGxH45FDMTJNuPknpsl7w',
 } as const;
 
-// Create Supabase client with NO authentication
+// Create Supabase client with authentication
 export const supabase = createClient(
   SUPABASE_CONFIG.url,
   SUPABASE_CONFIG.anonKey,
   {
     auth: {
-      autoRefreshToken: false,
-      persistSession: false,
+      autoRefreshToken: true,
+      persistSession: true,
       detectSessionInUrl: false,
-      flowType: 'implicit'
+      flowType: 'pkce'
     },
     realtime: {
       params: {
         eventsPerSecond: 10,
-      },
-    },
-    global: {
-      headers: {
-        // Bypass all authentication for development
-        'apikey': SUPABASE_CONFIG.anonKey,
-        'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Prefer': 'return=minimal'
       },
     },
     db: {
