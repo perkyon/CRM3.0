@@ -122,7 +122,7 @@ export class SupabaseProjectService {
     const { data: project, error: projectError } = await supabase
       .from(TABLES.PROJECTS)
       .insert(projectToInsert)
-      .select('*, code')
+      .select()
       .single();
 
     if (projectError) {
