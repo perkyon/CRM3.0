@@ -101,7 +101,8 @@ export function Clients() {
   const filteredClients = useMemo(() => {
     return clients.filter(client => {
       const matchesSearch = client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           client.contacts[0]?.phone.includes(searchQuery);
+                           client.contacts?.[0]?.phone?.includes(searchQuery) ||
+                           client.contacts?.[0]?.email?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
