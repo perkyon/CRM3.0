@@ -135,7 +135,8 @@ export function Clients() {
         ownerId: clientData.ownerId,
         contacts: clientData.contacts,
         addresses: clientData.addresses,
-        source: 'manual', // Add required source field
+        source: clientData.source || 'manual', // Use provided source or default to manual
+        notes: clientData.notes,
       });
       
       toast.success('Клиент успешно создан');
