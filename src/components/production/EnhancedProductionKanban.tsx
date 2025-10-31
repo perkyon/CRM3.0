@@ -239,123 +239,105 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
   };
 
   const addTask = async (columnId: string, title: string, description?: string) => {
-    console.log('[Kanban] addTask called:', { columnId, title, currentBoard: currentBoard?.id, boardsCount: boards.length });
+    console.log('[Kanban] addTask called:', { columnId, title, currentBoard: currentBoard?.id });
     
     if (!currentBoard) {
-      console.error('[Kanban] No current board found');
       toast.error('Доска не найдена');
       return;
     }
 
-    // Проверяем, что колонка существует в БД (не дефолтная)
     const column = currentBoard.columns.find(col => col.id === columnId);
-    console.log('[Kanban] Column found:', { columnId, column: column?.title, allColumns: currentBoard.columns.map(c => ({ id: c.id, title: c.title })) });
-    
     if (!column) {
-      console.error('[Kanban] Column not found:', columnId);
       toast.error('Колонка не найдена');
       return;
     }
 
     try {
-      // Если доска не существует в БД (default-board или нет id), создаем её
-      if (!currentBoard.id || currentBoard.id === 'default-board') {
-        console.log('[Kanban] Creating board in DB for general tasks');
+      let realBoardId = currentBoard.id;
+      let realColumnId = columnId;
+      
+      // КРИТИЧНО: Если доска не существует в БД (default-board), создаем её ПЕРЕД созданием задачи
+      if (!currentBoard.id || currentBoard.id === 'default-board' || currentBoard.id.startsWith('default')) {
+        console.log('[Kanban] Board not in DB, creating now...');
         
-        // Создаем доску в БД (projectId может быть null для общей доски)
+        // Создаем доску в БД (projectId может быть null)
+        const projectIdForBoard = currentBoard.projectId && currentBoard.projectId !== 'default' 
+          ? currentBoard.projectId 
+          : null;
+          
         const newBoard = await supabaseKanbanService.createBoard({
-          projectId: currentBoard.projectId || null,
+          projectId: projectIdForBoard,
           title: currentBoard.title || 'Общая производственная доска',
           description: 'Общая канбан-доска для задач'
         });
-
-        // Создаем колонки если их нет
-        if (currentBoard.columns.length === 0) {
-          for (let i = 0; i < defaultKanbanColumns.length; i++) {
-            const col = defaultKanbanColumns[i];
-            await supabaseKanbanService.createColumn({
-              boardId: newBoard.id,
-              title: col.title,
-              position: col.position
-            });
-          }
-        }
-
-        // Загружаем обновленную доску с колонками
-        const updatedBoard = await supabaseKanbanService.getBoard(newBoard.id);
         
-        // Обновляем локальное состояние
+        realBoardId = newBoard.id;
+        
+        // Обновляем локальное состояние с реальным ID доски
         setBoards(prev => prev.map(board => 
           board.id === currentBoard.id 
-            ? { ...board, ...updatedBoard, id: updatedBoard.id }
+            ? { ...board, ...newBoard, id: newBoard.id }
             : board
         ));
         
-        // Используем реальный ID колонки
+        // Обновляем currentBoard для дальнейшего использования
+        const updatedBoard = await supabaseKanbanService.getBoard(newBoard.id);
+        
+        // Ищем реальную колонку по названию (т.к. createBoard создает дефолтные колонки)
         const realColumn = updatedBoard.columns.find(col => 
-          col.title === column.title
+          col.title === column.title || col.title.toLowerCase() === column.title.toLowerCase()
         ) || updatedBoard.columns[0];
         
         if (!realColumn) {
           throw new Error('Колонка не найдена после создания доски');
         }
         
-        columnId = realColumn.id;
-      }
-
-      // Проверяем, существует ли колонка в БД (если это дефолтная колонка или некорректный ID)
-      // columnId должен быть валидным UUID, иначе ищем реальную колонку
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(columnId);
-      
-      if (!isUUID || columnId === 'default' || columnId.startsWith('COL-default-')) {
-        console.log('[Kanban] Column ID is not a valid UUID, looking up real column:', columnId);
+        realColumnId = realColumn.id;
+      } else {
+        // Доска существует, проверяем колонку
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(columnId);
         
-        // Ищем реальную колонку в БД по доске
-        const { data: columns, error: columnsError } = await supabase
-          .from(TABLES.KANBAN_COLUMNS)
-          .select('id, title, position')
-          .eq('board_id', currentBoard.id)
-          .order('position');
+        if (!isUUID || columnId === 'default' || columnId.startsWith('COL-default-')) {
+          console.log('[Kanban] Column ID invalid, looking up real column:', columnId);
           
-        if (columnsError) {
-          console.error('[Kanban] Error fetching columns:', columnsError);
-          throw new Error(`Ошибка загрузки колонок: ${columnsError.message}`);
-        }
+          // Ищем реальную колонку в БД
+          const { data: columns, error: columnsError } = await supabase
+            .from(TABLES.KANBAN_COLUMNS)
+            .select('id, title, position')
+            .eq('board_id', realBoardId)
+            .order('position');
+            
+          if (columnsError || !columns || columns.length === 0) {
+            throw new Error(`Колонки не найдены: ${columnsError?.message || 'Нет колонок в доске'}`);
+          }
           
-        if (columns && columns.length > 0) {
-          // Если это дефолтная колонка - ищем по индексу
+          // Ищем по названию или по индексу
+          let realColumn;
           if (columnId.startsWith('COL-default-')) {
             const colIndex = parseInt(columnId.split('-')[2]) || 0;
-            const realColumn = columns[colIndex] || columns[0];
-            columnId = realColumn.id;
+            realColumn = columns[colIndex] || columns[0];
           } else {
-            // Иначе ищем по названию колонки или берем первую
-            const realColumn = columns.find(col => col.title === column.title) || columns[0];
-            columnId = realColumn.id;
+            realColumn = columns.find(col => col.title === column.title) || columns[0];
           }
-        } else {
-          // Создаем колонку если её нет
-          const newColumn = await supabaseKanbanService.createColumn({
-            boardId: currentBoard.id,
-            title: column.title,
-            position: column.order || 0
-          });
-          columnId = newColumn.id;
+          
+          realColumnId = realColumn.id;
         }
-        
-        console.log('[Kanban] Resolved column ID:', columnId);
       }
       
-      // Финальная проверка что columnId валидный UUID
-      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(columnId)) {
-        throw new Error(`Некорректный ID колонки: ${columnId}`);
+      // ФИНАЛЬНАЯ проверка что columnId валидный UUID
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(realColumnId)) {
+        throw new Error(`Некорректный ID колонки после обработки: ${realColumnId}`);
       }
+      
+      console.log('[Kanban] Using column ID:', realColumnId);
 
-      const position = currentBoard.tasks.filter(t => t.columnId === columnId || t.columnId === column.id).length;
+      // Получаем обновленную доску для правильного подсчета позиции
+      const currentBoardForPosition = boards.find(b => b.id === realBoardId) || currentBoard;
+      const position = currentBoardForPosition.tasks.filter(t => t.columnId === realColumnId).length;
       
-      // ВСЕ задачи сохраняются в БД
+      // ВСЕ задачи сохраняются в БД с реальным UUID колонки
       const savedTask = await supabaseKanbanService.createTask({
-        columnId,
+        columnId: realColumnId, // Используем реальный UUID
         title,
         description,
         priority: 'medium',
@@ -367,7 +349,7 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
       const newTask: KanbanTask = {
         id: savedTask.id,
         projectId: currentBoard.projectId,
-        columnId,
+        columnId: realColumnId,
         title: savedTask.title,
         description: savedTask.description,
         priority: savedTask.priority,
@@ -386,8 +368,9 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
         dueDate: savedTask.due_date || undefined
       };
 
+      // Обновляем правильную доску (используя realBoardId)
       setBoards(prev => prev.map(board => 
-        board.id === currentBoard.id 
+        board.id === realBoardId 
           ? { ...board, tasks: [...board.tasks, newTask] }
           : board
       ));
