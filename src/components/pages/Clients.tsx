@@ -330,8 +330,8 @@ export function Clients() {
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
-                        <div className="text-sm">{formatPhone(client.contacts[0]?.phone)}</div>
-                        <div className="text-sm text-muted-foreground">{client.contacts[0]?.email}</div>
+                        <div className="text-sm">{client.contacts?.[0]?.phone ? formatPhone(client.contacts[0].phone) : '—'}</div>
+                        <div className="text-sm text-muted-foreground">{client.contacts?.[0]?.email || '—'}</div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -527,21 +527,23 @@ function ClientProfile({ client, projects, onNavigate }: {
                   <label className="text-sm font-medium">Телефон</label>
                   <div className="flex items-center gap-2 mt-1">
                     <Phone className="size-4" />
-                    <span>{formatPhone(client.contacts[0]?.phone)}</span>
+                    <span>{client.contacts?.[0]?.phone ? formatPhone(client.contacts[0].phone) : 'Не указан'}</span>
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Email</label>
                   <div className="flex items-center gap-2 mt-1">
                     <Mail className="size-4" />
-                    <span>{client.contacts[0]?.email}</span>
+                    <span>{client.contacts?.[0]?.email || 'Не указан'}</span>
                   </div>
                 </div>
               </div>
               <div>
                 <label className="text-sm font-medium">Адрес</label>
                 <div className="mt-1">
-                  {client.addresses.physical?.street}, {client.addresses.physical?.city}
+                  {client.addresses?.physical?.street || client.addresses?.physical?.city 
+                    ? [client.addresses.physical.street, client.addresses.physical.city].filter(Boolean).join(', ')
+                    : 'Не указан'}
                 </div>
               </div>
             </CardContent>
