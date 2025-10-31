@@ -25,7 +25,42 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set, get) => {
+      // Проверяем сессию Supabase при инициализации store
+      // Если сессии нет - сбрасываем состояние
+      if (typeof window !== 'undefined') {
+        supabase.auth.getSession().then(({ data: { session }, error }) => {
+          if (error || !session) {
+            // Нет сессии - очищаем состояние
+            const currentState = get();
+            if (currentState.isAuthenticated) {
+              set({
+                user: null,
+                accessToken: null,
+                refreshToken: null,
+                isAuthenticated: false,
+                isLoading: false,
+                error: null,
+              });
+            }
+          }
+        }).catch(() => {
+          // При ошибке тоже очищаем
+          const currentState = get();
+          if (currentState.isAuthenticated) {
+            set({
+              user: null,
+              accessToken: null,
+              refreshToken: null,
+              isAuthenticated: false,
+              isLoading: false,
+              error: null,
+            });
+          }
+        });
+      }
+      
+      return {
       // Initial state
       user: null,
       accessToken: null,
