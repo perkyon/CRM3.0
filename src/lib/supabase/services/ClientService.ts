@@ -65,28 +65,44 @@ export class SupabaseClientService {
       throw handleApiError(error, 'SupabaseClientService.getClients');
     }
 
-    // Fetch related data separately to avoid JOIN issues
-    const clientsWithRelations = await Promise.all(
-      (data || []).map(async (client) => {
-        // Fetch contacts
-        const { data: contacts } = await supabase
+    // Fetch related data in batch to improve performance
+    const clientIds = (data || []).map(c => c.id);
+    
+    // Загружаем все контакты одним запросом
+    const { data: allContacts } = clientIds.length > 0 
+      ? await supabase
           .from(TABLES.CONTACTS)
-          .select('id, name, phone, email, is_primary')
-          .eq('client_id', client.id);
+          .select('id, name, phone, email, is_primary, client_id')
+          .in('client_id', clientIds)
+      : { data: [] };
 
-        // Fetch addresses
-        const { data: addresses } = await supabase
+    // Загружаем все адреса одним запросом
+    const { data: allAddresses } = clientIds.length > 0
+      ? await supabase
           .from(TABLES.ADDRESSES)
-          .select('id, type, street, city, zip_code')
-          .eq('client_id', client.id);
+          .select('id, type, street, city, zip_code, client_id')
+          .in('client_id', clientIds)
+      : { data: [] };
 
-        return {
-          ...client,
-          contacts: contacts || [],
-          addresses: addresses || [],
-        };
-      })
-    );
+    // Группируем контакты и адреса по client_id
+    const contactsByClient = (allContacts || []).reduce((acc, contact) => {
+      if (!acc[contact.client_id]) acc[contact.client_id] = [];
+      acc[contact.client_id].push(contact);
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    const addressesByClient = (allAddresses || []).reduce((acc, address) => {
+      if (!acc[address.client_id]) acc[address.client_id] = [];
+      acc[address.client_id].push(address);
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    // Объединяем данные
+    const clientsWithRelations = (data || []).map(client => ({
+      ...client,
+      contacts: contactsByClient[client.id] || [],
+      addresses: addressesByClient[client.id] || [],
+    }));
 
     return {
       data: clientsWithRelations.map(mapSupabaseClientToClient),

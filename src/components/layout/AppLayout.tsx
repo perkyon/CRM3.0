@@ -146,7 +146,7 @@ export function AppLayout() {
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 min-h-[calc(100vh-73px)] lg:min-h-[calc(100vh-73px)]">
+        <main className="flex-1 h-[calc(100vh-73px)] overflow-y-auto">
           <Outlet />
         </main>
       </div>

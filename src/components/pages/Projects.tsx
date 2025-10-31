@@ -257,7 +257,7 @@ export function Projects() {
   }, [projects, searchQuery, stageFilter, priorityFilter, budgetMin, budgetMax]);
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-6 h-full">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-medium">Проекты</h1>

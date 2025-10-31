@@ -42,9 +42,19 @@ export class ErrorHandler {
 
   // Handle network errors
   handleNetworkError(error: any, context?: string): AppError {
+    // Check if it's a CORS or network error
+    const isNetworkIssue = 
+      error?.message?.includes('Failed to fetch') ||
+      error?.message?.includes('Network') ||
+      error?.message?.includes('CORS') ||
+      error?.message?.includes('Сетевое соединение потеряно') ||
+      error?.message?.includes('access control checks');
+
     const appError: AppError = {
       code: 'NETWORK_ERROR',
-      message: 'Проблемы с подключением к серверу. Проверьте интернет-соединение.',
+      message: isNetworkIssue 
+        ? 'Проблемы с подключением к серверу. Проверьте интернет-соединение. Попробуйте обновить страницу.'
+        : 'Проблемы с подключением к серверу. Проверьте интернет-соединение.',
       details: error,
       timestamp: new Date(),
       context,
@@ -52,7 +62,10 @@ export class ErrorHandler {
     };
 
     this.logError(appError);
-    this.showUserMessage(appError);
+    // Don't show toast for network errors too often (only log)
+    if (!this.errorQueue.some(e => e.code === 'NETWORK_ERROR' && Date.now() - e.timestamp.getTime() < 5000)) {
+      this.showUserMessage(appError);
+    }
     return appError;
   }
 

@@ -34,6 +34,22 @@ export class SupabaseProjectService {
     const { data, error, count } = await query;
 
     if (error) {
+      // Check for network/CORS errors
+      if (error.message?.includes('Failed to fetch') || 
+          error.message?.includes('Сетевое соединение потеряно') ||
+          error.message?.includes('access control checks')) {
+        // Try to refresh session and retry once
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session) {
+            // Session expired, try to refresh
+            await supabase.auth.refreshSession();
+          }
+        } catch (refreshError) {
+          console.warn('Failed to refresh session:', refreshError);
+        }
+        // Re-throw original error after refresh attempt
+      }
       throw handleApiError(error, 'SupabaseProjectService.getProjects');
     }
 

@@ -99,11 +99,34 @@ export function Clients() {
   }, [subscribeToRealtime, unsubscribeFromRealtime]);
 
   const filteredClients = useMemo(() => {
+    if (!searchQuery.trim() && statusFilter === 'all') {
+      return clients;
+    }
+
+    const searchLower = searchQuery.toLowerCase().trim();
+    
     return clients.filter(client => {
-      const matchesSearch = client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           client.contacts?.[0]?.phone?.includes(searchQuery) ||
-                           client.contacts?.[0]?.email?.toLowerCase().includes(searchQuery.toLowerCase());
+      // Поиск по имени
+      const matchesName = !searchLower || client.name.toLowerCase().includes(searchLower);
+      
+      // Поиск по компании
+      const matchesCompany = !searchLower || (client.company?.toLowerCase().includes(searchLower) ?? false);
+      
+      // Поиск по всем контактам (не только первому)
+      const matchesContacts = !searchLower || client.contacts?.some(contact => 
+        contact.phone?.includes(searchQuery) || 
+        contact.email?.toLowerCase().includes(searchLower)
+      ) ?? false;
+      
+      // Поиск по адресам
+      const matchesAddresses = !searchLower || client.addresses?.some(address => 
+        address.street?.toLowerCase().includes(searchLower) ||
+        address.city?.toLowerCase().includes(searchLower)
+      ) ?? false;
+      
+      const matchesSearch = matchesName || matchesCompany || matchesContacts || matchesAddresses;
       const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
+      
       return matchesSearch && matchesStatus;
     });
   }, [clients, searchQuery, statusFilter]);
@@ -190,7 +213,7 @@ export function Clients() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 h-full">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>

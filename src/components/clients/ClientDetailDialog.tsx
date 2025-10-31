@@ -353,7 +353,7 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="space-y-3">
+                        <div className="space-y-3 max-h-[400px] overflow-y-auto">
                           {clientProjects.slice(0, 3).map((project) => (
                             <div 
                               key={project.id} 
@@ -388,7 +388,7 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
               </TabsContent>
 
               <TabsContent value="projects" className="mt-0 m-0">
-                <div className="px-6 py-6">
+                <div className="px-6 py-6 max-h-full overflow-y-auto">
                   {clientProjects.length === 0 ? (
                     <div className="text-center py-16">
                       <Star className="size-12 mx-auto text-muted-foreground mb-4" />

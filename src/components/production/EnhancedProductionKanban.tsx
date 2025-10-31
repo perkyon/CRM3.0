@@ -238,12 +238,66 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
   };
 
   const addTask = async (columnId: string, title: string, description?: string) => {
-    if (!currentBoard || !projectId) return;
+    console.log('[Kanban] addTask called:', { columnId, title, currentBoard: currentBoard?.id, boardsCount: boards.length });
+    
+    if (!currentBoard) {
+      console.error('[Kanban] No current board found');
+      toast.error('Доска не найдена');
+      return;
+    }
+
+    // Проверяем, что колонка существует в БД (не дефолтная)
+    const column = currentBoard.columns.find(col => col.id === columnId);
+    console.log('[Kanban] Column found:', { columnId, column: column?.title, allColumns: currentBoard.columns.map(c => ({ id: c.id, title: c.title })) });
+    
+    if (!column) {
+      console.error('[Kanban] Column not found:', columnId);
+      toast.error('Колонка не найдена');
+      return;
+    }
+
+    // Если это дефолтная колонка (начинается с COL-default) или общая доска, создаем только локально
+    const isDefaultBoard = columnId.startsWith('COL-default') || !currentBoard.id || currentBoard.id === 'default-board';
+    console.log('[Kanban] Is default board:', isDefaultBoard, { columnId, boardId: currentBoard.id });
+    
+    if (isDefaultBoard) {
+      // Это общая доска или дефолтные колонки - не сохраняем в БД, только локально
+      const position = currentBoard.tasks.filter(t => t.columnId === columnId).length;
+      
+      const newTask: KanbanTask = {
+        id: `TASK-${Date.now()}`,
+        projectId: currentBoard.projectId || 'default',
+        columnId,
+        title,
+        description,
+        priority: 'medium',
+        tags: [],
+        checklist: [],
+        attachments: [],
+        comments: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        order: position
+      };
+
+      setBoards(prev => {
+        const updated = prev.map(board => 
+          board.id === currentBoard.id 
+            ? { ...board, tasks: [...board.tasks, newTask] }
+            : board
+        );
+        console.log('[Kanban] Updated boards after adding task:', updated);
+        return updated;
+      });
+
+      toast.success(`Задача "${title}" добавлена`);
+      return;
+    }
 
     try {
       const position = currentBoard.tasks.filter(t => t.columnId === columnId).length;
       
-      // Сохраняем в БД
+      // Сохраняем в БД только если есть реальная доска и projectId
       const savedTask = await supabaseKanbanService.createTask({
         columnId,
         title,
@@ -498,7 +552,7 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
   }
 
   return (
-    <div className="p-6 lg:p-8 space-y-6 max-w-full">
+    <div className="p-6 lg:p-8 space-y-6 max-w-full h-full">
       {/* Header */}
       <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
         <div className="flex items-center gap-4">

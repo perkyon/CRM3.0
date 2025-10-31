@@ -262,10 +262,26 @@ export class SupabaseKanbanService {
   
   // Create new task
   async createTask(taskData: CreateKanbanTaskRequest): Promise<KanbanTask> {
+    // Получаем board_id из колонки
+    const { data: columnData, error: columnError } = await supabase
+      .from(TABLES.KANBAN_COLUMNS)
+      .select('board_id, board:kanban_boards(project_id)')
+      .eq('id', taskData.columnId)
+      .single();
+
+    if (columnError || !columnData) {
+      throw handleApiError(columnError || new Error('Column not found'), 'SupabaseKanbanService.createTask - column lookup');
+    }
+
+    const boardId = columnData.board_id;
+    const projectId = (columnData.board as any)?.project_id;
+
     const { data, error } = await supabase
       .from(TABLES.KANBAN_TASKS)
       .insert({
+        board_id: boardId,
         column_id: taskData.columnId,
+        project_id: projectId || null,
         title: taskData.title,
         description: taskData.description,
         assignee_id: taskData.assigneeId,
