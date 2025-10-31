@@ -44,7 +44,7 @@ export function AppLayout() {
           >
             <Menu className="size-5" />
           </Button>
-          <h1 className="text-lg font-medium">Мебельная мастерская CRM</h1>
+          <h1 className="text-lg font-medium">Buro CRM</h1>
         </div>
 
         <div className="flex items-center gap-4">

@@ -33,12 +33,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     }
   };
 
-  // Быстрый вход для тестирования
-  const handleQuickLogin = () => {
-    setEmail('syroejkin@workshop.ru');
-    setPassword('admin123');
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-md">
@@ -46,7 +40,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           <div className="mx-auto mb-4 p-3 bg-primary/10 rounded-full w-fit">
             <Lock className="size-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Мебельная мастерская CRM</CardTitle>
+          <CardTitle className="text-2xl">Buro CRM</CardTitle>
           <CardDescription>
             Введите свои данные для входа в систему
           </CardDescription>
@@ -82,38 +76,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
               Войти
             </Button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Для тестирования
-                </span>
-              </div>
-            </div>
-
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="w-full"
-              onClick={handleQuickLogin}
-              disabled={isLoading}
-            >
-              Войти как Сыроежкин (Админ)
-            </Button>
           </form>
-
-          <div className="mt-6 p-4 bg-muted rounded-lg">
-            <p className="text-sm text-muted-foreground">
-              <strong>Тестовый доступ:</strong>
-              <br />
-              Email: syroejkin@workshop.ru
-              <br />
-              Пароль: admin123
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>

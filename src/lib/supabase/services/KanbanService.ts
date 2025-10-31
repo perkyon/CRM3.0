@@ -335,6 +335,30 @@ export class SupabaseKanbanService {
     });
   }
 
+  // Get single task with all relations
+  async getTask(id: string): Promise<KanbanTask> {
+    const { data, error } = await supabase
+      .from(TABLES.KANBAN_TASKS)
+      .select(`
+        *,
+        assignee:users!kanban_tasks_assignee_id_fkey(id, name, email, avatar),
+        comments:task_comments(
+          *,
+          author:users!task_comments_author_id_fkey(id, name, avatar)
+        ),
+        attachments:task_attachments(*),
+        checklist:checklist_items(*)
+      `)
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      throw handleApiError(error, 'SupabaseKanbanService.getTask');
+    }
+
+    return data;
+  }
+
   // Delete task
   async deleteTask(id: string): Promise<void> {
     const { error } = await supabase

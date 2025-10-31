@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
@@ -71,6 +72,7 @@ const documentCategoryLabels = {
 };
 
 export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onClientUpdate }: ClientDetailDialogProps) {
+  const navigate = useNavigate();
   const { projects } = useProjects();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -356,7 +358,7 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
                             <div 
                               key={project.id} 
                               className="flex items-center justify-between p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted/70 transition-colors"
-                              onClick={() => onNavigate('project-overview', { projectId: project.id })}
+                              onClick={() => navigate(`/projects/${project.id}`)}
                             >
                               <div className="min-w-0 flex-1">
                                 <div className="font-medium truncate">{project.title}</div>

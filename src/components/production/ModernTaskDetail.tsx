@@ -29,6 +29,8 @@ import {
   Activity
 } from 'lucide-react';
 import { KanbanTask, ChecklistItem, User as UserType } from '../../types';
+import { supabase } from '../../lib/supabase/config';
+import { supabaseKanbanService } from '../../lib/supabase/services/KanbanService';
 
 interface ModernTaskDetailProps {
   task: KanbanTask;
@@ -578,10 +580,43 @@ export function ModernTaskDetail({
                   <Button 
                     size="sm" 
                     className="mt-2"
-                    onClick={() => {
-                      // Add comment logic here
-                      setNewComment('');
-                      toast.success('Комментарий добавлен');
+                    onClick={async () => {
+                      if (!newComment.trim() || !task.id) return;
+                      
+                      try {
+                        // Получаем текущего пользователя
+                        const { data: { user } } = await supabase.auth.getUser();
+                        if (!user) {
+                          toast.error('Необходимо войти в систему');
+                          return;
+                        }
+
+                        // Сохраняем комментарий в БД
+                        await supabaseKanbanService.addTaskComment(task.id, newComment.trim(), user.id);
+                        
+                        // Обновляем задачу, чтобы получить обновленные комментарии
+                        const updatedTask = await supabaseKanbanService.getTask(task.id);
+                        
+                        // Трансформируем комментарии из формата БД в формат фронтенда
+                        const transformedComments = (updatedTask.comments || []).map((comment: any) => ({
+                          id: comment.id,
+                          text: comment.content || comment.text,
+                          authorId: comment.author_id || comment.authorId,
+                          createdAt: comment.created_at || comment.createdAt,
+                          updatedAt: comment.updated_at || comment.updatedAt
+                        }));
+                        
+                        // Обновляем через onUpdateTask
+                        onUpdateTask({
+                          comments: transformedComments
+                        });
+                        
+                        setNewComment('');
+                        toast.success('Комментарий добавлен');
+                      } catch (error: any) {
+                        console.error('Failed to add comment:', error);
+                        toast.error(`Ошибка добавления комментария: ${error.message || 'Неизвестная ошибка'}`);
+                      }
                     }}
                   >
                     Отправить
