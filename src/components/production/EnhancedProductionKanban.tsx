@@ -406,7 +406,7 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
       // Обновляем основные поля задачи
       const savedTask = await supabaseKanbanService.updateTask(taskId, updateData);
 
-      // Обновляем локальное состояние
+      // Обновляем локальное состояние с данными из БД
       setBoards(prev => prev.map(board => 
         board.id === currentBoard.id 
           ? { 
@@ -415,20 +415,40 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
                 task.id === taskId 
                   ? {
                       ...task,
-                      ...updates,
-                      updatedAt: savedTask.updated_at,
-                      comments: savedTask.comments || task.comments,
+                      // Используем данные из БД для всех полей
+                      title: savedTask.title || task.title,
+                      description: savedTask.description ?? task.description,
+                      assigneeId: savedTask.assignee_id || task.assigneeId,
                       assignee: savedTask.assignee ? {
                         id: savedTask.assignee.id,
                         name: savedTask.assignee.name || '',
                         email: savedTask.assignee.email || ''
-                      } : task.assignee
+                      } : task.assignee,
+                      dueDate: savedTask.due_date || task.dueDate,
+                      tags: savedTask.tags || task.tags || [],
+                      comments: savedTask.comments || task.comments || [],
+                      checklist: savedTask.checklist || task.checklist || updates.checklist || [],
+                      priority: savedTask.priority || task.priority,
+                      updatedAt: savedTask.updated_at || task.updatedAt,
                     }
                   : task
               )
             }
           : board
       ));
+      
+      // Обновляем selectedTask если он открыт
+      if (selectedTask && selectedTask.id === taskId) {
+        const updatedTask = currentBoard.tasks.find(t => t.id === taskId);
+        if (updatedTask) {
+          setSelectedTask({
+            ...updatedTask,
+            ...savedTask,
+            comments: savedTask.comments || updatedTask.comments || [],
+            checklist: savedTask.checklist || updatedTask.checklist || [],
+          });
+        }
+      }
     } catch (error: any) {
       console.error('Failed to update task:', error);
       toast.error(`Ошибка обновления задачи: ${error.message || 'Неизвестная ошибка'}`);
@@ -729,9 +749,9 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
           <SheetDescription id="task-detail-sheet-description" className="sr-only">
             Детальная информация о задаче и возможности редактирования
           </SheetDescription>
-          {selectedTask && (
+          {selectedTask && currentBoard && (
             <ModernTaskDetail
-              task={selectedTask}
+              task={currentBoard.tasks.find(t => t.id === selectedTask.id) || selectedTask}
               onUpdateTask={(updates) => updateTask(selectedTask.id, updates)}
               onDeleteTask={() => {
                 deleteTask(selectedTask.id);
@@ -739,7 +759,7 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
               }}
               onClose={() => setSelectedTask(null)}
               users={users}
-              columns={currentBoard.columns}
+              columns={currentBoard.columns.map(col => ({ id: col.id, title: col.title, stage: col.stage }))}
             />
           )}
         </SheetContent>
