@@ -223,7 +223,8 @@ export const useAuthStore = create<AuthState>()(
       setLoading: (loading: boolean) => {
         set({ isLoading: loading });
       },
-    }),
+      };
+    },
     {
       name: 'auth-storage',
       partialize: (state) => ({
