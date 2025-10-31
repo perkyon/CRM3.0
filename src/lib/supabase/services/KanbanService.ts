@@ -112,18 +112,18 @@ export class SupabaseKanbanService {
 
   // Create new board
   async createBoard(boardData: CreateKanbanBoardRequest): Promise<KanbanBoard> {
-    // Если project_id null, создаем с пустым значением (нужно разрешить NULL в БД)
-    // Или используем специальный UUID для общих досок
+    // Доска может быть независимой от проекта (project_id = NULL)
     const insertData: any = {
       title: boardData.title,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
     
-    // Добавляем project_id только если он есть
+    // Добавляем project_id только если он есть (опционально)
     if (boardData.projectId) {
       insertData.project_id = boardData.projectId;
     }
+    // Иначе project_id остается NULL - это нормально для общих досок
     
     const { data: board, error: boardError } = await supabase
       .from(TABLES.KANBAN_BOARDS)
@@ -132,38 +132,6 @@ export class SupabaseKanbanService {
       .single();
 
     if (boardError) {
-      // Если ошибка из-за NULL project_id, пробуем без него (если схема разрешает)
-      if (boardError.code === '23502' && !boardData.projectId) {
-        // Пробуем создать доску привязанную к первому проекту или создаем без привязки
-        const { data: firstProject } = await supabase
-          .from(TABLES.PROJECTS)
-          .select('id')
-          .limit(1)
-          .single();
-          
-        if (firstProject) {
-          const { data: board2, error: boardError2 } = await supabase
-            .from(TABLES.KANBAN_BOARDS)
-            .insert({
-              project_id: firstProject.id,
-              title: boardData.title,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            })
-            .select()
-            .single();
-            
-          if (boardError2) {
-            throw handleApiError(boardError2, 'SupabaseKanbanService.createBoard');
-          }
-          
-          // Возвращаем доску с project_id
-          if (board2) {
-            const fullBoard = await this.getBoard(board2.id);
-            return fullBoard;
-          }
-        }
-      }
       throw handleApiError(boardError, 'SupabaseKanbanService.createBoard');
     }
 
