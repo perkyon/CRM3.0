@@ -1,9 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Supabase configuration
+// Принудительно используем новый проект, игнорируя старые переменные окружения
+const ENV_URL = (import.meta as any).env?.VITE_SUPABASE_URL;
+const ENV_KEY = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY;
+
+// Проверяем что не используется старый проект
+const isOldProject = ENV_URL?.includes('xhclmypcklndxqzkhgfk');
+
 export const SUPABASE_CONFIG = {
-  url: (import.meta as any).env?.VITE_SUPABASE_URL || 'https://ykdtitukhsvsvnbnskit.supabase.co',
-  anonKey: (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlrZHRpdHVraHN2c3ZuYm5za2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2Nzg3MjAsImV4cCI6MjA3NzI1NDcyMH0.tjCfpEG30rxaCuu22EmV3kKGxH45FDMTJNuPknpsl7w',
+  url: (isOldProject ? null : ENV_URL) || 'https://ykdtitukhsvsvnbnskit.supabase.co',
+  anonKey: (isOldProject ? null : ENV_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlrZHRpdHVraHN2c3ZuYm5za2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2Nzg3MjAsImV4cCI6MjA3NzI1NDcyMH0.tjCfpEG30rxaCuu22EmV3kKGxH45FDMTJNuPknpsl7w',
 } as const;
 
 // Create Supabase client with authentication
@@ -15,7 +22,9 @@ export const supabase = createClient(
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: false,
-      flowType: 'pkce'
+      flowType: 'pkce',
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      storageKey: 'sb-ykdtitukhsvsvnbnskit-auth-token' // Явно указываем правильный ключ
     },
     realtime: {
       params: {

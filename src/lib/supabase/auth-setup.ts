@@ -3,12 +3,30 @@ import { supabase } from './config';
 // Initialize authentication for development
 export async function initializeAuth() {
   try {
+    // Очищаем старые сессии/токены с неправильными URL
+    const oldKeys = ['sb-xhclmypcklndxqzkhgfk-auth-token', 'sb-xhclmypcklndxqzkhgfk-auth-token-code-verifier'];
+    oldKeys.forEach(key => {
+      if (localStorage.getItem(key)) {
+        localStorage.removeItem(key);
+      }
+    });
+    
+    // Очищаем все токены Supabase которые могут быть от старого проекта
+    Object.keys(localStorage).forEach(key => {
+      if (key.includes('xhclmypcklndxqzkhgfk') || (key.startsWith('sb-') && key.includes('auth-token'))) {
+        localStorage.removeItem(key);
+      }
+    });
+    
     // Check if we have a session
     const { data: { session }, error } = await supabase.auth.getSession();
     
     if (error) {
       console.error('Error getting session:', error);
-      return false;
+      // Если ошибка, очищаем сессию
+      await supabase.auth.signOut();
+      // Пробуем заново
+      return await initializeAuth();
     }
 
     // If no session, try to sign in with a default user
@@ -23,6 +41,8 @@ export async function initializeAuth() {
 
       if (signInError) {
         console.error('Failed to sign in with default user:', signInError);
+        // Очищаем все что могло остаться
+        await supabase.auth.signOut();
         return false;
       }
 
@@ -34,6 +54,12 @@ export async function initializeAuth() {
     return true;
   } catch (error) {
     console.error('Error initializing auth:', error);
+    // Очищаем при любой ошибке
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      // Игнорируем ошибки очистки
+    }
     return false;
   }
 }
