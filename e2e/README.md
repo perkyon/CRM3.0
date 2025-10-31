@@ -68,12 +68,28 @@ npm run test:e2e:report
 
 ## Настройка
 
-Тесты запускаются на `http://localhost:5173` по умолчанию.
+Тесты запускаются на `http://localhost:5173` по умолчанию (локальный dev сервер запускается автоматически).
 
-Чтобы тестировать production версию:
+### Тестирование Production версии
 
+**Простой способ (через npm скрипт):**
+```bash
+npm run test:e2e:prod
+```
+
+**С UI интерфейсом:**
+```bash
+npm run test:e2e:prod:ui
+```
+
+**Вручную (если нужен другой URL):**
 ```bash
 PLAYWRIGHT_BASE_URL=https://crm-3-0-seven.vercel.app npm run test:e2e
+```
+
+**Для другого production URL:**
+```bash
+PLAYWRIGHT_BASE_URL=https://crm-3-0-aifo.vercel.app npm run test:e2e
 ```
 
 ## Структура
