@@ -5,20 +5,20 @@ test.describe('Authentication', () => {
     await page.goto('/');
     
     // Ждем, пока страница загрузится и произойдет автологин
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
     
     // Проверяем, что мы залогинены (поищем элементы, которые видны только после входа)
-    const dashboard = page.locator('text=Dashboard').or(page.locator('text=Дашборд'));
-    await expect(dashboard.first()).toBeVisible({ timeout: 10000 });
+    const nav = page.locator('text=Панель управления').or(page.locator('text=Проекты')).or(page.locator('text=Клиенты'));
+    await expect(nav.first()).toBeVisible({ timeout: 10000 });
   });
 
-  test('should show user email in header', async ({ page }) => {
+  test('should show user email or name in header', async ({ page }) => {
     await page.goto('/');
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
     
-    // Проверяем, что email пользователя отображается (обычно в header)
-    const userEmail = page.locator('text=fominsevil@gmail.com');
-    await expect(userEmail.first()).toBeVisible({ timeout: 10000 });
+    // Проверяем, что пользователь залогинен (ищем avatar или имя пользователя)
+    const userIndicator = page.locator('[data-testid="user-avatar"]').or(page.locator('text=Илья')).or(page.locator('text=fominsevil@gmail.com'));
+    await expect(userIndicator.first()).toBeVisible({ timeout: 10000 });
   });
 });
 

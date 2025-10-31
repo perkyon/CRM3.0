@@ -61,7 +61,8 @@ export function AppSidebar({ currentPage, onNavigate, collapsed, className }: Ap
                 className={cn(
                   "w-full justify-start gap-3",
                   collapsed && "px-2",
-                  !hasAccess && "opacity-50 cursor-not-allowed"
+                  !hasAccess && "opacity-50 cursor-not-allowed",
+                  isActive && "border-2 border-primary/30 shadow-sm"
                 )}
                 onClick={() => hasAccess && onNavigate(item.id)}
                 disabled={!hasAccess}

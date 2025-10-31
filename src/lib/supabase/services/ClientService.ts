@@ -421,8 +421,34 @@ export class SupabaseClientService {
     onProgress?: (progress: number) => void
   ): Promise<Client['documents'][0]> {
     // Upload file to Supabase Storage
-    const fileExt = file.name.split('.').pop();
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'unknown';
     const fileName = `${clientId}/${Date.now()}.${fileExt}`;
+    
+    // Маппинг расширений к типам enum
+    const typeMapping: Record<string, string> = {
+      'pdf': 'pdf',
+      'doc': 'doc',
+      'docx': 'docx',
+      'xls': 'xls',
+      'xlsx': 'xlsx',
+      'dwg': 'dwg',
+      'dxf': 'dxf',
+      '3dm': '3dm',
+      'step': 'step',
+      'iges': 'iges',
+      'jpg': 'jpg',
+      'jpeg': 'jpeg',
+      'png': 'png',
+      'gif': 'gif',
+      'mp4': 'mp4',
+      'avi': 'avi',
+      'mov': 'mov',
+      'zip': 'zip',
+      'rar': 'rar',
+      'txt': 'txt',
+    };
+    
+    const documentType = typeMapping[fileExt] || 'other';
     
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('client-documents')
@@ -451,7 +477,7 @@ export class SupabaseClientService {
       client_id: clientId,
       name: file.name,
       original_name: file.name,
-      type: fileExt || 'unknown',
+      type: documentType,
       category: category,
       description: description,
       size: file.size,

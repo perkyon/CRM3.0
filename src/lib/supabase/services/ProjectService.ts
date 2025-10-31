@@ -342,8 +342,34 @@ export class SupabaseProjectService {
     onProgress?: (progress: number) => void
   ): Promise<Project['documents'][0]> {
     // Upload file to Supabase Storage
-    const fileExt = file.name.split('.').pop();
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'unknown';
     const fileName = `${projectId}/${Date.now()}.${fileExt}`;
+    
+    // Маппинг расширений к типам enum
+    const typeMapping: Record<string, string> = {
+      'pdf': 'pdf',
+      'doc': 'doc',
+      'docx': 'docx',
+      'xls': 'xls',
+      'xlsx': 'xlsx',
+      'dwg': 'dwg',
+      'dxf': 'dxf',
+      '3dm': '3dm',
+      'step': 'step',
+      'iges': 'iges',
+      'jpg': 'jpg',
+      'jpeg': 'jpeg',
+      'png': 'png',
+      'gif': 'gif',
+      'mp4': 'mp4',
+      'avi': 'avi',
+      'mov': 'mov',
+      'zip': 'zip',
+      'rar': 'rar',
+      'txt': 'txt',
+    };
+    
+    const documentType = typeMapping[fileExt] || 'other';
     
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('project-documents')
@@ -369,7 +395,7 @@ export class SupabaseProjectService {
       project_id: projectId,
       name: file.name,
       original_name: file.name,
-      type: fileExt || 'unknown',
+      type: documentType,
       category,
       size: file.size,
       url: urlData.publicUrl,

@@ -45,8 +45,8 @@ export function StageSelector({ currentStage, onStageChange, disabled }: StageSe
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="justify-between w-full gap-2" disabled={disabled}>
-          <div className={`${stageColors[currentStage]} rounded-full px-2.5 py-0.5 text-xs font-semibold truncate min-w-0`}>
+        <Button variant="outline" className="justify-between w-full gap-2 py-2.5" disabled={disabled}>
+          <div className={`${stageColors[currentStage]} rounded-full px-3 py-1 text-xs font-semibold truncate min-w-0`}>
             {projectStageNames[currentStage]}
           </div>
           <ChevronDown className="size-4 opacity-50 flex-shrink-0" />
