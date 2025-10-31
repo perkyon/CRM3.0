@@ -62,7 +62,47 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
             console.log('[Kanban] Loading boards for project:', projectId);
             const projectBoards = await supabaseKanbanService.getProjectBoards(projectId);
             console.log('[Kanban] Loaded boards:', projectBoards);
-            setBoards(projectBoards);
+            
+            // Трансформируем данные из БД в формат фронтенда
+            const transformedBoards = projectBoards.map(board => ({
+              ...board,
+              tasks: (board.tasks || []).map((task: any) => ({
+                id: task.id,
+                projectId: task.project_id || board.project_id,
+                columnId: task.column_id,
+                title: task.title,
+                description: task.description,
+                assigneeId: task.assignee_id,
+                assignee: task.assignee ? {
+                  id: task.assignee.id,
+                  name: task.assignee.name || '',
+                  email: task.assignee.email || ''
+                } : undefined,
+                dueDate: task.due_date,
+                priority: task.priority || 'medium',
+                tags: task.tags || [],
+                checklist: (task.checklist || []).map((item: any) => ({
+                  id: item.id,
+                  text: item.text,
+                  completed: item.completed || false,
+                  assigneeId: item.assignee_id,
+                  dueDate: item.due_date
+                })),
+                comments: (task.comments || []).map((comment: any) => ({
+                  id: comment.id,
+                  text: comment.content || comment.text,
+                  authorId: comment.author_id || comment.author?.id,
+                  createdAt: comment.created_at,
+                  updatedAt: comment.updated_at
+                })),
+                attachments: task.attachments || [],
+                createdAt: task.created_at,
+                updatedAt: task.updated_at,
+                order: task.position || 0
+              }))
+            }));
+            
+            setBoards(transformedBoards);
             
             // If no boards found, create one in Supabase
             if (projectBoards.length === 0) {
@@ -162,9 +202,46 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
         });
       }
 
-      // Загружаем обновленную доску
+      // Загружаем обновленную доску с трансформацией
       const updatedBoards = await supabaseKanbanService.getProjectBoards(projectId);
-      setBoards(updatedBoards);
+      const transformedBoards = updatedBoards.map(board => ({
+        ...board,
+        tasks: (board.tasks || []).map((task: any) => ({
+          id: task.id,
+          projectId: task.project_id || board.project_id,
+          columnId: task.column_id,
+          title: task.title,
+          description: task.description,
+          assigneeId: task.assignee_id,
+          assignee: task.assignee ? {
+            id: task.assignee.id,
+            name: task.assignee.name || '',
+            email: task.assignee.email || ''
+          } : undefined,
+          dueDate: task.due_date,
+          priority: task.priority || 'medium',
+          tags: task.tags || [],
+          checklist: (task.checklist || []).map((item: any) => ({
+            id: item.id,
+            text: item.text,
+            completed: item.completed || false,
+            assigneeId: item.assignee_id,
+            dueDate: item.due_date
+          })),
+          comments: (task.comments || []).map((comment: any) => ({
+            id: comment.id,
+            text: comment.content || comment.text,
+            authorId: comment.author_id || comment.author?.id,
+            createdAt: comment.created_at,
+            updatedAt: comment.updated_at
+          })),
+          attachments: task.attachments || [],
+          createdAt: task.created_at,
+          updatedAt: task.updated_at,
+          order: task.position || 0
+        }))
+      }));
+      setBoards(transformedBoards);
       
       toast.success('Канбан-доска создана для проекта');
     } catch (error) {
@@ -273,20 +350,59 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
         
         realBoardId = newBoard.id;
         
-        // Обновляем локальное состояние с реальным ID доски
+        // Загружаем обновленную доску с трансформацией
+        const updatedBoard = await supabaseKanbanService.getBoard(newBoard.id);
+        
+        // Трансформируем данные из БД в формат фронтенда
+        const transformedBoard = {
+          ...updatedBoard,
+          tasks: (updatedBoard.tasks || []).map((task: any) => ({
+            id: task.id,
+            projectId: task.project_id || updatedBoard.project_id,
+            columnId: task.column_id,
+            title: task.title,
+            description: task.description,
+            assigneeId: task.assignee_id,
+            assignee: task.assignee ? {
+              id: task.assignee.id,
+              name: task.assignee.name || '',
+              email: task.assignee.email || ''
+            } : undefined,
+            dueDate: task.due_date,
+            priority: task.priority || 'medium',
+            tags: task.tags || [],
+            checklist: (task.checklist || []).map((item: any) => ({
+              id: item.id,
+              text: item.text,
+              completed: item.completed || false,
+              assigneeId: item.assignee_id,
+              dueDate: item.due_date
+            })),
+            comments: (task.comments || []).map((comment: any) => ({
+              id: comment.id,
+              text: comment.content || comment.text,
+              authorId: comment.author_id || comment.author?.id,
+              createdAt: comment.created_at,
+              updatedAt: comment.updated_at
+            })),
+            attachments: task.attachments || [],
+            createdAt: task.created_at,
+            updatedAt: task.updated_at,
+            order: task.position || 0
+          }))
+        };
+        
+        // Обновляем локальное состояние с трансформированной доской
         setBoards(prev => prev.map(board => 
           board.id === currentBoard.id 
-            ? { ...board, ...newBoard, id: newBoard.id }
+            ? transformedBoard
             : board
         ));
         
-        // Обновляем currentBoard для дальнейшего использования
-        const updatedBoard = await supabaseKanbanService.getBoard(newBoard.id);
-        
         // Ищем реальную колонку по названию (т.к. createBoard создает дефолтные колонки)
-        const realColumn = updatedBoard.columns.find(col => 
+        const realColumn = transformedBoard.columns.find(col => 
           col.title === column.title || col.title.toLowerCase() === column.title.toLowerCase()
-        ) || updatedBoard.columns[0];
+        ) || transformedBoard.columns[0];
         
         if (!realColumn) {
           throw new Error('Колонка не найдена после создания доски');
@@ -338,9 +454,9 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
       // ВСЕ задачи сохраняются в БД с реальным UUID колонки
       const savedTask = await supabaseKanbanService.createTask({
         columnId: realColumnId, // Используем реальный UUID
-        title,
-        description,
-        priority: 'medium',
+      title,
+      description,
+      priority: 'medium',
         position,
         tags: []
       });
@@ -354,8 +470,8 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
         description: savedTask.description,
         priority: savedTask.priority,
         tags: savedTask.tags || [],
-        checklist: [],
-        attachments: [],
+      checklist: [],
+      attachments: [],
         comments: savedTask.comments || [],
         createdAt: savedTask.created_at,
         updatedAt: savedTask.updated_at,
@@ -369,13 +485,13 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
       };
 
       // Обновляем правильную доску (используя realBoardId)
-      setBoards(prev => prev.map(board => 
+    setBoards(prev => prev.map(board => 
         board.id === realBoardId 
-          ? { ...board, tasks: [...board.tasks, newTask] }
-          : board
-      ));
+        ? { ...board, tasks: [...board.tasks, newTask] }
+        : board
+    ));
 
-      toast.success(`Задача "${title}" добавлена`);
+    toast.success(`Задача "${title}" добавлена`);
     } catch (error: any) {
       console.error('Failed to create task:', error);
       toast.error(`Ошибка создания задачи: ${error.message || 'Неизвестная ошибка'}`);
@@ -407,12 +523,12 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
       const savedTask = await supabaseKanbanService.updateTask(taskId, updateData);
 
       // Обновляем локальное состояние с данными из БД
-      setBoards(prev => prev.map(board => 
-        board.id === currentBoard.id 
-          ? { 
-              ...board, 
-              tasks: board.tasks.map(task => 
-                task.id === taskId 
+    setBoards(prev => prev.map(board => 
+      board.id === currentBoard.id 
+        ? { 
+            ...board, 
+            tasks: board.tasks.map(task => 
+              task.id === taskId 
                   ? {
                       ...task,
                       // Используем данные из БД для всех полей
@@ -431,11 +547,11 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
                       priority: savedTask.priority || task.priority,
                       updatedAt: savedTask.updated_at || task.updatedAt,
                     }
-                  : task
-              )
-            }
-          : board
-      ));
+                : task
+            )
+          }
+        : board
+    ));
       
       // Обновляем selectedTask если он открыт
       if (selectedTask && selectedTask.id === taskId) {
@@ -496,25 +612,25 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
       await supabaseKanbanService.moveTask(taskId, targetColumnId, finalOrder);
 
       // Обновляем локальное состояние
-      setBoards(prev => prev.map(board => 
-        board.id === currentBoard.id 
-          ? { 
-              ...board, 
-              tasks: board.tasks.map(t => 
-                t.id === taskId 
-                  ? { 
-                      ...t, 
-                      columnId: targetColumnId, 
+    setBoards(prev => prev.map(board => 
+      board.id === currentBoard.id 
+        ? { 
+            ...board, 
+            tasks: board.tasks.map(t => 
+              t.id === taskId 
+                ? { 
+                    ...t, 
+                    columnId: targetColumnId, 
                       order: finalOrder,
-                      updatedAt: new Date().toISOString()
-                    }
-                  : t
-              )
-            }
-          : board
-      ));
+                    updatedAt: new Date().toISOString()
+                  }
+                : t
+            )
+          }
+        : board
+    ));
 
-      toast.success(`Задача перемещена: ${sourceColumn?.title} → ${targetColumn?.title}`);
+    toast.success(`Задача перемещена: ${sourceColumn?.title} → ${targetColumn?.title}`);
     } catch (error: any) {
       console.error('Failed to move task:', error);
       toast.error(`Ошибка перемещения задачи: ${error.message || 'Неизвестная ошибка'}`);
@@ -529,13 +645,13 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
       await supabaseKanbanService.deleteTask(taskId);
 
       // Обновляем локальное состояние
-      setBoards(prev => prev.map(board => 
-        board.id === currentBoard.id 
-          ? { ...board, tasks: board.tasks.filter(task => task.id !== taskId) }
-          : board
-      ));
+    setBoards(prev => prev.map(board => 
+      board.id === currentBoard.id 
+        ? { ...board, tasks: board.tasks.filter(task => task.id !== taskId) }
+        : board
+    ));
 
-      toast.success('Задача удалена');
+    toast.success('Задача удалена');
     } catch (error: any) {
       console.error('Failed to delete task:', error);
       toast.error(`Ошибка удаления задачи: ${error.message || 'Неизвестная ошибка'}`);
