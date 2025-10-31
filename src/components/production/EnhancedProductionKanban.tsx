@@ -122,28 +122,88 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
               };
             });
             
-            if (transformedBoards.length > 0) {
-              setBoards(transformedBoards);
-            } else {
-              // Если нет досок в БД - создаем дефолтную
-              console.log('[Kanban] No general boards found, creating default board');
-              const defaultBoard: KanbanBoard = {
-                id: 'default-board',
+          if (transformedBoards.length > 0) {
+            // Всегда берем только ПЕРВУЮ доску
+            setBoards([transformedBoards[0]]);
+          } else {
+            // Если нет досок в БД - создаем одну в БД
+            console.log('[Kanban] No board found, creating single board in DB...');
+            const newBoard = await supabaseKanbanService.createBoard({
+              projectId: null,
+              title: 'Общая производственная доска',
+              description: 'Главная канбан-доска CRM'
+            });
+            
+            // Создаем дефолтные колонки
+            for (let i = 0; i < defaultKanbanColumns.length; i++) {
+              const col = defaultKanbanColumns[i];
+              await supabaseKanbanService.createColumn({
+                boardId: newBoard.id,
+                title: col.title,
+                position: col.position
+              });
+            }
+            
+            // Загружаем созданную доску
+            const loadedBoard = await supabaseKanbanService.getBoard(newBoard.id);
+            
+            // Трансформируем
+            const allTasks: any[] = [];
+            const columns = ((loadedBoard?.columns || []) as any[]).map((col: any) => {
+              const colTasks = (col.tasks || []).map((task: any) => ({
+                id: task.id,
                 projectId: null,
-                title: 'Общая производственная доска',
-                columns: defaultKanbanColumns.map((col, index) => ({
-                  id: `COL-default-${index}`,
-                  title: col.title,
-                  stage: col.title.toLowerCase().replace(/\s+/g, '_'),
-                  order: col.position,
-                  isDefault: true,
-                  color: col.color
+                columnId: task.column_id || col.id,
+                title: task.title,
+                description: task.description || '',
+                assigneeId: task.assignee_id,
+                assignee: task.assignee ? {
+                  id: task.assignee.id,
+                  name: task.assignee.name || '',
+                  email: task.assignee.email || ''
+                } : undefined,
+                dueDate: task.due_date,
+                priority: task.priority || 'medium',
+                tags: task.tags || [],
+                checklist: (task.checklist || []).map((item: any) => ({
+                  id: item.id,
+                  text: item.text || '',
+                  completed: item.completed || false,
+                  assigneeId: item.assignee_id,
+                  dueDate: item.due_date
                 })),
-                tasks: [],
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                comments: (task.comments || []).map((comment: any) => ({
+                  id: comment.id,
+                  text: comment.content || comment.text || '',
+                  authorId: comment.author_id || comment.author?.id,
+                  createdAt: comment.created_at,
+                  updatedAt: comment.updated_at
+                })),
+                attachments: task.attachments || [],
+                createdAt: task.created_at,
+                updatedAt: task.updated_at,
+                order: task.position || 0
+              }));
+              allTasks.push(...colTasks);
+              
+              return {
+                id: col.id,
+                title: col.title,
+                stage: col.stage || col.title.toLowerCase().replace(/\s+/g, '_'),
+                order: col.position || col.order || 0,
+                isDefault: false,
+                color: col.color
               };
-              setBoards([defaultBoard]);
+            });
+            
+            const transformedBoard: KanbanBoard = {
+              ...loadedBoard!,
+              projectId: null,
+              columns,
+              tasks: allTasks
+            };
+            
+            setBoards([transformedBoard]);
             }
           } catch (error) {
             console.error('[Kanban] Failed to load general boards:', error);
@@ -191,8 +251,8 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
       }
     };
 
-    loadBoards();
-  }, [projectId]);
+    loadBoard();
+  }, []); // Убрали зависимость от projectId - доска всегда одна
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
@@ -205,75 +265,6 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
 
   // Всегда одна доска - первая в массиве
   const currentBoard = boards[0];
-
-  // Убрана функция createBoardForProject - доска всегда одна, создается автоматически если нет
-    if (!projectId) return;
-    
-    try {
-      // Создаем доску в Supabase
-      const newBoard = await supabaseKanbanService.createBoard({
-        projectId: projectId,
-        title: `Производство проекта ${projectId}`,
-        description: `Канбан-доска для проекта ${projectId}`
-      });
-
-      // Создаем колонки в Supabase
-      for (let i = 0; i < defaultKanbanColumns.length; i++) {
-        const col = defaultKanbanColumns[i];
-        await supabaseKanbanService.createColumn({
-          boardId: newBoard.id,
-          title: col.title,
-          position: col.position
-        });
-      }
-
-      // Загружаем обновленную доску с трансформацией
-      const updatedBoards = await supabaseKanbanService.getProjectBoards(projectId);
-      const transformedBoards = updatedBoards.map(board => ({
-        ...board,
-        tasks: (board.tasks || []).map((task: any) => ({
-          id: task.id,
-          projectId: task.project_id || board.project_id,
-          columnId: task.column_id,
-          title: task.title,
-          description: task.description,
-          assigneeId: task.assignee_id,
-          assignee: task.assignee ? {
-            id: task.assignee.id,
-            name: task.assignee.name || '',
-            email: task.assignee.email || ''
-          } : undefined,
-          dueDate: task.due_date,
-          priority: task.priority || 'medium',
-          tags: task.tags || [],
-          checklist: (task.checklist || []).map((item: any) => ({
-            id: item.id,
-            text: item.text,
-            completed: item.completed || false,
-            assigneeId: item.assignee_id,
-            dueDate: item.due_date
-          })),
-          comments: (task.comments || []).map((comment: any) => ({
-            id: comment.id,
-            text: comment.content || comment.text,
-            authorId: comment.author_id || comment.author?.id,
-            createdAt: comment.created_at,
-            updatedAt: comment.updated_at
-          })),
-          attachments: task.attachments || [],
-          createdAt: task.created_at,
-          updatedAt: task.updated_at,
-          order: task.position || 0
-        }))
-      }));
-      setBoards(transformedBoards);
-      
-      toast.success('Канбан-доска создана для проекта');
-    } catch (error) {
-      console.error('Failed to create board in Supabase:', error);
-      toast.error('Ошибка создания канбан-доски');
-    }
-  };
 
   const addColumn = (title: string) => {
     if (!currentBoard) return;
@@ -778,7 +769,7 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
           />
         ) : (
           <EmptyKanbanState 
-            onCreateBoard={() => projectId && createBoardForProject(projectId)}
+            onCreateBoard={undefined}
           />
         )}
       </div>
