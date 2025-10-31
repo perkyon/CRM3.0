@@ -388,15 +388,22 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
     try {
       // Сохраняем в БД
       const updateData: any = {};
-      if (updates.title) updateData.title = updates.title;
+      if (updates.title !== undefined) updateData.title = updates.title;
       if (updates.description !== undefined) updateData.description = updates.description;
       if (updates.assignee) updateData.assigneeId = updates.assignee.id;
-      if (updates.priority) updateData.priority = updates.priority;
-      if (updates.dueDate) updateData.dueDate = updates.dueDate;
-      if (updates.tags) updateData.tags = updates.tags;
+      if (updates.assigneeId !== undefined) updateData.assigneeId = updates.assigneeId; // Поддержка прямого assigneeId
+      if (updates.priority !== undefined) updateData.priority = updates.priority;
+      if (updates.dueDate !== undefined) updateData.dueDate = updates.dueDate;
+      if (updates.tags !== undefined) updateData.tags = updates.tags;
       if (updates.order !== undefined) updateData.position = updates.order;
-      if (updates.columnId) updateData.columnId = updates.columnId;
+      if (updates.columnId !== undefined) updateData.columnId = updates.columnId;
 
+      // Если обновляется чек-лист - сохраняем его отдельно в БД
+      if (updates.checklist !== undefined) {
+        await supabaseKanbanService.updateTaskChecklist(taskId, updates.checklist);
+      }
+
+      // Обновляем основные поля задачи
       const savedTask = await supabaseKanbanService.updateTask(taskId, updateData);
 
       // Обновляем локальное состояние

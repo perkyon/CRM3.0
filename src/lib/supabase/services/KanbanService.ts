@@ -510,6 +510,75 @@ export class SupabaseKanbanService {
       throw handleApiError(error, 'SupabaseKanbanService.toggleChecklistItem');
     }
   }
+
+  // Update entire checklist for a task (sync all items)
+  async updateTaskChecklist(taskId: string, checklist: ChecklistItem[]): Promise<void> {
+    // Получаем текущие элементы чек-листа
+    const { data: existingItems, error: fetchError } = await supabase
+      .from(TABLES.CHECKLIST_ITEMS)
+      .select('id')
+      .eq('task_id', taskId);
+
+    if (fetchError) {
+      throw handleApiError(fetchError, 'SupabaseKanbanService.updateTaskChecklist - fetch');
+    }
+
+    const existingIds = new Set((existingItems || []).map(item => item.id));
+    const newItems = checklist.filter(item => !existingIds.has(item.id));
+    const updatedItems = checklist.filter(item => existingIds.has(item.id));
+
+    // Удаляем элементы которых нет в новом чек-листе
+    const itemsToDelete = Array.from(existingIds).filter(id => 
+      !checklist.some(item => item.id === id)
+    );
+    
+    if (itemsToDelete.length > 0) {
+      const { error: deleteError } = await supabase
+        .from(TABLES.CHECKLIST_ITEMS)
+        .delete()
+        .in('id', itemsToDelete);
+
+      if (deleteError) {
+        throw handleApiError(deleteError, 'SupabaseKanbanService.updateTaskChecklist - delete');
+      }
+    }
+
+    // Добавляем новые элементы
+    if (newItems.length > 0) {
+      const itemsToInsert = newItems.map((item, index) => ({
+        task_id: taskId,
+        text: item.text,
+        completed: item.completed || false,
+        position: (existingItems?.length || 0) + index,
+        created_at: new Date().toISOString(),
+      }));
+
+      const { error: insertError } = await supabase
+        .from(TABLES.CHECKLIST_ITEMS)
+        .insert(itemsToInsert);
+
+      if (insertError) {
+        throw handleApiError(insertError, 'SupabaseKanbanService.updateTaskChecklist - insert');
+      }
+    }
+
+    // Обновляем существующие элементы
+    for (const item of updatedItems) {
+      const { error: updateError } = await supabase
+        .from(TABLES.CHECKLIST_ITEMS)
+        .update({
+          text: item.text,
+          completed: item.completed || false,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', item.id);
+
+      if (updateError) {
+        console.error(`Failed to update checklist item ${item.id}:`, updateError);
+        // Не прерываем процесс, продолжаем обновление остальных
+      }
+    }
+  }
 }
 
 export const supabaseKanbanService = new SupabaseKanbanService();

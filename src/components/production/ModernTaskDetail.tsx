@@ -31,6 +31,7 @@ import {
 import { KanbanTask, ChecklistItem, User as UserType } from '../../types';
 import { supabase } from '../../lib/supabase/config';
 import { supabaseKanbanService } from '../../lib/supabase/services/KanbanService';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface ModernTaskDetailProps {
   task: KanbanTask;
@@ -49,7 +50,8 @@ export function ModernTaskDetail({
   users,
   columns
 }: ModernTaskDetailProps) {
-  const [checklist, setChecklist] = useState(task.checklist);
+  const { user: currentUser } = useAuth();
+  const [checklist, setChecklist] = useState(task.checklist || []);
   const [newChecklistItem, setNewChecklistItem] = useState('');
   const [newComment, setNewComment] = useState('');
   const [isEditingDescription, setIsEditingDescription] = useState(false);
@@ -61,6 +63,14 @@ export function ModernTaskDetail({
   const [isEditingTags, setIsEditingTags] = useState(false);
   const [newTag, setNewTag] = useState('');
   const [isEditingAssignee, setIsEditingAssignee] = useState(false);
+
+  // Обновляем локальное состояние при изменении задачи извне
+  React.useEffect(() => {
+    if (task.checklist) setChecklist(task.checklist);
+    if (task.description !== undefined) setDescription(task.description || '');
+    if (task.title) setTitle(task.title);
+    if (task.dueDate !== undefined) setDueDate(task.dueDate);
+  }, [task.id, task.checklist, task.description, task.title, task.dueDate]);
 
   const completedTasks = checklist.filter(item => item.completed).length;
   const totalTasks = checklist.length;
@@ -564,8 +574,11 @@ export function ModernTaskDetail({
           <div className="space-y-2">
             <div className="flex items-start gap-2">
               <Avatar className="size-8">
+                <AvatarImage src={currentUser?.avatar} />
                 <AvatarFallback className="bg-blue-100 text-blue-700">
-                  ИФ
+                  {currentUser?.name 
+                    ? currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase()
+                    : 'U'}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
@@ -628,23 +641,35 @@ export function ModernTaskDetail({
 
           {/* Activity Feed */}
           <div className="space-y-3">
-            {task.comments.map((comment) => (
-              <div key={comment.id} className="flex items-start gap-2">
-                <Avatar className="size-8">
-                  <AvatarFallback className="bg-blue-100 text-blue-700">
-                    ИФ
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="bg-white p-3 rounded-lg shadow-sm">
-                    <p className="text-sm text-gray-900 break-words">{comment.text}</p>
+            {task.comments && task.comments.length > 0 && task.comments.map((comment) => {
+              // Находим автора комментария
+              const commentAuthor = users.find(u => u.id === comment.authorId) || null;
+              const authorInitials = commentAuthor 
+                ? commentAuthor.name.split(' ').map(n => n[0]).join('').toUpperCase()
+                : 'U';
+              
+              return (
+                <div key={comment.id} className="flex items-start gap-2">
+                  <Avatar className="size-8">
+                    <AvatarImage src={commentAuthor?.avatar} />
+                    <AvatarFallback className="bg-blue-100 text-blue-700">
+                      {authorInitials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="bg-white p-3 rounded-lg shadow-sm">
+                      <p className="text-sm font-medium text-gray-700 mb-1">
+                        {commentAuthor?.name || 'Неизвестный пользователь'}
+                      </p>
+                      <p className="text-sm text-gray-900 break-words">{comment.text}</p>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {formatDate(comment.createdAt)}
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {formatDate(comment.createdAt)}
-                  </p>
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             {/* Activity items */}
             <div className="flex items-start gap-2">
