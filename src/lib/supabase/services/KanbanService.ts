@@ -80,6 +80,36 @@ export class SupabaseKanbanService {
     return data || [];
   }
 
+  // Get all general boards (without project_id)
+  async getGeneralBoards(): Promise<KanbanBoard[]> {
+    const { data, error } = await supabase
+      .from(TABLES.KANBAN_BOARDS)
+      .select(`
+        *,
+        columns:kanban_columns(
+          *,
+          tasks:kanban_tasks(
+            *,
+            assignee:users!kanban_tasks_assignee_id_fkey(id, name, email, avatar),
+            comments:task_comments(
+              *,
+              author:users!task_comments_author_id_fkey(id, name, avatar)
+            ),
+            attachments:task_attachments(*),
+            checklist:checklist_items(*)
+          )
+        )
+      `)
+      .is('project_id', null)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      throw handleApiError(error, 'SupabaseKanbanService.getGeneralBoards');
+    }
+
+    return data || [];
+  }
+
   // Get single board by ID
   async getBoard(id: string): Promise<KanbanBoard> {
     const { data, error } = await supabase

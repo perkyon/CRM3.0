@@ -55,23 +55,25 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
       try {
         setIsLoading(true);
         
-        // Load boards from Supabase
-        
-        if (projectId) {
-          try {
-            console.log('[Kanban] Loading boards for project:', projectId);
-            const projectBoards = await supabaseKanbanService.getProjectBoards(projectId);
-            console.log('[Kanban] Loaded boards:', projectBoards);
-            
-            // Трансформируем данные из БД в формат фронтенда
-            const transformedBoards = projectBoards.map(board => ({
-              ...board,
-              tasks: (board.tasks || []).map((task: any) => ({
+        // КАНБАН НЕЗАВИСИМ ОТ ПРОЕКТОВ - всегда загружаем только общие доски
+        try {
+          console.log('[Kanban] Loading general boards (independent from projects)...');
+          
+          // Загружаем общие доски (project_id = NULL)
+          const generalBoards = await supabaseKanbanService.getGeneralBoards();
+          console.log('[Kanban] Loaded general boards:', generalBoards);
+          
+          // Трансформируем данные из БД в формат фронтенда
+          const transformedBoards = generalBoards.map(board => {
+            // Извлекаем задачи из всех колонок
+            const allTasks: any[] = [];
+            const columns = (board.columns || []).map((col: any) => {
+              const colTasks = (col.tasks || []).map((task: any) => ({
                 id: task.id,
-                projectId: task.project_id || board.project_id,
-                columnId: task.column_id,
+                projectId: null, // Канбан не зависит от проектов
+                columnId: task.column_id || col.id,
                 title: task.title,
-                description: task.description,
+                description: task.description || '',
                 assigneeId: task.assignee_id,
                 assignee: task.assignee ? {
                   id: task.assignee.id,
@@ -95,31 +97,60 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
                   createdAt: comment.created_at,
                   updatedAt: comment.updated_at
                 })),
-                attachments: task.attachments || [],
-                createdAt: task.created_at,
-                updatedAt: task.updated_at,
-                order: task.position || 0
-              }))
-            }));
+                  attachments: task.attachments || [],
+                  createdAt: task.created_at,
+                  updatedAt: task.updated_at,
+                  order: task.position || 0
+                }));
+                allTasks.push(...colTasks);
+                
+                return {
+                  id: col.id,
+                  title: col.title,
+                  stage: col.stage || col.title.toLowerCase().replace(/\s+/g, '_'),
+                  order: col.position || col.order || 0,
+                  isDefault: false,
+                  color: col.color
+                };
+              });
+              
+              return {
+                ...board,
+                projectId: null, // Канбан не зависит от проектов
+                columns,
+                tasks: allTasks
+              };
+            });
             
-            setBoards(transformedBoards);
-            
-            // If no boards found, create one in Supabase
-            if (projectBoards.length === 0) {
-              console.log('[Kanban] No boards found, creating...');
-              await createBoardForProject(projectId);
+            if (transformedBoards.length > 0) {
+              setBoards(transformedBoards);
+            } else {
+              // Если нет досок в БД - создаем дефолтную
+              console.log('[Kanban] No general boards found, creating default board');
+              const defaultBoard: KanbanBoard = {
+                id: 'default-board',
+                projectId: null,
+                title: 'Общая производственная доска',
+                columns: defaultKanbanColumns.map((col, index) => ({
+                  id: `COL-default-${index}`,
+                  title: col.title,
+                  stage: col.title.toLowerCase().replace(/\s+/g, '_'),
+                  order: col.position,
+                  isDefault: true,
+                  color: col.color
+                })),
+                tasks: [],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              };
+              setBoards([defaultBoard]);
             }
           } catch (error) {
-            console.error('[Kanban] Failed to load kanban boards from Supabase:', error);
-            // Fallback to creating a board
-            await createBoardForProject(projectId);
-          }
-        } else {
-          // Create a default board if no project specified
-          console.log('[Kanban] No projectId, creating default board');
+            console.error('[Kanban] Failed to load general boards:', error);
+            // Fallback to default board
           const defaultBoard: KanbanBoard = {
             id: 'default-board',
-            projectId: 'default',
+              projectId: null,
             title: 'Общая производственная доска',
             columns: defaultKanbanColumns.map((col, index) => ({
               id: `COL-default-${index}`,
@@ -172,16 +203,10 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
   const [draggedItem, setDraggedItem] = useState<DraggedItem | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
-  const currentBoard = projectId ? boards.find(b => b.projectId === projectId) : boards[0];
+  // Всегда одна доска - первая в массиве
+  const currentBoard = boards[0];
 
-  // Создание новой доски при отсутствии проекта
-  useEffect(() => {
-    if (projectId && !currentBoard) {
-      createBoardForProject(projectId);
-    }
-  }, [projectId, currentBoard]);
-
-  const createBoardForProject = async (projectId: string) => {
+  // Убрана функция createBoardForProject - доска всегда одна, создается автоматически если нет
     if (!projectId) return;
     
     try {
