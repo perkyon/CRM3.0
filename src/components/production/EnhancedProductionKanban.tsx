@@ -890,9 +890,34 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
           <SheetDescription id="task-detail-sheet-description" className="sr-only">
             Детальная информация о задаче и возможности редактирования
           </SheetDescription>
-          {selectedTask && currentBoard && (
+          {selectedTask && currentBoard && (() => {
+            // Находим актуальную задачу из доски или используем selectedTask
+            const currentTask = currentBoard.tasks.find(t => t.id === selectedTask.id);
+            const taskToDisplay = currentTask || selectedTask;
+            
+            // Убеждаемся что все поля правильно заполнены
+            const task: KanbanTask = {
+              id: taskToDisplay.id,
+              projectId: taskToDisplay.projectId,
+              columnId: taskToDisplay.columnId,
+              title: taskToDisplay.title || 'Без названия',
+              description: taskToDisplay.description || '',
+              assigneeId: taskToDisplay.assigneeId,
+              assignee: taskToDisplay.assignee,
+              dueDate: taskToDisplay.dueDate,
+              priority: taskToDisplay.priority || 'medium',
+              tags: taskToDisplay.tags || [],
+              checklist: taskToDisplay.checklist || [],
+              comments: taskToDisplay.comments || [],
+              attachments: taskToDisplay.attachments || [],
+              createdAt: taskToDisplay.createdAt,
+              updatedAt: taskToDisplay.updatedAt,
+              order: taskToDisplay.order || 0
+            };
+            
+            return (
             <ModernTaskDetail
-              task={currentBoard.tasks.find(t => t.id === selectedTask.id) || selectedTask}
+                task={task}
               onUpdateTask={(updates) => updateTask(selectedTask.id, updates)}
               onDeleteTask={() => {
                 deleteTask(selectedTask.id);
@@ -900,9 +925,10 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
               }}
               onClose={() => setSelectedTask(null)}
               users={users}
-              columns={currentBoard.columns.map(col => ({ id: col.id, title: col.title, stage: col.stage }))}
+                columns={currentBoard.columns.map(col => ({ id: col.id, title: col.title, stage: col.stage }))}
             />
-          )}
+            );
+          })()}
         </SheetContent>
       </Sheet>
     </div>

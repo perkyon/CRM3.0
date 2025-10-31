@@ -642,8 +642,9 @@ export function ModernTaskDetail({
           {/* Activity Feed */}
           <div className="space-y-3">
             {task.comments && task.comments.length > 0 && task.comments.map((comment) => {
-              // Находим автора комментария
-              const commentAuthor = users.find(u => u.id === comment.authorId) || null;
+              // Находим автора комментария - проверяем все возможные варианты authorId
+              const authorId = comment.authorId || (comment as any).author_id || (comment as any).author?.id;
+              const commentAuthor = authorId ? users.find(u => u.id === authorId) : null;
               const authorInitials = commentAuthor 
                 ? commentAuthor.name.split(' ').map(n => n[0]).join('').toUpperCase()
                 : 'U';
@@ -661,10 +662,10 @@ export function ModernTaskDetail({
                       <p className="text-sm font-medium text-gray-700 mb-1">
                         {commentAuthor?.name || 'Неизвестный пользователь'}
                       </p>
-                      <p className="text-sm text-gray-900 break-words">{comment.text}</p>
+                      <p className="text-sm text-gray-900 break-words">{comment.text || (comment as any).content}</p>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
-                      {formatDate(comment.createdAt)}
+                      {formatDate(comment.createdAt || (comment as any).created_at)}
                     </p>
                   </div>
                 </div>

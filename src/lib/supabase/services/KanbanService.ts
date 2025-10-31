@@ -322,15 +322,23 @@ export class SupabaseKanbanService {
 
   // Update task
   async updateTask(id: string, taskData: UpdateKanbanTaskRequest): Promise<KanbanTask> {
+    // Подготавливаем данные для обновления - только те поля которые переданы
+    const updatePayload: any = {
+      updated_at: new Date().toISOString(),
+    };
+    
+    if (taskData.title !== undefined) updatePayload.title = taskData.title;
+    if (taskData.description !== undefined) updatePayload.description = taskData.description || null;
+    if (taskData.columnId !== undefined) updatePayload.column_id = taskData.columnId;
+    if (taskData.assigneeId !== undefined) updatePayload.assignee_id = taskData.assigneeId || null;
+    if (taskData.dueDate !== undefined) updatePayload.due_date = taskData.dueDate || null;
+    if (taskData.priority !== undefined) updatePayload.priority = taskData.priority;
+    if (taskData.position !== undefined) updatePayload.position = taskData.position;
+    if (taskData.tags !== undefined) updatePayload.tags = taskData.tags || [];
+    
     const { data, error } = await supabase
       .from(TABLES.KANBAN_TASKS)
-      .update({
-        ...taskData,
-        column_id: taskData.columnId,
-        assignee_id: taskData.assigneeId,
-        due_date: taskData.dueDate,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq('id', id)
       .select(`
         *,
