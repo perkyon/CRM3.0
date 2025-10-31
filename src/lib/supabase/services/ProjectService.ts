@@ -338,6 +338,7 @@ export class SupabaseProjectService {
     projectId: string,
     file: File,
     category: string = 'other',
+    description?: string,
     onProgress?: (progress: number) => void
   ): Promise<Project['documents'][0]> {
     // Upload file to Supabase Storage
@@ -372,6 +373,7 @@ export class SupabaseProjectService {
       category,
       size: file.size,
       url: urlData.publicUrl,
+      description: description || null,
       uploaded_by: (await supabase.auth.getUser()).data.user?.id,
       created_at: new Date().toISOString(),
     };

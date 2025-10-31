@@ -114,7 +114,7 @@ export function DocumentManager({
         uploadedDocument = await supabaseClientService.uploadClientDocument(entityId, file, selectedCategory, description);
       } else if (entityType === 'project') {
         const { supabaseProjectService } = await import('../../lib/supabase/services/ProjectService');
-        uploadedDocument = await supabaseProjectService.uploadProjectDocument(entityId, file, selectedCategory);
+        uploadedDocument = await supabaseProjectService.uploadProjectDocument(entityId, file, selectedCategory, description);
       } else {
         throw new Error('Неизвестный тип сущности');
       }
@@ -153,9 +153,10 @@ export function DocumentManager({
         fileInputRef.current.value = '';
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading document:', error);
-      toast.error('Ошибка при загрузке документа');
+      const errorMessage = error?.message || error?.toString() || 'Неизвестная ошибка';
+      toast.error(`Ошибка при загрузке документа: ${errorMessage}`);
     } finally {
       setIsUploading(false);
     }
