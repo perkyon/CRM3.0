@@ -439,15 +439,40 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
       
       // Обновляем selectedTask если он открыт
       if (selectedTask && selectedTask.id === taskId) {
-        const updatedTask = currentBoard.tasks.find(t => t.id === taskId);
-        if (updatedTask) {
-          setSelectedTask({
-            ...updatedTask,
-            ...savedTask,
-            comments: savedTask.comments || updatedTask.comments || [],
-            checklist: savedTask.checklist || updatedTask.checklist || [],
-          });
-        }
+        // Трансформируем данные из БД в формат фронтенда
+        const transformedComments = (savedTask.comments || []).map((comment: any) => ({
+          id: comment.id,
+          text: comment.content || comment.text,
+          authorId: comment.author_id || comment.author?.id || comment.authorId,
+          createdAt: comment.created_at || comment.createdAt,
+          updatedAt: comment.updated_at || comment.updatedAt
+        }));
+        
+        const transformedChecklist = (savedTask.checklist || []).map((item: any) => ({
+          id: item.id,
+          text: item.text,
+          completed: item.completed || false,
+          assigneeId: item.assignee_id,
+          dueDate: item.due_date
+        }));
+        
+        setSelectedTask({
+          ...currentBoard.tasks.find(t => t.id === taskId)!,
+          title: savedTask.title,
+          description: savedTask.description,
+          assigneeId: savedTask.assignee_id,
+          assignee: savedTask.assignee ? {
+            id: savedTask.assignee.id,
+            name: savedTask.assignee.name || '',
+            email: savedTask.assignee.email || ''
+          } : undefined,
+          dueDate: savedTask.due_date,
+          tags: savedTask.tags || [],
+          comments: transformedComments,
+          checklist: transformedChecklist,
+          priority: savedTask.priority,
+          updatedAt: savedTask.updated_at,
+        });
       }
     } catch (error: any) {
       console.error('Failed to update task:', error);
