@@ -70,6 +70,16 @@ export type ClientDocumentCategory =
   | 'photo' // Фотографии
   | 'other'; // Прочее
 
+export type ProjectDocumentCategory =
+  | 'brief' // Техническое задание
+  | 'design' // Дизайн-проекты
+  | 'technical' // Чертежи, 3D модели
+  | 'estimate' // Сметы, расчеты
+  | 'contract' // Договоры
+  | 'photo' // Фотографии
+  | 'video' // Видео
+  | 'other'; // Прочее
+
 export interface Contact {
   id: string;
   name: string;

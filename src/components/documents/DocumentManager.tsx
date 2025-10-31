@@ -20,7 +20,7 @@ import {
   FileArchive,
   AlertCircle
 } from 'lucide-react';
-import { ClientDocument, ClientDocumentCategory, Project } from '../../types';
+import { ClientDocument, ClientDocumentCategory, ProjectDocumentCategory, Project } from '../../types';
 import { toast } from '../../lib/toast';
 import { useProjects } from '../../contexts/ProjectContextNew';
 
@@ -32,13 +32,24 @@ interface DocumentManagerProps {
   onDocumentDelete: (documentId: string) => void;
 }
 
-const categoryLabels: Record<ClientDocumentCategory, string> = {
+const clientCategoryLabels: Record<ClientDocumentCategory, string> = {
   contract: 'Договоры',
   passport: 'Паспортные данные',
   inn: 'ИНН, ОГРН',
   invoice: 'Счета',
   receipt: 'Чеки, квитанции',
   photo: 'Фотографии',
+  other: 'Прочее'
+};
+
+const projectCategoryLabels: Record<ProjectDocumentCategory, string> = {
+  brief: 'Техническое задание',
+  design: 'Дизайн-проекты',
+  technical: 'Чертежи, 3D модели',
+  estimate: 'Сметы, расчеты',
+  contract: 'Договоры',
+  photo: 'Фотографии',
+  video: 'Видео',
   other: 'Прочее'
 };
 
@@ -66,7 +77,9 @@ export function DocumentManager({
 }: DocumentManagerProps) {
   const { projects } = useProjects();
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<ClientDocumentCategory>('other');
+  const [selectedCategory, setSelectedCategory] = useState<ClientDocumentCategory | ProjectDocumentCategory>('other');
+  
+  const categoryLabels = entityType === 'client' ? clientCategoryLabels : projectCategoryLabels;
   const [description, setDescription] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -389,7 +402,7 @@ export function DocumentManager({
           <div className="space-y-4">
             <div>
               <Label htmlFor="category">Категория <span className="text-destructive">*</span></Label>
-              <Select value={selectedCategory} onValueChange={(value: ClientDocumentCategory) => setSelectedCategory(value)}>
+              <Select value={selectedCategory} onValueChange={(value: ClientDocumentCategory | ProjectDocumentCategory) => setSelectedCategory(value as ClientDocumentCategory | ProjectDocumentCategory)}>
                 <SelectTrigger className="mt-1">
                   <SelectValue />
                 </SelectTrigger>
