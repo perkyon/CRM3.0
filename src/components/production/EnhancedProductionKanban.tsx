@@ -303,20 +303,36 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
         columnId = realColumn.id;
       }
 
-      // Проверяем, существует ли колонка в БД (если это дефолтная колонка)
-      if (columnId.startsWith('COL-default-')) {
+      // Проверяем, существует ли колонка в БД (если это дефолтная колонка или некорректный ID)
+      // columnId должен быть валидным UUID, иначе ищем реальную колонку
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(columnId);
+      
+      if (!isUUID || columnId === 'default' || columnId.startsWith('COL-default-')) {
+        console.log('[Kanban] Column ID is not a valid UUID, looking up real column:', columnId);
+        
         // Ищем реальную колонку в БД по доске
-        const { data: columns } = await supabase
+        const { data: columns, error: columnsError } = await supabase
           .from(TABLES.KANBAN_COLUMNS)
-          .select('id, title')
+          .select('id, title, position')
           .eq('board_id', currentBoard.id)
           .order('position');
           
+        if (columnsError) {
+          console.error('[Kanban] Error fetching columns:', columnsError);
+          throw new Error(`Ошибка загрузки колонок: ${columnsError.message}`);
+        }
+          
         if (columns && columns.length > 0) {
-          // Используем реальный ID колонки
-          const colIndex = parseInt(columnId.split('-')[2]) || 0;
-          const realColumn = columns[colIndex] || columns[0];
-          columnId = realColumn.id;
+          // Если это дефолтная колонка - ищем по индексу
+          if (columnId.startsWith('COL-default-')) {
+            const colIndex = parseInt(columnId.split('-')[2]) || 0;
+            const realColumn = columns[colIndex] || columns[0];
+            columnId = realColumn.id;
+          } else {
+            // Иначе ищем по названию колонки или берем первую
+            const realColumn = columns.find(col => col.title === column.title) || columns[0];
+            columnId = realColumn.id;
+          }
         } else {
           // Создаем колонку если её нет
           const newColumn = await supabaseKanbanService.createColumn({
@@ -326,6 +342,13 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
           });
           columnId = newColumn.id;
         }
+        
+        console.log('[Kanban] Resolved column ID:', columnId);
+      }
+      
+      // Финальная проверка что columnId валидный UUID
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(columnId)) {
+        throw new Error(`Некорректный ID колонки: ${columnId}`);
       }
 
       const position = currentBoard.tasks.filter(t => t.columnId === columnId || t.columnId === column.id).length;
