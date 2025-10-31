@@ -572,22 +572,24 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
           dueDate: item.due_date
         }));
         
+        const updatedTask = currentBoard.tasks.find(t => t.id === taskId);
         setSelectedTask({
-          ...currentBoard.tasks.find(t => t.id === taskId)!,
-          title: savedTask.title,
-          description: savedTask.description,
-          assigneeId: savedTask.assignee_id,
+          ...updatedTask!,
+          // КРИТИЧНО: используем данные из БД, не из локального состояния
+          title: savedTask.title || updatedTask?.title || 'Без названия',
+          description: savedTask.description !== undefined ? savedTask.description : (updatedTask?.description || ''),
+          assigneeId: savedTask.assignee_id || updatedTask?.assigneeId,
           assignee: savedTask.assignee ? {
             id: savedTask.assignee.id,
             name: savedTask.assignee.name || '',
             email: savedTask.assignee.email || ''
-          } : undefined,
-          dueDate: savedTask.due_date,
-          tags: savedTask.tags || [],
+          } : (updatedTask?.assignee || undefined),
+          dueDate: savedTask.due_date || updatedTask?.dueDate,
+          tags: savedTask.tags || updatedTask?.tags || [],
           comments: transformedComments,
           checklist: transformedChecklist,
-          priority: savedTask.priority,
-          updatedAt: savedTask.updated_at,
+          priority: savedTask.priority || updatedTask?.priority || 'medium',
+          updatedAt: savedTask.updated_at || updatedTask?.updatedAt,
         });
       }
     } catch (error: any) {
