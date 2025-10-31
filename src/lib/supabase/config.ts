@@ -9,8 +9,8 @@ const ENV_KEY = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY;
 const isOldProject = ENV_URL?.includes('xhclmypcklndxqzkhgfk');
 
 export const SUPABASE_CONFIG = {
-  url: (isOldProject ? null : ENV_URL) || 'https://ykdtitukhsvsvnbnskit.supabase.co',
-  anonKey: (isOldProject ? null : ENV_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlrZHRpdHVraHN2c3ZuYm5za2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2Nzg3MjAsImV4cCI6MjA3NzI1NDcyMH0.tjCfpEG30rxaCuu22EmV3kKGxH45FDMTJNuPknpsl7w',
+  url: (import.meta as any).env?.VITE_SUPABASE_URL || 'https://ykdtitukhsvsvnbnskit.supabase.co',
+  anonKey: (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlrZHRpdHVraHN2c3ZuYm5za2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2Nzg3MjAsImV4cCI6MjA3NzI1NDcyMH0.tjCfpEG30rxaCuu22EmV3kKGxH45FDMTJNuPknpsl7w',
 } as const;
 
 // Create Supabase client with authentication
