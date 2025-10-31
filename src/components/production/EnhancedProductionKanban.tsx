@@ -49,9 +49,9 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
   const [isLoading, setIsLoading] = useState(true);
   const { users } = useUsers();
 
-  // Load boards from Supabase
+  // Load single board from Supabase
   useEffect(() => {
-    const loadBoards = async () => {
+    const loadBoard = async () => {
       try {
         setIsLoading(true);
         
@@ -204,13 +204,13 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
             };
             
             setBoards([transformedBoard]);
-            }
-          } catch (error) {
-            console.error('[Kanban] Failed to load general boards:', error);
-            // Fallback to default board
+          }
+        } catch (error) {
+          console.error('[Kanban] Failed to load board:', error);
+          // Fallback to default board
           const defaultBoard: KanbanBoard = {
             id: 'default-board',
-              projectId: null,
+            projectId: null,
             title: 'Общая производственная доска',
             columns: defaultKanbanColumns.map((col, index) => ({
               id: `COL-default-${index}`,
@@ -226,26 +226,6 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
           };
           setBoards([defaultBoard]);
         }
-      } catch (error) {
-        console.error('[Kanban] Failed to load kanban boards:', error);
-        // Create default board on error
-        const defaultBoard: KanbanBoard = {
-          id: 'default-board',
-          projectId: 'default',
-          title: 'Общая производственная доска',
-          columns: defaultKanbanColumns.map((col, index) => ({
-            id: `COL-default-${index}`,
-            title: col.title,
-            stage: col.title.toLowerCase().replace(/\s+/g, '_'),
-            order: col.position,
-            isDefault: true,
-            color: col.color
-          })),
-          tasks: [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-          };
-        setBoards([defaultBoard]);
       } finally {
         setIsLoading(false);
       }
