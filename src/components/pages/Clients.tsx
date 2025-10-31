@@ -112,17 +112,17 @@ export function Clients() {
       // Поиск по компании
       const matchesCompany = !searchLower || (client.company?.toLowerCase().includes(searchLower) ?? false);
       
-      // Поиск по всем контактам (не только первому)
-      const matchesContacts = !searchLower || client.contacts?.some(contact => 
-        contact.phone?.includes(searchQuery) || 
-        contact.email?.toLowerCase().includes(searchLower)
-      ) ?? false;
-      
-      // Поиск по адресам
-      const matchesAddresses = !searchLower || client.addresses?.some(address => 
-        address.street?.toLowerCase().includes(searchLower) ||
-        address.city?.toLowerCase().includes(searchLower)
-      ) ?? false;
+          // Поиск по всем контактам (не только первому)
+          const matchesContacts = !searchLower || (client.contacts?.some(contact => 
+            contact.phone?.includes(searchQuery) || 
+            contact.email?.toLowerCase().includes(searchLower)
+          ) ?? false);
+          
+          // Поиск по адресам
+          const matchesAddresses = !searchLower || (client.addresses?.some(address => 
+            address.street?.toLowerCase().includes(searchLower) ||
+            address.city?.toLowerCase().includes(searchLower)
+          ) ?? false);
       
       const matchesSearch = matchesName || matchesCompany || matchesContacts || matchesAddresses;
       const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
