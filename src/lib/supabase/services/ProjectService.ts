@@ -336,6 +336,13 @@ export class SupabaseProjectService {
 
   // Get project documents
   async getProjectDocuments(projectId: string): Promise<Project['documents']> {
+    // Проверяем и обновляем сессию перед запросом
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      // Пытаемся обновить сессию
+      await supabase.auth.refreshSession();
+    }
+
     const { data, error } = await supabase
       .from(TABLES.PROJECT_DOCUMENTS)
       .select('*')
@@ -343,6 +350,23 @@ export class SupabaseProjectService {
       .order('created_at', { ascending: false });
 
     if (error) {
+      // Если ошибка связана с доступом, пытаемся обновить сессию и повторить
+      if (error.message?.includes('access control') || error.message?.includes('Сетевое соединение')) {
+        try {
+          await supabase.auth.refreshSession();
+          // Повторяем запрос после обновления сессии
+          const { data: retryData, error: retryError } = await supabase
+            .from(TABLES.PROJECT_DOCUMENTS)
+            .select('*')
+            .eq('project_id', projectId)
+            .order('created_at', { ascending: false });
+          
+          if (retryError) throw retryError;
+          return retryData || [];
+        } catch (refreshError) {
+          console.error('Failed to refresh session and retry:', refreshError);
+        }
+      }
       throw new Error(`Failed to fetch project documents: ${error.message}`);
     }
 

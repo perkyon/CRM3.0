@@ -115,6 +115,13 @@ class ProductionManagementService {
   // Get all zones for a project
   async getProjectZones(projectId: string): Promise<ProductionZone[]> {
     try {
+      // Проверяем и обновляем сессию перед запросом
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        // Пытаемся обновить сессию
+        await supabase.auth.refreshSession();
+      }
+
       const { data, error } = await supabase
         .from('production_zones')
         .select('*')
@@ -147,6 +154,13 @@ class ProductionManagementService {
   // Get all items for a project
   async getProjectItems(projectId: string): Promise<ProductionItem[]> {
     try {
+      // Проверяем и обновляем сессию перед запросом
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        // Пытаемся обновить сессию
+        await supabase.auth.refreshSession();
+      }
+
       const { data, error } = await supabase
         .from('production_items')
         .select('*')
