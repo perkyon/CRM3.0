@@ -21,7 +21,7 @@ export function useProductionRealtime({ projectId, onUpdate }: UseProductionReal
     }
     timeoutRef.current = setTimeout(() => {
       onUpdate();
-    }, 300); // 300ms debounce
+    }, 100); // 100ms debounce - быстрее для лучшего UX
   };
 
   useEffect(() => {
