@@ -8,7 +8,6 @@ export class SupabaseUserService {
     const { data, error } = await supabase
       .from(TABLES.USERS)
       .select('*')
-      .eq('active', true)
       .order('name', { ascending: true });
 
     if (error) {
