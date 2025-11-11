@@ -78,11 +78,13 @@ export function ProductionManager() {
 
   const project = projects.find(p => p.id === projectId);
 
-  const loadProductionData = useCallback(async () => {
+  const loadProductionData = useCallback(async (showLoading = true) => {
     if (!projectId) return;
     
     try {
-      setIsLoading(true);
+      if (showLoading) {
+        setIsLoading(true);
+      }
       
       // Load zones and items
       const [zonesData, itemsData] = await Promise.all([
@@ -93,17 +95,19 @@ export function ProductionManager() {
       setZones(zonesData);
       setItems(itemsData);
       
-      // Auto-select first item
-      if (itemsData.length > 0 && !selectedItem) {
+      // Auto-select first item only on initial load
+      if (itemsData.length > 0 && !selectedItem && showLoading) {
         setSelectedItem(itemsData[0]);
       }
     } catch (error) {
       console.error('Error loading production data:', error);
       toast.error('Ошибка загрузки производства');
     } finally {
-      setIsLoading(false);
+      if (showLoading) {
+        setIsLoading(false);
+      }
     }
-  }, [projectId, selectedItem]);
+  }, [projectId]);
 
   // Initial data load
   useEffect(() => {
@@ -114,10 +118,13 @@ export function ProductionManager() {
     }
   }, [projectId, loadProductionData]);
 
-  // Real-time subscription
+  // Real-time subscription with debounce
   useProductionRealtime({
     projectId,
-    onUpdate: loadProductionData,
+    onUpdate: () => {
+      // Realtime обновления без показа loading
+      loadProductionData(false);
+    },
   });
 
   // Filter items by selected zone
@@ -133,11 +140,13 @@ export function ProductionManager() {
     
     try {
       await productionManagementService.createZone(projectId, name);
-      await loadProductionData();
+      // Не вызываем loadProductionData - Realtime сам обновит
       toast.success('Зона успешно создана');
     } catch (error) {
       console.error('Error creating zone:', error);
       toast.error('Ошибка при создании зоны');
+      // При ошибке перезагружаем данные
+      await loadProductionData();
       throw error;
     }
   };
@@ -148,11 +157,12 @@ export function ProductionManager() {
     
     try {
       await productionManagementService.updateZoneName(editingZone.id, name);
-      await loadProductionData();
+      // Не вызываем loadProductionData - Realtime сам обновит
       toast.success('Зона успешно переименована');
     } catch (error) {
       console.error('Error updating zone:', error);
       toast.error('Ошибка при обновлении зоны');
+      await loadProductionData();
       throw error;
     }
   };
@@ -163,8 +173,7 @@ export function ProductionManager() {
     
     try {
       await productionManagementService.deleteZone(deletingZone.id);
-      // Refresh data
-      await loadProductionData();
+      // Не вызываем loadProductionData - Realtime сам обновит
       toast.success('Зона успешно удалена');
       
       // Clear selection if deleted zone was selected
@@ -178,6 +187,7 @@ export function ProductionManager() {
     } catch (error) {
       console.error('Error deleting zone:', error);
       toast.error('Ошибка при удалении зоны');
+      await loadProductionData();
     }
   };
 
@@ -215,13 +225,12 @@ export function ProductionManager() {
         itemData.currentStage
       );
       
-      // Reload data to show new item
-      await loadProductionData();
-      
+      // Не вызываем loadProductionData - Realtime сам обновит
       toast.success('Изделие успешно создано');
     } catch (error) {
       console.error('Error creating item:', error);
       toast.error('Ошибка при создании изделия');
+      await loadProductionData();
       throw error;
     }
   };
@@ -239,11 +248,12 @@ export function ProductionManager() {
         itemData.currentStage
       );
       
-      await loadProductionData();
+      // Не вызываем loadProductionData - Realtime сам обновит
       toast.success('Изделие успешно обновлено');
     } catch (error) {
       console.error('Error updating item:', error);
       toast.error('Ошибка при обновлении изделия');
+      await loadProductionData();
       throw error;
     }
   };
@@ -255,8 +265,7 @@ export function ProductionManager() {
     try {
       await productionManagementService.deleteItem(deletingItem.id);
       
-      // Refresh data
-      await loadProductionData();
+      // Не вызываем loadProductionData - Realtime сам обновит
       toast.success('Изделие успешно удалено');
       
       // Clear selection if deleted item was selected
@@ -270,6 +279,7 @@ export function ProductionManager() {
     } catch (error) {
       console.error('Error deleting item:', error);
       toast.error('Ошибка при удалении изделия');
+      await loadProductionData();
     }
   };
 
@@ -326,8 +336,7 @@ export function ProductionManager() {
     
     try {
       await productionManagementService.deleteComponent(deletingComponent.id);
-      // Reload production data
-      await loadProductionData();
+      // Не вызываем loadProductionData - Realtime сам обновит
       toast.success('Компонент успешно удален');
       
       // Close dialog
@@ -335,6 +344,7 @@ export function ProductionManager() {
     } catch (error) {
       console.error('Error deleting component:', error);
       toast.error('Ошибка при удалении компонента');
+      await loadProductionData();
     }
   };
 
@@ -352,6 +362,7 @@ export function ProductionManager() {
           componentData.unit,
           componentData.templateId
         );
+        // Не вызываем loadProductionData - Realtime сам обновит
         toast.success('Компонент успешно добавлен');
       } else if (componentDialogMode === 'edit' && editingComponent) {
         // Update component (note: ProductionManagementService doesn't have updateComponent yet)
@@ -359,12 +370,10 @@ export function ProductionManager() {
         toast.info('Функция редактирования компонента скоро будет доступна');
         return;
       }
-      
-      // Reload production data to refresh the item details panel
-      await loadProductionData();
     } catch (error) {
       console.error('Error saving component:', error);
       toast.error('Ошибка при сохранении компонента');
+      await loadProductionData();
       throw error;
     }
   };
