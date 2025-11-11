@@ -49,6 +49,25 @@ export class SupabaseUserService {
     return this.mapSupabaseUserToUser(data);
   }
 
+  // Update user
+  async updateUser(id: string, updates: { role?: string; active?: boolean; name?: string; phone?: string }): Promise<User> {
+    const { data, error } = await supabase
+      .from(TABLES.USERS)
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      throw handleApiError(error, 'SupabaseUserService.updateUser');
+    }
+
+    return this.mapSupabaseUserToUser(data);
+  }
+
   // Get current user (placeholder for auth integration)
   async getCurrentUser(): Promise<User | null> {
     try {

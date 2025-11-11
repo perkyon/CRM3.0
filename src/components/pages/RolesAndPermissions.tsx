@@ -166,13 +166,18 @@ export function RolesAndPermissions() {
     if (!editingUser) return;
     
     try {
-      // TODO: Implement user update API call
+      const { supabaseUserService } = await import('../../lib/supabase/services/UserService');
+      await supabaseUserService.updateUser(editingUser.id, {
+        role: editingUser.role,
+        active: editingUser.active,
+      });
       toast.success('Пользователь обновлен');
       setIsEditDialogOpen(false);
       setEditingUser(null);
       fetchUsers();
-    } catch (error) {
-      toast.error('Ошибка при обновлении пользователя');
+    } catch (error: any) {
+      console.error('Error updating user:', error);
+      toast.error(error?.message || 'Ошибка при обновлении пользователя');
     }
   };
 
@@ -321,8 +326,22 @@ export function RolesAndPermissions() {
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg bg-${config.color}-100`}>
-                          <Shield className={`size-5 text-${config.color}-600`} />
+                        <div className={`p-2 rounded-lg ${
+                          config.color === 'red' ? 'bg-red-100' :
+                          config.color === 'blue' ? 'bg-blue-100' :
+                          config.color === 'green' ? 'bg-green-100' :
+                          config.color === 'purple' ? 'bg-purple-100' :
+                          config.color === 'orange' ? 'bg-orange-100' :
+                          'bg-gray-100'
+                        }`}>
+                          <Shield className={`size-5 ${
+                            config.color === 'red' ? 'text-red-600' :
+                            config.color === 'blue' ? 'text-blue-600' :
+                            config.color === 'green' ? 'text-green-600' :
+                            config.color === 'purple' ? 'text-purple-600' :
+                            config.color === 'orange' ? 'text-orange-600' :
+                            'text-gray-600'
+                          }`} />
                         </div>
                         <div>
                           <CardTitle className="text-base">{config.label}</CardTitle>
