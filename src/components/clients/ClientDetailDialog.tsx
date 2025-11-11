@@ -169,8 +169,8 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
-              <Button variant="outline" size="sm" className="mr-2" onClick={handleEdit}>
+            <div className="flex items-center justify-center gap-2 shrink-0 self-start sm:self-center">
+              <Button variant="outline" size="sm" onClick={handleEdit}>
                 <Edit3 className="size-4 mr-2" />
                 Редактировать
               </Button>
@@ -352,21 +352,21 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
                           </Badge>
                         </CardTitle>
                       </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                      <CardContent className="pb-4">
+                        <div className="space-y-3">
                           {clientProjects.slice(0, 3).map((project) => (
                             <div 
                               key={project.id} 
                               className="flex items-center justify-between p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted/70 transition-colors"
                               onClick={() => navigate(`/projects/${project.id}`)}
                             >
-                              <div className="min-w-0 flex-1">
+                              <div className="min-w-0 flex-1 pr-3">
                                 <div className="font-medium truncate">{project.title}</div>
-                                <div className="text-sm text-muted-foreground">
+                                <div className="text-sm text-muted-foreground truncate">
                                   {formatCurrency(project.budget)} • {formatDate(project.createdAt)}
                                 </div>
                               </div>
-                              <StatusBadge status={project.stage}>
+                              <StatusBadge status={project.stage} className="shrink-0">
                                 {projectStageNames[project.stage] || project.stage}
                               </StatusBadge>
                             </div>
@@ -374,7 +374,7 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
                           {clientProjects.length > 3 && (
                             <Button 
                               variant="outline" 
-                              className="w-full"
+                              className="w-full mt-2"
                               onClick={() => onNavigate('projects')}
                             >
                               Показать все проекты ({clientProjects.length})

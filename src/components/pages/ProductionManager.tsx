@@ -139,8 +139,9 @@ export function ProductionManager() {
     if (!projectId) return;
     
     try {
-      await productionManagementService.createZone(projectId, name);
-      // Не вызываем loadProductionData - Realtime сам обновит
+      const newZone = await productionManagementService.createZone(projectId, name);
+      // Оптимистичное обновление - сразу добавляем в состояние
+      setZones(prev => [...prev, newZone].sort((a, b) => a.position - b.position));
       toast.success('Зона успешно создана');
     } catch (error) {
       console.error('Error creating zone:', error);
@@ -157,7 +158,8 @@ export function ProductionManager() {
     
     try {
       await productionManagementService.updateZoneName(editingZone.id, name);
-      // Не вызываем loadProductionData - Realtime сам обновит
+      // Оптимистичное обновление - сразу обновляем в состоянии
+      setZones(prev => prev.map(z => z.id === editingZone.id ? { ...z, name } : z));
       toast.success('Зона успешно переименована');
     } catch (error) {
       console.error('Error updating zone:', error);
@@ -171,13 +173,17 @@ export function ProductionManager() {
   const handleDeleteZone = async () => {
     if (!deletingZone) return;
     
+    const zoneIdToDelete = deletingZone.id;
+    
     try {
-      await productionManagementService.deleteZone(deletingZone.id);
-      // Не вызываем loadProductionData - Realtime сам обновит
+      await productionManagementService.deleteZone(zoneIdToDelete);
+      // Оптимистичное обновление - сразу удаляем из состояния
+      setZones(prev => prev.filter(z => z.id !== zoneIdToDelete));
+      setItems(prev => prev.filter(i => i.zone_id !== zoneIdToDelete));
       toast.success('Зона успешно удалена');
       
       // Clear selection if deleted zone was selected
-      if (selectedZone === deletingZone.id) {
+      if (selectedZone === zoneIdToDelete) {
         setSelectedZone(null);
       }
       
@@ -216,7 +222,7 @@ export function ProductionManager() {
     if (!projectId || !selectedZone) return;
     
     try {
-      await productionManagementService.createItem(
+      const newItem = await productionManagementService.createItem(
         projectId,
         selectedZone,
         itemData.code,
@@ -225,7 +231,8 @@ export function ProductionManager() {
         itemData.currentStage
       );
       
-      // Не вызываем loadProductionData - Realtime сам обновит
+      // Оптимистичное обновление - сразу добавляем в состояние
+      setItems(prev => [...prev, newItem].sort((a, b) => a.position - b.position));
       toast.success('Изделие успешно создано');
     } catch (error) {
       console.error('Error creating item:', error);
@@ -248,7 +255,24 @@ export function ProductionManager() {
         itemData.currentStage
       );
       
-      // Не вызываем loadProductionData - Realtime сам обновит
+      // Оптимистичное обновление - сразу обновляем в состоянии
+      setItems(prev => prev.map(i => 
+        i.id === editingItem.id 
+          ? { ...i, code: itemData.code, name: itemData.name, quantity: itemData.quantity || 1, current_stage: itemData.currentStage }
+          : i
+      ));
+      
+      // Обновляем selectedItem если он редактировался
+      if (selectedItem?.id === editingItem.id) {
+        setSelectedItem(prev => prev ? {
+          ...prev,
+          code: itemData.code,
+          name: itemData.name,
+          quantity: itemData.quantity || 1,
+          current_stage: itemData.currentStage
+        } : null);
+      }
+      
       toast.success('Изделие успешно обновлено');
     } catch (error) {
       console.error('Error updating item:', error);
@@ -262,14 +286,17 @@ export function ProductionManager() {
   const handleDeleteItem = async () => {
     if (!deletingItem) return;
     
+    const itemIdToDelete = deletingItem.id;
+    
     try {
-      await productionManagementService.deleteItem(deletingItem.id);
+      await productionManagementService.deleteItem(itemIdToDelete);
       
-      // Не вызываем loadProductionData - Realtime сам обновит
+      // Оптимистичное обновление - сразу удаляем из состояния
+      setItems(prev => prev.filter(i => i.id !== itemIdToDelete));
       toast.success('Изделие успешно удалено');
       
       // Clear selection if deleted item was selected
-      if (selectedItem?.id === deletingItem.id) {
+      if (selectedItem?.id === itemIdToDelete) {
         setSelectedItem(null);
       }
       
@@ -334,9 +361,19 @@ export function ProductionManager() {
   const confirmComponentDelete = async () => {
     if (!deletingComponent) return;
     
+    const componentIdToDelete = deletingComponent.id;
+    
     try {
-      await productionManagementService.deleteComponent(deletingComponent.id);
-      // Не вызываем loadProductionData - Realtime сам обновит
+      await productionManagementService.deleteComponent(componentIdToDelete);
+      
+      // Оптимистичное обновление - удаляем компонент из selectedItem
+      if (selectedItem) {
+        setSelectedItem(prev => prev ? {
+          ...prev,
+          components: (prev.components || []).filter(c => c.id !== componentIdToDelete)
+        } : null);
+      }
+      
       toast.success('Компонент успешно удален');
       
       // Close dialog
@@ -344,7 +381,17 @@ export function ProductionManager() {
     } catch (error) {
       console.error('Error deleting component:', error);
       toast.error('Ошибка при удалении компонента');
-      await loadProductionData();
+      // Перезагружаем данные для обновления selectedItem
+      if (selectedItem) {
+        try {
+          const itemDetails = await productionManagementService.getItemDetails(selectedItem.id);
+          if (itemDetails) {
+            setSelectedItem(itemDetails);
+          }
+        } catch (reloadError) {
+          console.error('Error reloading item details:', reloadError);
+        }
+      }
     }
   };
 
@@ -354,7 +401,7 @@ export function ProductionManager() {
     
     try {
       if (componentDialogMode === 'create') {
-        await productionManagementService.createComponent(
+        const newComponent = await productionManagementService.createComponent(
           selectedItem!.id,
           componentData.name,
           componentData.material,
@@ -362,7 +409,15 @@ export function ProductionManager() {
           componentData.unit,
           componentData.templateId
         );
-        // Не вызываем loadProductionData - Realtime сам обновит
+        
+        // Оптимистичное обновление - обновляем selectedItem с новым компонентом
+        if (selectedItem) {
+          setSelectedItem(prev => prev ? {
+            ...prev,
+            components: [...(prev.components || []), newComponent]
+          } : null);
+        }
+        
         toast.success('Компонент успешно добавлен');
       } else if (componentDialogMode === 'edit' && editingComponent) {
         // Update component (note: ProductionManagementService doesn't have updateComponent yet)
@@ -373,7 +428,17 @@ export function ProductionManager() {
     } catch (error) {
       console.error('Error saving component:', error);
       toast.error('Ошибка при сохранении компонента');
-      await loadProductionData();
+      // Перезагружаем данные для обновления selectedItem
+      if (selectedItem) {
+        try {
+          const itemDetails = await productionManagementService.getItemDetails(selectedItem.id);
+          if (itemDetails) {
+            setSelectedItem(itemDetails);
+          }
+        } catch (reloadError) {
+          console.error('Error reloading item details:', reloadError);
+        }
+      }
       throw error;
     }
   };
