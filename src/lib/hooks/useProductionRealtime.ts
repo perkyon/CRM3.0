@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabase } from '../supabase/config';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -12,6 +12,18 @@ interface UseProductionRealtimeProps {
  * Listens to changes in zones, items, components, and stages
  */
 export function useProductionRealtime({ projectId, onUpdate }: UseProductionRealtimeProps) {
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Debounced update function
+  const debouncedUpdate = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
+      onUpdate();
+    }, 300); // 300ms debounce
+  };
+
   useEffect(() => {
     if (!projectId) return;
 
@@ -30,7 +42,7 @@ export function useProductionRealtime({ projectId, onUpdate }: UseProductionReal
         },
         (payload) => {
           console.log('🔄 Real-time: production_zones changed', payload);
-          onUpdate();
+          debouncedUpdate();
         }
       )
       .subscribe();
@@ -50,7 +62,7 @@ export function useProductionRealtime({ projectId, onUpdate }: UseProductionReal
         },
         (payload) => {
           console.log('🔄 Real-time: production_items changed', payload);
-          onUpdate();
+          debouncedUpdate();
         }
       )
       .subscribe();
@@ -69,7 +81,7 @@ export function useProductionRealtime({ projectId, onUpdate }: UseProductionReal
         },
         (payload) => {
           console.log('🔄 Real-time: production_components changed', payload);
-          onUpdate();
+          debouncedUpdate();
         }
       )
       .subscribe();
@@ -88,7 +100,7 @@ export function useProductionRealtime({ projectId, onUpdate }: UseProductionReal
         },
         (payload) => {
           console.log('🔄 Real-time: production_stages changed', payload);
-          onUpdate();
+          debouncedUpdate();
         }
       )
       .subscribe();
@@ -107,7 +119,7 @@ export function useProductionRealtime({ projectId, onUpdate }: UseProductionReal
         },
         (payload) => {
           console.log('🔄 Real-time: production_materials changed', payload);
-          onUpdate();
+          debouncedUpdate();
         }
       )
       .subscribe();
@@ -119,6 +131,9 @@ export function useProductionRealtime({ projectId, onUpdate }: UseProductionReal
     // Cleanup: unsubscribe from all channels
     return () => {
       console.log('🔌 Unsubscribing from real-time channels');
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       channels.forEach(channel => {
         supabase.removeChannel(channel);
       });
