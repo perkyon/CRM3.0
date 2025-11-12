@@ -101,7 +101,7 @@ export function useServiceWorker() {
       }
     };
 
-    const cleanup = registerSW();
+    registerSW();
 
     // Listen for online/offline events
     const handleOnline = () => setState(prev => ({ ...prev, isOnline: true }));
