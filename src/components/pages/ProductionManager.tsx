@@ -368,10 +368,16 @@ export function ProductionManager() {
       
       // Оптимистичное обновление - удаляем компонент из selectedItem
       if (selectedItem) {
-        setSelectedItem(prev => prev ? {
-          ...prev,
-          components: (prev.components || []).filter(c => c.id !== componentIdToDelete)
-        } : null);
+        const updatedItem = {
+          ...selectedItem,
+          components: (selectedItem.components || []).filter(c => c.id !== componentIdToDelete)
+        };
+        setSelectedItem(updatedItem);
+        
+        // Также обновляем в списке items
+        setItems(prev => prev.map(i => 
+          i.id === selectedItem.id ? updatedItem : i
+        ));
       }
       
       toast.success('Компонент успешно удален');
@@ -412,10 +418,16 @@ export function ProductionManager() {
         
         // Оптимистичное обновление - обновляем selectedItem с новым компонентом
         if (selectedItem) {
-          setSelectedItem(prev => prev ? {
-            ...prev,
-            components: [...(prev.components || []), newComponent]
-          } : null);
+          const updatedItem = {
+            ...selectedItem,
+            components: [...(selectedItem.components || []), newComponent]
+          };
+          setSelectedItem(updatedItem);
+          
+          // Также обновляем в списке items
+          setItems(prev => prev.map(i => 
+            i.id === selectedItem.id ? updatedItem : i
+          ));
         }
         
         toast.success('Компонент успешно добавлен');

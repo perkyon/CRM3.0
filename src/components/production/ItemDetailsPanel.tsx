@@ -63,10 +63,36 @@ export function ItemDetailsPanel({ item, onEdit, onDelete, onComponentAdd, onCom
   const [currentStage, setCurrentStage] = useState<any | null>(null);
   const [editingStageComponentId, setEditingStageComponentId] = useState<string | null>(null);
 
-  // Load components when item changes
+  // Load components when item changes or when item.components is updated
   useEffect(() => {
-    loadComponents();
-  }, [item.id]);
+    // Если компоненты уже есть в item - используем их, иначе загружаем
+    if (item.components && item.components.length > 0) {
+      setComponents(item.components);
+      // Загружаем материалы для компонентов
+      loadMaterialsForComponents(item.components);
+    } else {
+      loadComponents();
+    }
+  }, [item.id, item.components]);
+
+  const loadMaterialsForComponents = async (comps: ProductionComponent[]) => {
+    const materialsMap: Record<string, any[]> = {};
+    for (const component of comps) {
+      try {
+        const materials = await productionManagementService.getComponentMaterials(component.id);
+        materialsMap[component.id] = materials;
+      } catch (error) {
+        console.error(`❌ Error loading materials for component ${component.id}:`, error);
+        materialsMap[component.id] = [];
+      }
+    }
+    setComponentMaterials(materialsMap);
+    
+    // Open first component by default
+    if (comps.length > 0 && openComponents.length === 0) {
+      setOpenComponents([comps[0].id]);
+    }
+  };
 
   const loadComponents = async () => {
     try {
@@ -77,25 +103,9 @@ export function ItemDetailsPanel({ item, onEdit, onDelete, onComponentAdd, onCom
       
       if (details?.components) {
         setComponents(details.components);
-        
-        // Load materials for each component
-        const materialsMap: Record<string, any[]> = {};
-        for (const component of details.components) {
-          try {
-            const materials = await productionManagementService.getComponentMaterials(component.id);
-            materialsMap[component.id] = materials;
-            console.log(`✅ Loaded ${materials.length} materials for component:`, component.id);
-          } catch (error) {
-            console.error(`❌ Error loading materials for component ${component.id}:`, error);
-            materialsMap[component.id] = [];
-          }
-        }
-        setComponentMaterials(materialsMap);
-        
-        // Open first component by default
-        if (details.components.length > 0) {
-          setOpenComponents([details.components[0].id]);
-        }
+        await loadMaterialsForComponents(details.components);
+      } else {
+        setComponents([]);
       }
     } catch (error) {
       console.error('Error loading components:', error);
