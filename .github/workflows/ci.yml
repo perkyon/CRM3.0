@@ -76,7 +76,7 @@ jobs:
     name: Deploy Production
     runs-on: ubuntu-latest
     needs: test
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     steps:
     - name: Checkout code
@@ -94,7 +94,7 @@ jobs:
         vercel-token: ${{ secrets.VERCEL_TOKEN }}
         vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
         vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-        vercel-args: '--prod'
+        vercel-args: '--prod --yes'
         working-directory: ./
         scope: ${{ secrets.VERCEL_ORG_ID }}
         
