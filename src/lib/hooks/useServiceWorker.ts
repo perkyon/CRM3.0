@@ -58,11 +58,8 @@ export function useServiceWorker() {
                   // Первая установка
                   console.log('[SW] Service worker installed for the first time');
                 }
-              } else if (newWorker.state === 'activated') {
-                // Новый SW активирован - перезагружаем страницу
-                console.log('[SW] New service worker activated - reloading');
-                window.location.reload();
-              }
+              // Убираем автоматическую перезагрузку при activated - это вызовет бесконечный цикл
+              // Перезагрузка произойдет через controllerchange
             });
           }
         };
@@ -75,11 +72,11 @@ export function useServiceWorker() {
           registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         }
 
-        // Периодически проверяем обновления (каждую минуту)
+        // Периодически проверяем обновления (каждые 5 минут, чтобы не нагружать)
         updateInterval = setInterval(() => {
           console.log('[SW] Checking for updates...');
           registration.update();
-        }, 60 * 1000); // Каждую минуту
+        }, 5 * 60 * 1000); // Каждые 5 минут
 
         // Listen for controller changes
         const handleControllerChange = () => {
