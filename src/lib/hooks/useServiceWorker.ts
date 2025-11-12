@@ -58,8 +58,9 @@ export function useServiceWorker() {
                   // Первая установка
                   console.log('[SW] Service worker installed for the first time');
                 }
-              // Убираем автоматическую перезагрузку при activated - это вызовет бесконечный цикл
-              // Перезагрузка произойдет через controllerchange
+                // Убираем автоматическую перезагрузку при activated - это вызовет бесконечный цикл
+                // Перезагрузка произойдет через controllerchange
+              }
             });
           }
         };

@@ -74,8 +74,8 @@
       },
       "scripts": {
             "dev": "vite",
-            "build": "vite build && cp sw.js dist/sw.js",
-            "vercel-build": "vite build && cp sw.js dist/sw.js",
+            "build": "vite build && (test -f sw.js && cp sw.js dist/sw.js || echo 'sw.js not found, skipping')",
+            "vercel-build": "vite build && (test -f sw.js && cp sw.js dist/sw.js || echo 'sw.js not found, skipping')",
             "preview": "vite preview",
             "test": "vitest",
             "test:ui": "vitest --ui",
