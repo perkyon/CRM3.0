@@ -23,27 +23,48 @@ export function useServiceWorker() {
     // Register service worker
     const registerSW = async () => {
       try {
-        const registration = await navigator.serviceWorker.register('/sw.js');
+        const registration = await navigator.serviceWorker.register('/sw.js', {
+          updateViaCache: 'none', // Всегда проверяем обновления
+        });
+        
         setState(prev => ({
           ...prev,
           isRegistered: true,
           registration,
         }));
 
+        // Проверяем обновления при загрузке
+        await registration.update();
+
         // Check for updates
         registration.addEventListener('updatefound', () => {
+          console.log('[SW] Update found');
           const newWorker = registration.installing;
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                setState(prev => ({ ...prev, updateAvailable: true }));
+              console.log('[SW] New worker state:', newWorker.state);
+              if (newWorker.state === 'installed') {
+                if (navigator.serviceWorker.controller) {
+                  // Есть новый SW, но старый еще активен
+                  console.log('[SW] New service worker available');
+                  setState(prev => ({ ...prev, updateAvailable: true }));
+                } else {
+                  // Первая установка
+                  console.log('[SW] Service worker installed for the first time');
+                }
               }
             });
           }
         });
 
+        // Периодически проверяем обновления (каждые 5 минут)
+        setInterval(() => {
+          registration.update();
+        }, 5 * 60 * 1000);
+
         // Listen for controller changes
         navigator.serviceWorker.addEventListener('controllerchange', () => {
+          console.log('[SW] Controller changed, reloading...');
           window.location.reload();
         });
 
