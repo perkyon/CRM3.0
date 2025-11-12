@@ -116,3 +116,6 @@ coverage/
 test-results/
 playwright-report/
 playwright/.cache/
+
+# Service Worker
+!public/sw.js
