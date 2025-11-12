@@ -9,6 +9,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { PerformanceTracker } from "./components/monitoring/PerformanceTracker";
 import { PWAMonitor } from "./components/monitoring/PWAMonitor";
+import { ServiceWorkerUpdater } from "./components/monitoring/ServiceWorkerUpdater";
 import { ErrorBoundary } from "./components/error/ErrorBoundary";
 import { initializeAuth } from "./lib/supabase/auth-setup";
 import "./index.css";
@@ -27,6 +28,7 @@ createRoot(document.getElementById("root")!).render(
           <AppRouter />
           <PerformanceTracker />
           <PWAMonitor />
+          <ServiceWorkerUpdater />
           <Analytics 
             mode={import.meta.env.VITE_NODE_ENV === 'production' ? 'production' : 'development'}
             debug={import.meta.env.VITE_NODE_ENV === 'development'}

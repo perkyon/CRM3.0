@@ -20,6 +20,8 @@ export function useServiceWorker() {
   useEffect(() => {
     if (!state.isSupported) return;
 
+    let updateInterval: NodeJS.Timeout | null = null;
+
     // Register service worker
     const registerSW = async () => {
       try {
@@ -37,7 +39,7 @@ export function useServiceWorker() {
         await registration.update();
 
         // Check for updates
-        registration.addEventListener('updatefound', () => {
+        const handleUpdateFound = () => {
           console.log('[SW] Update found');
           const newWorker = registration.installing;
           if (newWorker) {
@@ -46,34 +48,60 @@ export function useServiceWorker() {
               if (newWorker.state === 'installed') {
                 if (navigator.serviceWorker.controller) {
                   // Есть новый SW, но старый еще активен
-                  console.log('[SW] New service worker available');
+                  console.log('[SW] New service worker available - applying update');
                   setState(prev => ({ ...prev, updateAvailable: true }));
+                  // Автоматически применяем обновление
+                  if (registration.waiting) {
+                    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                  }
                 } else {
                   // Первая установка
                   console.log('[SW] Service worker installed for the first time');
                 }
+              } else if (newWorker.state === 'activated') {
+                // Новый SW активирован - перезагружаем страницу
+                console.log('[SW] New service worker activated - reloading');
+                window.location.reload();
               }
             });
           }
-        });
+        };
 
-        // Периодически проверяем обновления (каждые 5 минут)
-        setInterval(() => {
+        registration.addEventListener('updatefound', handleUpdateFound);
+
+        // Проверяем, есть ли уже ожидающий SW
+        if (registration.waiting) {
+          console.log('[SW] Waiting service worker found - applying update');
+          registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+
+        // Периодически проверяем обновления (каждую минуту)
+        updateInterval = setInterval(() => {
+          console.log('[SW] Checking for updates...');
           registration.update();
-        }, 5 * 60 * 1000);
+        }, 60 * 1000); // Каждую минуту
 
         // Listen for controller changes
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
+        const handleControllerChange = () => {
           console.log('[SW] Controller changed, reloading...');
           window.location.reload();
-        });
+        };
+        navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
+
+        return () => {
+          registration.removeEventListener('updatefound', handleUpdateFound);
+          navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+          if (updateInterval) {
+            clearInterval(updateInterval);
+          }
+        };
 
       } catch (error) {
         console.error('Service Worker registration failed:', error);
       }
     };
 
-    registerSW();
+    const cleanup = registerSW();
 
     // Listen for online/offline events
     const handleOnline = () => setState(prev => ({ ...prev, isOnline: true }));
@@ -85,6 +113,9 @@ export function useServiceWorker() {
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      if (updateInterval) {
+        clearInterval(updateInterval);
+      }
     };
   }, [state.isSupported]);
 
