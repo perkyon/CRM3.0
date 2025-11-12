@@ -137,7 +137,7 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
           Подробная информация о клиенте и управление проектами
         </DialogDescription>
         <DialogHeader className="px-4 sm:px-6 py-4 border-b border-border shrink-0">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="min-w-0 flex-1">
               <DialogTitle className="flex items-center gap-3 mb-3">
                 <Avatar className="size-10 shrink-0">
@@ -169,7 +169,7 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
               </div>
             </div>
 
-            <div className="flex items-center justify-center gap-2 shrink-0 self-start sm:self-center">
+            <div className="flex items-center justify-center gap-2 shrink-0">
               <Button variant="outline" size="sm" onClick={handleEdit}>
                 <Edit3 className="size-4 mr-2" />
                 Редактировать
@@ -388,7 +388,7 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
               </TabsContent>
 
               <TabsContent value="projects" className="mt-0 m-0">
-                <div className="px-6 py-6 max-h-full overflow-y-auto">
+                <div className="px-6 py-6 overflow-y-auto">
                   {clientProjects.length === 0 ? (
                     <div className="text-center py-16">
                       <Star className="size-12 mx-auto text-muted-foreground mb-4" />
@@ -411,27 +411,27 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
                         >
                           <CardContent className="p-4">
                             <div className="flex items-start justify-between gap-4">
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <h4 className="font-medium truncate">{project.title}</h4>
-                                  <StatusBadge status={project.stage}>
+                              <div className="min-w-0 flex-1 pr-2">
+                                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                  <h4 className="font-medium break-words">{project.title}</h4>
+                                  <StatusBadge status={project.stage} className="shrink-0">
                                     {projectStageNames[project.stage] || project.stage}
                                   </StatusBadge>
                                 </div>
                                 <div className="text-sm text-muted-foreground space-y-1">
                                   <div className="flex items-center gap-2">
-                                    <Calendar className="size-4" />
-                                    <span>Создан: {formatDate(project.createdAt)}</span>
+                                    <Calendar className="size-4 shrink-0" />
+                                    <span className="break-words">Создан: {formatDate(project.createdAt)}</span>
                                   </div>
                                   {project.dueDate && (
                                     <div className="flex items-center gap-2">
-                                      <Calendar className="size-4" />
-                                      <span>Срок: {formatDate(project.dueDate)}</span>
+                                      <Calendar className="size-4 shrink-0" />
+                                      <span className="break-words">Срок: {formatDate(project.dueDate)}</span>
                                     </div>
                                   )}
                                   <div className="flex items-center gap-2">
-                                    <Activity className="size-4" />
-                                    <span>Бюджет: {formatCurrency(project.budget)}</span>
+                                    <Activity className="size-4 shrink-0" />
+                                    <span className="break-words">Бюджет: {formatCurrency(project.budget)}</span>
                                   </div>
                                 </div>
                               </div>

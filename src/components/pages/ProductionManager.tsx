@@ -536,25 +536,25 @@ export function ProductionManager() {
               return (
                 <div
                   key={zone.id}
-                className={cn(
+                  className={cn(
                     "group relative rounded-lg transition-colors",
                     selectedZone === zone.id 
-                    ? "bg-primary text-primary-foreground" 
-                    : "hover:bg-accent"
-                )}
+                      ? "bg-primary text-primary-foreground" 
+                      : "hover:bg-accent"
+                  )}
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => setSelectedZone(zone.id)}
-                      className="flex-1 text-left p-3"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">{zone.name}</span>
-                  <span className="text-sm">{zone.progress}%</span>
-                </div>
-                <div className="space-y-1">
-                  <Progress value={zone.progress} className="h-1" />
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      className="flex-1 text-left p-3 min-w-0"
+                    >
+                      <div className="flex items-center justify-between mb-2 gap-2">
+                        <span className="font-medium truncate">{zone.name}</span>
+                        <span className="text-sm shrink-0">{zone.progress}%</span>
+                      </div>
+                      <div className="space-y-1">
+                        <Progress value={zone.progress} className="h-1" />
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
                           <span>{completedItems} / {zoneItems.length} изд.</span>
                         </div>
                       </div>
@@ -566,7 +566,7 @@ export function ProductionManager() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-8 w-8 p-0 mr-2"
+                          className="h-8 w-8 p-0 shrink-0"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <MoreVertical className="h-4 w-4" />
