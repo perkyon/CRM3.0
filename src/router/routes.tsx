@@ -57,6 +57,7 @@ const ProjectOverview = lazyWithErrorHandling(() => import('../components/pages/
 const ProductionManager = lazyWithErrorHandling(() => import('../components/pages/ProductionManager').then(module => ({ default: module.ProductionManager })));
 const EnhancedProductionKanban = lazyWithErrorHandling(() => import('../components/production/EnhancedProductionKanban').then(module => ({ default: module.EnhancedProductionKanban })));
 const RolesAndPermissions = lazyWithErrorHandling(() => import('../components/pages/RolesAndPermissions').then(module => ({ default: module.RolesAndPermissions })));
+const Pricing = lazyWithErrorHandling(() => import('../components/pages/Pricing').then(module => ({ default: module.Pricing })));
 // const WorkflowDemo = lazy(() => import('../components/demo/WorkflowDemo').then(module => ({ default: module.WorkflowDemo })));
 
 // Компонент для страниц в разработке
@@ -122,6 +123,10 @@ export const routes: RouteObject[] = [
       {
         path: 'roles',
         element: <RolesAndPermissions />
+      },
+      {
+        path: 'pricing',
+        element: <Pricing />
       },
       {
         path: 'integrations',

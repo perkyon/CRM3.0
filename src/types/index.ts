@@ -6,6 +6,7 @@ export interface User {
   role: Role;
   active: boolean;
   avatar?: string;
+  defaultOrganizationId?: string; // Добавлено для SaaS
   createdAt: string;
   updatedAt: string;
   lastLoginAt?: string;
@@ -29,6 +30,7 @@ export interface Client {
   status: 'lead' | 'new' | 'in_work' | 'lost' | 'client';
   lastActivity: string;
   ownerId: string;
+  organizationId?: string; // Добавлено для SaaS
   projectsCount: number;
   arBalance: number;
   createdAt: string;
@@ -115,6 +117,7 @@ export interface Project {
   productionSubStage?: ProductionSubStage; // Подэтап производства
   riskNotes?: string;
   briefComplete: boolean;
+  organizationId?: string; // Добавлено для SaaS
   createdAt: string;
   documents?: ClientDocument[];
 }
@@ -521,4 +524,69 @@ export interface ProjectSearchParams extends SearchParams {
 export interface UserSearchParams extends SearchParams {
   role?: string;
   active?: boolean;
+}
+
+// ============================================
+// SaaS Types - Мультитенантность
+// ============================================
+
+export type SubscriptionPlan = 'free' | 'starter' | 'professional' | 'enterprise';
+
+export type SubscriptionStatus = 
+  | 'active' 
+  | 'canceled' 
+  | 'past_due' 
+  | 'trialing' 
+  | 'incomplete' 
+  | 'incomplete_expired';
+
+export type OrganizationStatus = 'active' | 'suspended' | 'deleted';
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  logoUrl?: string;
+  website?: string;
+  status: OrganizationStatus;
+  settings: Record<string, any>;
+  maxUsers: number;
+  maxProjects: number;
+  maxStorageGb: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
+export interface OrganizationMember {
+  id: string;
+  organizationId: string;
+  userId: string;
+  role: Role;
+  invitedBy?: string;
+  invitedAt?: string;
+  joinedAt: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+  // Relations
+  user?: User;
+  organization?: Organization;
+}
+
+export interface Subscription {
+  id: string;
+  organizationId: string;
+  plan: SubscriptionPlan;
+  status: SubscriptionStatus;
+  stripeSubscriptionId?: string;
+  stripeCustomerId?: string;
+  currentPeriodStart?: string;
+  currentPeriodEnd?: string;
+  cancelAtPeriodEnd: boolean;
+  canceledAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Relations
+  organization?: Organization;
 }
