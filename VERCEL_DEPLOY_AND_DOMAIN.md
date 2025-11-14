@@ -169,16 +169,48 @@ TTL: 3600
 
 ## Часть 3: Настройка автоматических деплоев
 
-После подключения GitHub репозитория:
+### Что нужно сделать в Git?
+
+**Ничего особенного!** Просто работайте с Git как обычно:
+
+```bash
+# Обычный workflow
+git add .
+git commit -m "ваше сообщение"
+git push origin main
+```
+
+Vercel автоматически обнаружит push и запустит деплой.
+
+### Проверка настроек в Vercel
 
 1. В Vercel Dashboard → **Settings** → **Git**
 
 2. Убедитесь, что:
-   - Репозиторий подключен
-   - **Production Branch** установлен на `main`
-   - **Auto-deploy** включен
+   - **Repository**: `perkyon/CRM3.0` (должен быть подключен)
+   - **Production Branch**: `main`
+   - **Auto-deploy** включен (галочка должна быть установлена)
 
-3. Теперь каждый push в `main` будет автоматически деплоить проект
+3. Если репозиторий не подключен:
+   - Нажмите **"Connect Git Repository"**
+   - Выберите GitHub аккаунт
+   - Найдите `perkyon/CRM3.0`
+   - Нажмите **"Import"**
+
+### Как это работает?
+
+1. Вы делаете `git push origin main`
+2. GitHub отправляет webhook в Vercel
+3. Vercel автоматически запускает сборку и деплой
+4. Результат виден в **Deployments** через 1-2 минуты
+
+### Проверка webhook в GitHub
+
+Если деплой не запускается автоматически:
+
+1. Зайдите в GitHub → `perkyon/CRM3.0` → **Settings** → **Webhooks**
+2. Должен быть webhook от Vercel (URL вида `https://api.vercel.com/v1/integrations/deploy/...`)
+3. Если его нет, Vercel создаст его автоматически при подключении репозитория
 
 ---
 
