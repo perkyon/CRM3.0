@@ -37,7 +37,17 @@
     </head>
 
     <body>
-      <div id="root"></div>
+      <div id="root">
+        <!-- Fallback если JS не загрузился -->
+        <noscript>
+          <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: system-ui, sans-serif;">
+            <div style="text-align: center; padding: 2rem;">
+              <h1>Buro CRM</h1>
+              <p>Для работы приложения необходимо включить JavaScript.</p>
+            </div>
+          </div>
+        </noscript>
+      </div>
       <script type="module" src="/src/main.tsx"></script>
     </body>
   </html>

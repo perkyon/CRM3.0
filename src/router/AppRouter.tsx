@@ -21,9 +21,9 @@ export function AppRouter() {
     // Логируем загрузку роутера
     if (import.meta.env.DEV) {
       console.log('AppRouter mounted');
-    }
+  }
   }, []);
-
+  
   return (
     <Suspense fallback={<LoadingFallback />}>
       <RouterProvider 
