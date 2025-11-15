@@ -25,8 +25,8 @@ export function useServiceWorker() {
     // Register service worker
     const registerSW = async () => {
       try {
-        // Не регистрируем SW на публичных страницах (лендинг)
-        const publicPages = ['/', '/pricing', '/onboarding'];
+        // Не регистрируем SW на публичных страницах (лендинг, логин)
+        const publicPages = ['/', '/pricing', '/onboarding', '/login'];
         const currentPath = window.location.pathname;
         const isPublicPage = publicPages.some(page => currentPath === page || currentPath.startsWith(page + '/'));
         

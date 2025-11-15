@@ -9,6 +9,7 @@
       <!-- PWA Meta Tags -->
       <meta name="description" content="Система управления - CRM для управления проектами, клиентами и производством" />
       <meta name="theme-color" content="#3b82f6" />
+      <meta name="mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       <meta name="apple-mobile-web-app-title" content="Buro CRM" />
@@ -38,17 +39,28 @@
       <script>
         (function() {
           // Публичные страницы, где SW не нужен
-          const publicPages = ['/', '/pricing', '/onboarding'];
+          const publicPages = ['/', '/pricing', '/onboarding', '/login'];
           const currentPath = window.location.pathname;
           const isPublicPage = publicPages.some(page => currentPath === page || currentPath.startsWith(page + '/'));
           
           if (isPublicPage && 'serviceWorker' in navigator) {
-            // Отключаем все существующие Service Workers
+            // Агрессивно отключаем все существующие Service Workers
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
               for (let registration of registrations) {
+                // Отключаем и удаляем кеш
                 registration.unregister().then(function(success) {
                   if (success) {
                     console.log('[SW] Service Worker unregistered for public page');
+                    // Очищаем все кеши
+                    if ('caches' in window) {
+                      caches.keys().then(function(cacheNames) {
+                        return Promise.all(
+                          cacheNames.map(function(cacheName) {
+                            return caches.delete(cacheName);
+                          })
+                        );
+                      });
+                    }
                   }
                 });
               }
@@ -60,6 +72,11 @@
               console.log('[SW] Registration blocked for public page');
               return Promise.reject(new Error('Service Worker disabled for public pages'));
             };
+            
+            // Отключаем контроллер SW если он активен
+            if (navigator.serviceWorker.controller) {
+              navigator.serviceWorker.controller.postMessage({ type: 'UNREGISTER' });
+            }
           }
         })();
       </script>

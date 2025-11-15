@@ -72,12 +72,12 @@ export function Projects() {
   // Загрузка клиентов при монтировании
   useEffect(() => {
     if (fetchClients) {
-      console.log('🔄 Loading clients...');
-      fetchClients().then(() => {
-        console.log('✅ Clients loaded:', clients.length);
-      }).catch((err) => {
-        console.error('❌ Failed to load clients:', err);
-      });
+    console.log('🔄 Loading clients...');
+    fetchClients().then(() => {
+      console.log('✅ Clients loaded:', clients.length);
+    }).catch((err) => {
+      console.error('❌ Failed to load clients:', err);
+    });
     }
   }, [fetchClients, clients.length]);
 

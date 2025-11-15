@@ -171,10 +171,10 @@ npm run test:e2e:debug   # Режим отладки
 3. **Деплой происходит автоматически** при push в `main`
 
 Или через CLI:
-```bash
+   ```bash
 npm install -g vercel
-vercel --prod
-```
+   vercel --prod
+   ```
 
 ### Другие платформы
 
