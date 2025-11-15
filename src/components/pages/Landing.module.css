@@ -648,14 +648,12 @@
   padding: 0 3rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  align-items: center;
+  gap: 1.5rem;
 }
 
 @media (min-width: 768px) {
   .footerContainer {
-    flex-direction: row;
-    justify-content: space-between;
+    gap: 2rem;
   }
 }
 
@@ -691,5 +689,164 @@
 
 .bgGray {
   background: #f9fafb;
+}
+
+/* Demo Section - черный фон */
+.demoSection {
+  background: #000;
+  color: white;
+  text-align: center;
+}
+
+.demoTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+@media (min-width: 768px) {
+  .demoTitle {
+    font-size: 3rem;
+  }
+}
+
+.demoSubtitle {
+  font-size: 1.25rem;
+  color: #d1d5db;
+  margin-bottom: 2rem;
+}
+
+.demoButton {
+  display: inline-block;
+  padding: 1rem 2rem;
+  border: 2px solid white;
+  background: transparent;
+  color: white;
+  font-size: 1.125rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+}
+
+.demoButton:hover {
+  background: white;
+  color: #000;
+}
+
+/* Contact Section - черный фон */
+.contactSectionDark {
+  background: #000;
+  color: white;
+}
+
+.contactSectionDark .contactTitle {
+  color: white;
+}
+
+.contactSectionDark .contactDescription {
+  color: #d1d5db;
+}
+
+.contactSectionDark .contactInfoLabel {
+  color: #9ca3af;
+}
+
+.contactSectionDark .contactInfoValue {
+  color: white;
+}
+
+.contactSectionDark .contactInfoLink {
+  color: white;
+}
+
+.contactSectionDark .contactInfoLink:hover {
+  text-decoration: underline;
+}
+
+.contactSectionDark .contactForm {
+  border-color: #374151;
+  background: #111827;
+}
+
+.contactSectionDark .contactFormLabel {
+  color: #9ca3af;
+}
+
+.contactSectionDark .contactFormInput {
+  border-color: #374151;
+  background: #1f2937;
+  color: white;
+}
+
+.contactSectionDark .contactFormInput::placeholder {
+  color: #6b7280;
+}
+
+.contactSectionDark .contactFormButton {
+  background: white;
+  color: #000;
+}
+
+.contactSectionDark .contactFormButton:hover {
+  background: #d1d5db;
+}
+
+/* Footer - обновленный */
+.footerBrands {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.footerBrandLink {
+  font-size: 0.875rem;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+  color: #000;
+  text-decoration: none;
+}
+
+.footerBrandLink:hover {
+  text-decoration: underline;
+}
+
+.footerBottom {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+@media (min-width: 768px) {
+  .footerBottom {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+.footerCopyright {
+  font-size: 0.875rem;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.footerSocial {
+  display: flex;
+  gap: 1rem;
+}
+
+.footerSocialLink {
+  font-size: 0.875rem;
+  color: #4b5563;
+  text-decoration: none;
+}
+
+.footerSocialLink:hover {
+  color: #000;
 }
 

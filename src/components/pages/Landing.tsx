@@ -256,18 +256,20 @@ export function Landing() {
       </section>
 
       {/* Demo Section */}
-      <section className={`${styles.section} ${styles.bgGray} ${styles.textCenter}`}>
+      <section className={`${styles.section} ${styles.demoSection}`}>
         <div className={styles.sectionContainer}>
-          <h2 className={styles.benefitsTitle}>Демо-версия</h2>
-          <p className={styles.benefitsSubtitle}>
+          <h2 className={styles.demoTitle}>Демо-версия</h2>
+          <p className={styles.demoSubtitle}>
             Посмотрите, как работает система изнутри
           </p>
-          <button 
-            className={styles.heroButton}
-            onClick={() => navigate('/pricing')}
+          <a 
+            href="https://www.burodigital.ru"
+            className={styles.demoButton}
+            target="_blank"
+            rel="noopener noreferrer"
           >
             Открыть демо
-          </button>
+          </a>
         </div>
       </section>
 
@@ -461,7 +463,7 @@ export function Landing() {
       </section>
 
       {/* Contact Section */}
-      <section className={`${styles.section} ${styles.contactSection}`}>
+      <section className={`${styles.section} ${styles.contactSectionDark}`}>
         <div className={styles.sectionContainer}>
           <div className={styles.contactGrid}>
             {/* Contact Info */}
@@ -473,8 +475,8 @@ export function Landing() {
               <div className={styles.contactInfo}>
                 <div className={styles.contactInfoItem}>
                   <div className={styles.contactInfoLabel}>EMAIL</div>
-                  <a href="mailto:support@furniturecrm.ru" className={styles.contactInfoLink}>
-                    support@furniturecrm.ru
+                  <a href="mailto:support@burocrm.ru" className={styles.contactInfoLink}>
+                    support@burocrm.ru
                   </a>
                 </div>
                 <div className={styles.contactInfoItem}>
@@ -548,12 +550,44 @@ export function Landing() {
       {/* Footer */}
       <footer className={styles.footer}>
         <div className={styles.footerContainer}>
-          <div className={styles.footerLogo}>BURO CRM</div>
-          <div className={styles.footerLinks}>
-            <a href="#" className={styles.footerLink}>Политика конфиденциальности</a>
-            <a href="#" className={styles.footerLink}>Условия использования</a>
+          <div className={styles.footerBrands}>
+            <a href="https://burocrm.ru" className={styles.footerBrandLink} target="_blank" rel="noopener noreferrer">
+              BURO CRM
+            </a>
+            <a href="https://www.burodigital.ru" className={styles.footerBrandLink} target="_blank" rel="noopener noreferrer">
+              BURO DIGITAL
+            </a>
+            <a href="https://burodsgn.ru" className={styles.footerBrandLink} target="_blank" rel="noopener noreferrer">
+              BURO DSGN
+            </a>
           </div>
-          <div className={styles.footerCopyright}>© 2024 Все права защищены</div>
+          <div className={styles.footerLinks}>
+            <a href="#privacy" className={styles.footerLink}>Политика конфиденциальности</a>
+            <a href="#terms" className={styles.footerLink}>Условия использования</a>
+            <a href="#agreement" className={styles.footerLink}>Пользовательское соглашение</a>
+            <a href="#legal" className={styles.footerLink}>Юридическая информация</a>
+          </div>
+          <div className={styles.footerBottom}>
+            <div className={styles.footerCopyright}>
+              <span>© 2025 Все права защищены</span>
+              <span> • </span>
+              <span>Разработано Buro Digital</span>
+            </div>
+            <div className={styles.footerSocial}>
+              <a href="https://github.com/burodigital" target="_blank" rel="noopener noreferrer" className={styles.footerSocialLink}>
+                GitHub
+              </a>
+              <a href="https://t.me/burodigital" target="_blank" rel="noopener noreferrer" className={styles.footerSocialLink}>
+                Telegram
+              </a>
+              <a href="https://vk.com/burodigital" target="_blank" rel="noopener noreferrer" className={styles.footerSocialLink}>
+                VK
+              </a>
+              <a href="https://youtube.com/@burodigital" target="_blank" rel="noopener noreferrer" className={styles.footerSocialLink}>
+                YouTube
+              </a>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
