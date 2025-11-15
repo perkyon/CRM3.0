@@ -123,14 +123,9 @@ export function Pricing() {
   const [billingPeriod, setBillingPeriod] = useState<'month' | 'year'>('month');
 
   const handleSelectPlan = (planId: SubscriptionPlan) => {
-    if (planId === 'free') {
-      // Бесплатный план - сразу на onboarding
-      navigate('/onboarding?plan=free');
-    } else {
-      // Платные планы - на страницу оплаты (потом вернется на onboarding)
-      // TODO: Интеграция с ЮKassa
-      navigate(`/checkout?plan=${planId}&period=${billingPeriod}`);
-    }
+    // Все планы ведут на onboarding, где создается организация
+    // Оплата будет обрабатываться после создания организации
+    navigate(`/onboarding?plan=${planId}&period=${billingPeriod}`);
   };
 
   const getPrice = (plan: PricingPlan) => {

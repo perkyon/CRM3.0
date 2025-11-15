@@ -9,6 +9,8 @@ import { Building2, User, CheckCircle2, Loader2 } from 'lucide-react';
 import { cn } from '../ui/utils';
 import { organizationService } from '../../lib/supabase/services/OrganizationService';
 import { SubscriptionPlan } from '../../types';
+import { supabase } from '../../lib/supabase/config';
+import { useAuthStore } from '../../lib/stores/authStore';
 
 interface OnboardingStep {
   id: number;
@@ -37,6 +39,7 @@ const steps: OnboardingStep[] = [
 export function Onboarding() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const authStore = useAuthStore();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -115,7 +118,7 @@ export function Onboarding() {
         const plan = (searchParams.get('plan') || 'free') as SubscriptionPlan;
         
         // Генерируем временный пароль
-        const tempPassword = Math.random().toString(36).slice(-12) + 'A1!';
+        const generatedPassword = Math.random().toString(36).slice(-12) + 'A1!';
         
         await organizationService.createOrganizationWithUser({
           organization: {
@@ -127,15 +130,40 @@ export function Onboarding() {
             name: userName,
             email: userEmail,
             phone: userPhone || undefined,
-            password: tempPassword,
+            password: generatedPassword,
           },
           subscriptionPlan: plan,
         });
         
+        // После создания организации выполняем вход
+        const { data: sessionData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: userEmail,
+          password: generatedPassword,
+        });
+        
+        if (signInError) {
+          console.error('Ошибка входа после регистрации:', signInError);
+          // Продолжаем, так как пользователь уже создан
+        } else if (sessionData?.user) {
+          // Загружаем данные пользователя в authStore
+          const { supabaseUserService } = await import('../../lib/supabase/services/UserService');
+          const userData = await supabaseUserService.getUser(sessionData.user.id);
+          if (userData) {
+            authStore.updateUser(userData);
+            useAuthStore.setState({
+              ...authStore,
+              user: userData,
+              isAuthenticated: true,
+              accessToken: sessionData.session?.access_token,
+              refreshToken: sessionData.session?.refresh_token,
+            });
+          }
+        }
+        
         // TODO: Отправить email с данными для входа
         // await sendWelcomeEmail({
         //   email: userEmail,
-        //   password: tempPassword,
+        //   password: generatedPassword,
         //   organizationName: orgName,
         // });
         
