@@ -7,36 +7,48 @@
 -- 1. СОЗДАНИЕ ТИПОВ ДЛЯ SaaS
 -- ============================================
 
--- Планы подписки
-CREATE TYPE subscription_plan AS ENUM (
-    'free',
-    'starter',
-    'professional',
-    'enterprise'
-);
+-- Планы подписки (с проверкой существования)
+DO $$ BEGIN
+    CREATE TYPE subscription_plan AS ENUM (
+        'free',
+        'starter',
+        'professional',
+        'enterprise'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
--- Статусы подписки
-CREATE TYPE subscription_status AS ENUM (
-    'active',
-    'canceled',
-    'past_due',
-    'trialing',
-    'incomplete',
-    'incomplete_expired'
-);
+-- Статусы подписки (с проверкой существования)
+DO $$ BEGIN
+    CREATE TYPE subscription_status AS ENUM (
+        'active',
+        'canceled',
+        'past_due',
+        'trialing',
+        'incomplete',
+        'incomplete_expired'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
--- Статусы организации
-CREATE TYPE organization_status AS ENUM (
-    'active',
-    'suspended',
-    'deleted'
-);
+-- Статусы организации (с проверкой существования)
+DO $$ BEGIN
+    CREATE TYPE organization_status AS ENUM (
+        'active',
+        'suspended',
+        'deleted'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- ============================================
 -- 2. ТАБЛИЦА ОРГАНИЗАЦИЙ
 -- ============================================
 
-CREATE TABLE organizations (
+CREATE TABLE IF NOT EXISTS organizations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     slug VARCHAR(100) UNIQUE NOT NULL, -- URL-friendly имя (например: "my-workshop")
@@ -59,14 +71,14 @@ CREATE TABLE organizations (
 );
 
 -- Индекс для быстрого поиска по slug
-CREATE INDEX idx_organizations_slug ON organizations(slug);
-CREATE INDEX idx_organizations_status ON organizations(status);
+CREATE INDEX IF NOT EXISTS idx_organizations_slug ON organizations(slug);
+CREATE INDEX IF NOT EXISTS idx_organizations_status ON organizations(status);
 
 -- ============================================
 -- 3. ТАБЛИЦА УЧАСТНИКОВ ОРГАНИЗАЦИИ
 -- ============================================
 
-CREATE TABLE organization_members (
+CREATE TABLE IF NOT EXISTS organization_members (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -91,15 +103,15 @@ CREATE TABLE organization_members (
 );
 
 -- Индексы
-CREATE INDEX idx_org_members_org_id ON organization_members(organization_id);
-CREATE INDEX idx_org_members_user_id ON organization_members(user_id);
-CREATE INDEX idx_org_members_active ON organization_members(active);
+CREATE INDEX IF NOT EXISTS idx_org_members_org_id ON organization_members(organization_id);
+CREATE INDEX IF NOT EXISTS idx_org_members_user_id ON organization_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_org_members_active ON organization_members(active);
 
 -- ============================================
 -- 4. ТАБЛИЦА ПОДПИСОК
 -- ============================================
 
-CREATE TABLE subscriptions (
+CREATE TABLE IF NOT EXISTS subscriptions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     
@@ -121,9 +133,9 @@ CREATE TABLE subscriptions (
 );
 
 -- Индексы
-CREATE INDEX idx_subscriptions_org_id ON subscriptions(organization_id);
-CREATE INDEX idx_subscriptions_status ON subscriptions(status);
-CREATE INDEX idx_subscriptions_stripe_id ON subscriptions(stripe_subscription_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_org_id ON subscriptions(organization_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_stripe_id ON subscriptions(stripe_subscription_id);
 
 -- ============================================
 -- 5. ДОБАВЛЕНИЕ organization_id В СУЩЕСТВУЮЩИЕ ТАБЛИЦЫ
@@ -203,6 +215,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
 
 -- Пользователи видят только организации, в которых они состоят
+DROP POLICY IF EXISTS "users_see_own_organizations" ON organizations;
 CREATE POLICY "users_see_own_organizations" ON organizations
     FOR SELECT
     TO authenticated
@@ -219,6 +232,7 @@ CREATE POLICY "users_see_own_organizations" ON organizations
 ALTER TABLE organization_members ENABLE ROW LEVEL SECURITY;
 
 -- Пользователи видят только свои членства
+DROP POLICY IF EXISTS "users_see_own_memberships" ON organization_members;
 CREATE POLICY "users_see_own_memberships" ON organization_members
     FOR SELECT
     TO authenticated
@@ -228,6 +242,7 @@ CREATE POLICY "users_see_own_memberships" ON organization_members
 ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
 
 -- Пользователи видят подписки своих организаций
+DROP POLICY IF EXISTS "users_see_org_subscriptions" ON subscriptions;
 CREATE POLICY "users_see_org_subscriptions" ON subscriptions
     FOR SELECT
     TO authenticated
