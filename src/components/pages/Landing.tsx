@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Card, CardContent } from '../ui/card';
+import styles from './Landing.module.css';
 import { 
   Users, 
   ShoppingCart, 
@@ -12,52 +10,46 @@ import {
   Zap,
   BarChart3,
   Shield,
-  ArrowRight,
   Menu,
   X
 } from 'lucide-react';
-import { cn } from '../ui/utils';
 
 export function Landing() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <div className="bg-white">
+    <div className={styles.landing}>
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 bg-white z-50 border-b border-gray-100">
-        <div className="container mx-auto px-6 md:px-12 py-6">
-          <div className="flex items-center justify-between">
-            <div className="text-sm tracking-widest font-medium">BURO CRM</div>
-            <button 
-              className="text-sm tracking-wide hover:opacity-60 transition-opacity"
-              onClick={() => setMenuOpen(!menuOpen)}
-            >
-              {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
+      <nav className={styles.nav}>
+        <div className={styles.navContainer}>
+          <div className={styles.navLogo}>BURO CRM</div>
+          <button 
+            className={styles.navMenu}
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="relative bg-white pt-32 md:pt-48 pb-24 md:pb-32">
-        <div className="container mx-auto px-6 md:px-12">
-          <div className="max-w-4xl">
-            <h1 className="text-6xl md:text-8xl lg:text-9xl leading-none mb-12 font-bold">
+      <section className={styles.hero}>
+        <div className={styles.heroContainer}>
+          <div className={styles.heroContent}>
+            <h1 className={styles.heroTitle}>
               CRM система для мебельного производства
             </h1>
-            <p className="text-xl md:text-2xl text-gray-600 mb-16 max-w-2xl leading-relaxed">
+            <p className={styles.heroDescription}>
               Управляйте клиентами, заказами и производством в одной системе. Увеличьте продажи на 40% и сократите время на рутину в 3 раза.
             </p>
-            <Button 
-              size="lg" 
-              variant="outline"
-              className="px-8 py-4 border-2 border-black text-lg hover:bg-black hover:text-white transition-colors duration-300"
+            <button 
+              className={styles.heroButton}
               onClick={() => navigate('/pricing')}
             >
               Попробовать бесплатно
-            </Button>
-            <div className="mt-32 text-sm text-gray-400 tracking-widest">
+            </button>
+            <div className={styles.heroScroll}>
               ПРОКРУТИТЕ
             </div>
           </div>
@@ -65,122 +57,82 @@ export function Landing() {
       </section>
 
       {/* Services Section */}
-      <section id="services" className="py-24 md:py-32 bg-white">
-        <div className="container mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+      <section id="services" className={styles.section}>
+        <div className={styles.sectionContainer}>
+          <div className={styles.servicesGrid}>
             {/* Service 1 */}
-            <div className="p-12 md:p-16 lg:p-24 min-h-[500px] flex flex-col justify-between border border-gray-200 group cursor-pointer transition-all duration-500 bg-white text-black hover:bg-gray-50">
+            <div className={`${styles.serviceCard} ${styles.serviceCardWhite}`}>
               <div>
-                <div className="text-8xl md:text-9xl mb-8 transition-opacity duration-500 text-black opacity-10 group-hover:opacity-20 font-bold">
-                  01
+                <div className={`${styles.serviceNumber} ${styles.serviceNumberWhite}`}>01</div>
+                <div className={styles.serviceIcon} style={{ borderColor: '#000' }}>
+                  <Users size={32} />
                 </div>
-                <div className="mb-6 inline-block p-4 border border-black">
-                  <Users className="w-8 h-8" />
-                </div>
-                <h2 className="text-3xl md:text-4xl mb-6 transition-transform duration-500 group-hover:translate-x-2 font-bold">
-                  Управление клиентами
-                </h2>
-                <p className="text-lg md:text-xl leading-relaxed text-gray-600">
+                <h2 className={styles.serviceTitle}>Управление клиентами</h2>
+                <p className={`${styles.serviceDescription} ${styles.serviceDescriptionWhite}`}>
                   База клиентов с полной историей заказов, контактами и предпочтениями. CRM для долгосрочных отношений.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3 mt-8">
-                <span className="text-sm px-4 py-2 border border-black text-black hover:bg-black hover:text-white transition-all duration-300">
-                  CRM
-                </span>
-                <span className="text-sm px-4 py-2 border border-black text-black hover:bg-black hover:text-white transition-all duration-300">
-                  База клиентов
-                </span>
-                <span className="text-sm px-4 py-2 border border-black text-black hover:bg-black hover:text-white transition-all duration-300">
-                  История заказов
-                </span>
+              <div className={styles.serviceTags}>
+                <span className={`${styles.serviceTag} ${styles.serviceTagWhite}`}>CRM</span>
+                <span className={`${styles.serviceTag} ${styles.serviceTagWhite}`}>База клиентов</span>
+                <span className={`${styles.serviceTag} ${styles.serviceTagWhite}`}>История заказов</span>
               </div>
             </div>
 
             {/* Service 2 */}
-            <div className="p-12 md:p-16 lg:p-24 min-h-[500px] flex flex-col justify-between border border-gray-200 group cursor-pointer transition-all duration-500 bg-black text-white hover:bg-gray-900">
+            <div className={`${styles.serviceCard} ${styles.serviceCardBlack}`}>
               <div>
-                <div className="text-8xl md:text-9xl mb-8 transition-opacity duration-500 text-white opacity-20 group-hover:opacity-30 font-bold">
-                  02
+                <div className={`${styles.serviceNumber} ${styles.serviceNumberBlack}`}>02</div>
+                <div className={styles.serviceIcon} style={{ borderColor: '#fff' }}>
+                  <ShoppingCart size={32} />
                 </div>
-                <div className="mb-6 inline-block p-4 border border-white">
-                  <ShoppingCart className="w-8 h-8" />
-                </div>
-                <h2 className="text-3xl md:text-4xl mb-6 transition-transform duration-500 group-hover:translate-x-2 font-bold">
-                  Контроль заказов
-                </h2>
-                <p className="text-lg md:text-xl leading-relaxed text-gray-300">
+                <h2 className={styles.serviceTitle}>Контроль заказов</h2>
+                <p className={`${styles.serviceDescription} ${styles.serviceDescriptionBlack}`}>
                   Отслеживайте каждый заказ от замера до установки. Все этапы под контролем в одном интерфейсе.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3 mt-8">
-                <span className="text-sm px-4 py-2 border border-white text-white hover:bg-white hover:text-black transition-all duration-300">
-                  Заказы
-                </span>
-                <span className="text-sm px-4 py-2 border border-white text-white hover:bg-white hover:text-black transition-all duration-300">
-                  Статусы
-                </span>
-                <span className="text-sm px-4 py-2 border border-white text-white hover:bg-white hover:text-black transition-all duration-300">
-                  Отслеживание
-                </span>
+              <div className={styles.serviceTags}>
+                <span className={`${styles.serviceTag} ${styles.serviceTagBlack}`}>Заказы</span>
+                <span className={`${styles.serviceTag} ${styles.serviceTagBlack}`}>Статусы</span>
+                <span className={`${styles.serviceTag} ${styles.serviceTagBlack}`}>Отслеживание</span>
               </div>
             </div>
 
             {/* Service 3 */}
-            <div className="p-12 md:p-16 lg:p-24 min-h-[500px] flex flex-col justify-between border border-gray-200 group cursor-pointer transition-all duration-500 bg-white text-black hover:bg-gray-50">
+            <div className={`${styles.serviceCard} ${styles.serviceCardWhite}`}>
               <div>
-                <div className="text-8xl md:text-9xl mb-8 transition-opacity duration-500 text-black opacity-10 group-hover:opacity-20 font-bold">
-                  03
+                <div className={`${styles.serviceNumber} ${styles.serviceNumberWhite}`}>03</div>
+                <div className={styles.serviceIcon} style={{ borderColor: '#000' }}>
+                  <Calendar size={32} />
                 </div>
-                <div className="mb-6 inline-block p-4 border border-black">
-                  <Calendar className="w-8 h-8" />
-                </div>
-                <h2 className="text-3xl md:text-4xl mb-6 transition-transform duration-500 group-hover:translate-x-2 font-bold">
-                  Производственный календарь
-                </h2>
-                <p className="text-lg md:text-xl leading-relaxed text-gray-600">
+                <h2 className={styles.serviceTitle}>Производственный календарь</h2>
+                <p className={`${styles.serviceDescription} ${styles.serviceDescriptionWhite}`}>
                   Планируйте загрузку цеха, распределяйте задачи между работниками и контролируйте сроки.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3 mt-8">
-                <span className="text-sm px-4 py-2 border border-black text-black hover:bg-black hover:text-white transition-all duration-300">
-                  Планирование
-                </span>
-                <span className="text-sm px-4 py-2 border border-black text-black hover:bg-black hover:text-white transition-all duration-300">
-                  Календарь
-                </span>
-                <span className="text-sm px-4 py-2 border border-black text-black hover:bg-black hover:text-white transition-all duration-300">
-                  Задачи
-                </span>
+              <div className={styles.serviceTags}>
+                <span className={`${styles.serviceTag} ${styles.serviceTagWhite}`}>Планирование</span>
+                <span className={`${styles.serviceTag} ${styles.serviceTagWhite}`}>Календарь</span>
+                <span className={`${styles.serviceTag} ${styles.serviceTagWhite}`}>Задачи</span>
               </div>
             </div>
 
             {/* Service 4 */}
-            <div className="p-12 md:p-16 lg:p-24 min-h-[500px] flex flex-col justify-between border border-gray-200 group cursor-pointer transition-all duration-500 bg-black text-white hover:bg-gray-900">
+            <div className={`${styles.serviceCard} ${styles.serviceCardBlack}`}>
               <div>
-                <div className="text-8xl md:text-9xl mb-8 transition-opacity duration-500 text-white opacity-20 group-hover:opacity-30 font-bold">
-                  04
+                <div className={`${styles.serviceNumber} ${styles.serviceNumberBlack}`}>04</div>
+                <div className={styles.serviceIcon} style={{ borderColor: '#fff' }}>
+                  <DollarSign size={32} />
                 </div>
-                <div className="mb-6 inline-block p-4 border border-white">
-                  <DollarSign className="w-8 h-8" />
-                </div>
-                <h2 className="text-3xl md:text-4xl mb-6 transition-transform duration-500 group-hover:translate-x-2 font-bold">
-                  Финансовый учет
-                </h2>
-                <p className="text-lg md:text-xl leading-relaxed text-gray-300">
+                <h2 className={styles.serviceTitle}>Финансовый учет</h2>
+                <p className={`${styles.serviceDescription} ${styles.serviceDescriptionBlack}`}>
                   Отслеживайте платежи, авансы и долги. Формируйте отчеты о прибыли и убытках.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3 mt-8">
-                <span className="text-sm px-4 py-2 border border-white text-white hover:bg-white hover:text-black transition-all duration-300">
-                  Финансы
-                </span>
-                <span className="text-sm px-4 py-2 border border-white text-white hover:bg-white hover:text-black transition-all duration-300">
-                  Платежи
-                </span>
-                <span className="text-sm px-4 py-2 border border-white text-white hover:bg-white hover:text-black transition-all duration-300">
-                  Отчеты
-                </span>
+              <div className={styles.serviceTags}>
+                <span className={`${styles.serviceTag} ${styles.serviceTagBlack}`}>Финансы</span>
+                <span className={`${styles.serviceTag} ${styles.serviceTagBlack}`}>Платежи</span>
+                <span className={`${styles.serviceTag} ${styles.serviceTagBlack}`}>Отчеты</span>
               </div>
             </div>
           </div>
@@ -188,450 +140,420 @@ export function Landing() {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-24 md:py-32 bg-white">
-        <div className="container mx-auto px-6 md:px-12">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-center">Преимущества</h2>
-          <p className="text-xl text-gray-600 text-center mb-16">
+      <section className={styles.section}>
+        <div className={styles.sectionContainer}>
+          <h2 className={styles.benefitsTitle}>Преимущества</h2>
+          <p className={styles.benefitsSubtitle}>
             Реальные результаты, которые получают наши клиенты
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+          <div className={styles.benefitsGrid}>
             {/* Results */}
-            <Card className="border-2">
-              <CardContent className="p-6">
-                <div className="mb-6">
-                  <TrendingUp className="w-12 h-12 mb-4" />
-                  <h3 className="text-xl font-bold mb-4">РЕЗУЛЬТАТЫ</h3>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">Рост продаж</div>
-                    <div className="text-2xl font-bold">40%</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">Экономия времени</div>
-                    <div className="text-2xl font-bold">3x</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">Удовлетворенность клиентов</div>
-                    <div className="text-2xl font-bold">95%</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">Снижение ошибок</div>
-                    <div className="text-2xl font-bold">60%</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div className={styles.benefitCard}>
+              <TrendingUp className={styles.benefitIcon} />
+              <h3 className={styles.benefitCardTitle}>РЕЗУЛЬТАТЫ</h3>
+              <div className={styles.benefitItem}>
+                <div className={styles.benefitItemLabel}>Рост продаж</div>
+                <div className={styles.benefitItemValue}>40%</div>
+              </div>
+              <div className={styles.benefitItem}>
+                <div className={styles.benefitItemLabel}>Экономия времени</div>
+                <div className={styles.benefitItemValue}>3x</div>
+              </div>
+              <div className={styles.benefitItem}>
+                <div className={styles.benefitItemLabel}>Удовлетворенность клиентов</div>
+                <div className={styles.benefitItemValue}>95%</div>
+              </div>
+              <div className={styles.benefitItem}>
+                <div className={styles.benefitItemLabel}>Снижение ошибок</div>
+                <div className={styles.benefitItemValue}>60%</div>
+              </div>
+            </div>
 
             {/* Automation */}
-            <Card className="border-2">
-              <CardContent className="p-6">
-                <div className="mb-6">
-                  <Zap className="w-12 h-12 mb-4" />
-                  <h3 className="text-xl font-bold mb-4">АВТОМАТИЗАЦИЯ</h3>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">Уведомления клиентам</div>
-                    <div className="text-2xl font-bold">100%</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">Напоминания о платежах</div>
-                    <div className="text-2xl font-bold">Авто</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">Контроль сроков</div>
-                    <div className="text-2xl font-bold">24/7</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">Формирование отчетов</div>
-                    <div className="text-2xl font-bold">Авто</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div className={styles.benefitCard}>
+              <Zap className={styles.benefitIcon} />
+              <h3 className={styles.benefitCardTitle}>АВТОМАТИЗАЦИЯ</h3>
+              <div className={styles.benefitItem}>
+                <div className={styles.benefitItemLabel}>Уведомления клиентам</div>
+                <div className={styles.benefitItemValue}>100%</div>
+              </div>
+              <div className={styles.benefitItem}>
+                <div className={styles.benefitItemLabel}>Напоминания о платежах</div>
+                <div className={styles.benefitItemValue}>Авто</div>
+              </div>
+              <div className={styles.benefitItem}>
+                <div className={styles.benefitItemLabel}>Контроль сроков</div>
+                <div className={styles.benefitItemValue}>24/7</div>
+              </div>
+              <div className={styles.benefitItem}>
+                <div className={styles.benefitItemLabel}>Формирование отчетов</div>
+                <div className={styles.benefitItemValue}>Авто</div>
+              </div>
+            </div>
 
             {/* Analytics */}
-            <Card className="border-2">
-              <CardContent className="p-6">
-                <div className="mb-6">
-                  <BarChart3 className="w-12 h-12 mb-4" />
-                  <h3 className="text-xl font-bold mb-4">АНАЛИТИКА</h3>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">Динамика продаж</div>
-                    <div className="text-2xl font-bold">Реал-тайм</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">Загрузка производства</div>
-                    <div className="text-2xl font-bold">Визуально</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">Финансовые показатели</div>
-                    <div className="text-2xl font-bold">Детально</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">Эффективность менеджеров</div>
-                    <div className="text-2xl font-bold">KPI</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div className={styles.benefitCard}>
+              <BarChart3 className={styles.benefitIcon} />
+              <h3 className={styles.benefitCardTitle}>АНАЛИТИКА</h3>
+              <div className={styles.benefitItem}>
+                <div className={styles.benefitItemLabel}>Динамика продаж</div>
+                <div className={styles.benefitItemValue}>Реал-тайм</div>
+              </div>
+              <div className={styles.benefitItem}>
+                <div className={styles.benefitItemLabel}>Загрузка производства</div>
+                <div className={styles.benefitItemValue}>Визуально</div>
+              </div>
+              <div className={styles.benefitItem}>
+                <div className={styles.benefitItemLabel}>Финансовые показатели</div>
+                <div className={styles.benefitItemValue}>Детально</div>
+              </div>
+              <div className={styles.benefitItem}>
+                <div className={styles.benefitItemLabel}>Эффективность менеджеров</div>
+                <div className={styles.benefitItemValue}>KPI</div>
+              </div>
+            </div>
 
             {/* Security */}
-            <Card className="border-2">
-              <CardContent className="p-6">
-                <div className="mb-6">
-                  <Shield className="w-12 h-12 mb-4" />
-                  <h3 className="text-xl font-bold mb-4">БЕЗОПАСНОСТЬ</h3>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">Резервное копирование</div>
-                    <div className="text-2xl font-bold">Ежедневно</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">Защита данных SSL</div>
-                    <div className="text-2xl font-bold">256bit</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">Разграничение доступа</div>
-                    <div className="text-2xl font-bold">Роли</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">SLA Uptime</div>
-                    <div className="text-2xl font-bold">99.9%</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div className={styles.benefitCard}>
+              <Shield className={styles.benefitIcon} />
+              <h3 className={styles.benefitCardTitle}>БЕЗОПАСНОСТЬ</h3>
+              <div className={styles.benefitItem}>
+                <div className={styles.benefitItemLabel}>Резервное копирование</div>
+                <div className={styles.benefitItemValue}>Ежедневно</div>
+              </div>
+              <div className={styles.benefitItem}>
+                <div className={styles.benefitItemLabel}>Защита данных SSL</div>
+                <div className={styles.benefitItemValue}>256bit</div>
+              </div>
+              <div className={styles.benefitItem}>
+                <div className={styles.benefitItemLabel}>Разграничение доступа</div>
+                <div className={styles.benefitItemValue}>Роли</div>
+              </div>
+              <div className={styles.benefitItem}>
+                <div className={styles.benefitItemLabel}>SLA Uptime</div>
+                <div className={styles.benefitItemValue}>99.9%</div>
+              </div>
+            </div>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+          <div className={styles.statsGrid}>
             <div>
-              <div className="text-4xl md:text-5xl font-bold mb-2">100+</div>
-              <div className="text-gray-600">Мебельных компаний используют систему</div>
+              <div className={styles.statValue}>100+</div>
+              <div className={styles.statLabel}>Мебельных компаний используют систему</div>
             </div>
             <div>
-              <div className="text-4xl md:text-5xl font-bold mb-2">10K+</div>
-              <div className="text-gray-600">Заказов обрабатывается ежемесячно</div>
+              <div className={styles.statValue}>10K+</div>
+              <div className={styles.statLabel}>Заказов обрабатывается ежемесячно</div>
             </div>
             <div>
-              <div className="text-4xl md:text-5xl font-bold mb-2">24/7</div>
-              <div className="text-gray-600">Поддержка на русском языке</div>
+              <div className={styles.statValue}>24/7</div>
+              <div className={styles.statLabel}>Поддержка на русском языке</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Demo Section */}
-      <section className="py-24 md:py-32 bg-gray-50">
-        <div className="container mx-auto px-6 md:px-12 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">Демо-версия</h2>
-          <p className="text-xl text-gray-600 mb-8">
+      <section className={`${styles.section} ${styles.bgGray} ${styles.textCenter}`}>
+        <div className={styles.sectionContainer}>
+          <h2 className={styles.benefitsTitle}>Демо-версия</h2>
+          <p className={styles.benefitsSubtitle}>
             Посмотрите, как работает система изнутри
           </p>
-          <Button 
-            size="lg"
-            variant="outline"
-            className="px-8 py-4 border-2 border-black text-lg hover:bg-black hover:text-white transition-colors duration-300"
+          <button 
+            className={styles.heroButton}
             onClick={() => navigate('/pricing')}
           >
             Открыть демо
-          </Button>
+          </button>
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section className="py-24 md:py-32 bg-white">
-        <div className="container mx-auto px-6 md:px-12">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-center">Тарифы</h2>
-          <p className="text-xl text-gray-600 text-center mb-16">
+      <section className={styles.section}>
+        <div className={styles.sectionContainer}>
+          <h2 className={styles.pricingTitle}>Тарифы</h2>
+          <p className={styles.pricingSubtitle}>
             Прозрачное ценообразование без скрытых платежей. Первые 3 месяца бесплатно.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className={styles.pricingGrid}>
             {/* Plan 1: Старт */}
-            <Card className="border-2 hover:border-black transition-colors cursor-pointer">
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-2">Старт</h3>
-                <p className="text-gray-600 mb-6">Для небольших мастерских</p>
-                <div className="text-4xl font-bold mb-8">2 990₽/мес</div>
-                <Button 
-                  className="w-full mb-8 border-2 border-black hover:bg-black hover:text-white"
-                  variant="outline"
-                  onClick={() => navigate('/pricing')}
-                >
-                  Выбрать план →
-                </Button>
-                <ul className="space-y-4">
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>До 3 пользователей</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>До 50 заказов в месяц</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>Управление клиентами</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>Каталог продукции</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>Базовая аналитика</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>Email поддержка</span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+            <div className={styles.pricingCard}>
+              <h3 className={styles.pricingPlanTitle}>Старт</h3>
+              <p className={styles.pricingPlanDescription}>Для небольших мастерских</p>
+              <div className={styles.pricingPlanPrice}>2 990₽/мес</div>
+              <button 
+                className={styles.pricingButton}
+                onClick={() => navigate('/pricing')}
+              >
+                Выбрать план →
+              </button>
+              <ul className={styles.pricingFeatures}>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>До 3 пользователей</span>
+                </li>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>До 50 заказов в месяц</span>
+                </li>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>Управление клиентами</span>
+                </li>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>Каталог продукции</span>
+                </li>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>Базовая аналитика</span>
+                </li>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>Email поддержка</span>
+                </li>
+              </ul>
+            </div>
 
             {/* Plan 2: Бизнес (Популярный) */}
-            <Card className="border-2 border-black relative hover:shadow-lg transition-shadow cursor-pointer">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-1 text-sm">
-                Популярный
-              </div>
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-2">Бизнес</h3>
-                <p className="text-gray-600 mb-6">Для растущих компаний</p>
-                <div className="text-4xl font-bold mb-8">5 990₽/мес</div>
-                <Button 
-                  className="w-full mb-8 bg-black text-white hover:bg-gray-900"
-                  onClick={() => navigate('/pricing')}
-                >
-                  Выбрать план →
-                </Button>
-                <ul className="space-y-4">
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>До 10 пользователей</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>До 200 заказов в месяц</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>Все функции Старт</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>Производственный календарь</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>Финансовый учет</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>Расширенная аналитика</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>Интеграции с 1С</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>Приоритетная поддержка</span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+            <div className={`${styles.pricingCard} ${styles.pricingCardPopular}`}>
+              <h3 className={styles.pricingPlanTitle}>Бизнес</h3>
+              <p className={styles.pricingPlanDescription}>Для растущих компаний</p>
+              <div className={styles.pricingPlanPrice}>5 990₽/мес</div>
+              <button 
+                className={`${styles.pricingButton} ${styles.pricingButtonPopular}`}
+                onClick={() => navigate('/pricing')}
+              >
+                Выбрать план →
+              </button>
+              <ul className={styles.pricingFeatures}>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>До 10 пользователей</span>
+                </li>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>До 200 заказов в месяц</span>
+                </li>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>Все функции Старт</span>
+                </li>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>Производственный календарь</span>
+                </li>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>Финансовый учет</span>
+                </li>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>Расширенная аналитика</span>
+                </li>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>Интеграции с 1С</span>
+                </li>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>Приоритетная поддержка</span>
+                </li>
+              </ul>
+            </div>
 
             {/* Plan 3: Производство */}
-            <Card className="border-2 hover:border-black transition-colors cursor-pointer">
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-2">Производство</h3>
-                <p className="text-gray-600 mb-6">Для крупных предприятий</p>
-                <div className="text-4xl font-bold mb-8">12 990₽/мес</div>
-                <Button 
-                  className="w-full mb-8 border-2 border-black hover:bg-black hover:text-white"
-                  variant="outline"
-                  onClick={() => navigate('/pricing')}
-                >
-                  Выбрать план →
-                </Button>
-                <ul className="space-y-4">
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>Неограниченно пользователей</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>Неограниченно заказов</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>Все функции Бизнес</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>Управление складом</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>API доступ</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>Персональный менеджер</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>Обучение команды</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
-                    <span>SLA 99.9%</span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+            <div className={styles.pricingCard}>
+              <h3 className={styles.pricingPlanTitle}>Производство</h3>
+              <p className={styles.pricingPlanDescription}>Для крупных предприятий</p>
+              <div className={styles.pricingPlanPrice}>12 990₽/мес</div>
+              <button 
+                className={styles.pricingButton}
+                onClick={() => navigate('/pricing')}
+              >
+                Выбрать план →
+              </button>
+              <ul className={styles.pricingFeatures}>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>Неограниченно пользователей</span>
+                </li>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>Неограниченно заказов</span>
+                </li>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>Все функции Бизнес</span>
+                </li>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>Управление складом</span>
+                </li>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>API доступ</span>
+                </li>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>Персональный менеджер</span>
+                </li>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>Обучение команды</span>
+                </li>
+                <li className={styles.pricingFeature}>
+                  <div className={styles.pricingFeatureDot}>
+                    <div className={styles.pricingFeatureDotInner} />
+                  </div>
+                  <span>SLA 99.9%</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Contact Section */}
-      <section className="py-24 md:py-32 bg-gray-50">
-        <div className="container mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      <section className={`${styles.section} ${styles.contactSection}`}>
+        <div className={styles.sectionContainer}>
+          <div className={styles.contactGrid}>
             {/* Contact Info */}
             <div>
-              <h2 className="text-4xl md:text-5xl font-bold mb-4">Контакты</h2>
-              <p className="text-xl text-gray-600 mb-12">
+              <h2 className={styles.contactTitle}>Контакты</h2>
+              <p className={styles.contactDescription}>
                 Готовы начать работу с Buro CRM? Свяжитесь с нами любым удобным способом.
               </p>
-              <div className="space-y-8">
-                <div>
-                  <div className="text-sm text-gray-500 mb-2 uppercase tracking-wide">EMAIL</div>
-                  <a href="mailto:support@furniturecrm.ru" className="text-lg hover:underline">
+              <div className={styles.contactInfo}>
+                <div className={styles.contactInfoItem}>
+                  <div className={styles.contactInfoLabel}>EMAIL</div>
+                  <a href="mailto:support@furniturecrm.ru" className={styles.contactInfoLink}>
                     support@furniturecrm.ru
                   </a>
                 </div>
-                <div>
-                  <div className="text-sm text-gray-500 mb-2 uppercase tracking-wide">ТЕЛЕФОН</div>
-                  <a href="tel:+78001234567" className="text-lg hover:underline">
+                <div className={styles.contactInfoItem}>
+                  <div className={styles.contactInfoLabel}>ТЕЛЕФОН</div>
+                  <a href="tel:+78001234567" className={styles.contactInfoLink}>
                     +7 (800) 123-45-67
                   </a>
                 </div>
-                <div>
-                  <div className="text-sm text-gray-500 mb-2 uppercase tracking-wide">ГРАФИК РАБОТЫ</div>
-                  <p className="text-lg">
+                <div className={styles.contactInfoItem}>
+                  <div className={styles.contactInfoLabel}>ГРАФИК РАБОТЫ</div>
+                  <div className={styles.contactInfoValue}>
                     Пн-Пт: 9:00 — 18:00<br />
                     Сб-Вс: Выходной
-                  </p>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Contact Form */}
-            <Card className="border-2">
-              <CardContent className="p-8">
-                <form className="space-y-6">
-                  <div>
-                    <label className="text-sm text-gray-500 uppercase tracking-wide mb-2 block">ИМЯ</label>
-                    <Input placeholder="Ваше имя" className="border-black" />
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-500 uppercase tracking-wide mb-2 block">КОМПАНИЯ</label>
-                    <Input placeholder="Название компании" className="border-black" />
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-500 uppercase tracking-wide mb-2 block">EMAIL</label>
-                    <Input type="email" placeholder="your@email.com" className="border-black" />
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-500 uppercase tracking-wide mb-2 block">ТЕЛЕФОН</label>
-                    <Input type="tel" placeholder="+7 (999) 123-45-67" className="border-black" />
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-500 uppercase tracking-wide mb-2 block">СООБЩЕНИЕ</label>
-                    <Input placeholder="Расскажите о вашей компании" className="border-black" />
-                  </div>
-                  <Button 
-                    type="submit"
-                    className="w-full bg-black text-white hover:bg-gray-900"
-                  >
-                    Отправить заявку
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+            <div className={styles.contactForm}>
+              <form onSubmit={(e) => { e.preventDefault(); }}>
+                <div className={styles.contactFormField}>
+                  <label className={styles.contactFormLabel}>ИМЯ</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ваше имя" 
+                    className={styles.contactFormInput}
+                  />
+                </div>
+                <div className={styles.contactFormField}>
+                  <label className={styles.contactFormLabel}>КОМПАНИЯ</label>
+                  <input 
+                    type="text" 
+                    placeholder="Название компании" 
+                    className={styles.contactFormInput}
+                  />
+                </div>
+                <div className={styles.contactFormField}>
+                  <label className={styles.contactFormLabel}>EMAIL</label>
+                  <input 
+                    type="email" 
+                    placeholder="your@email.com" 
+                    className={styles.contactFormInput}
+                  />
+                </div>
+                <div className={styles.contactFormField}>
+                  <label className={styles.contactFormLabel}>ТЕЛЕФОН</label>
+                  <input 
+                    type="tel" 
+                    placeholder="+7 (999) 123-45-67" 
+                    className={styles.contactFormInput}
+                  />
+                </div>
+                <div className={styles.contactFormField}>
+                  <label className={styles.contactFormLabel}>СООБЩЕНИЕ</label>
+                  <textarea 
+                    placeholder="Расскажите о вашей компании" 
+                    className={styles.contactFormInput}
+                    rows={4}
+                  />
+                </div>
+                <button type="submit" className={styles.contactFormButton}>
+                  Отправить заявку
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-gray-200 py-12">
-        <div className="container mx-auto px-6 md:px-12">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="text-sm tracking-widest font-medium">BURO CRM</div>
-            <div className="flex gap-6">
-              <a href="#" className="text-sm text-gray-600 hover:text-black">
-                Политика конфиденциальности
-              </a>
-              <a href="#" className="text-sm text-gray-600 hover:text-black">
-                Условия использования
-              </a>
-            </div>
-            <div className="text-sm text-gray-600">
-              © 2024 Все права защищены
-            </div>
+      <footer className={styles.footer}>
+        <div className={styles.footerContainer}>
+          <div className={styles.footerLogo}>BURO CRM</div>
+          <div className={styles.footerLinks}>
+            <a href="#" className={styles.footerLink}>Политика конфиденциальности</a>
+            <a href="#" className={styles.footerLink}>Условия использования</a>
           </div>
+          <div className={styles.footerCopyright}>© 2024 Все права защищены</div>
         </div>
       </footer>
     </div>
