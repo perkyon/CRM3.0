@@ -259,14 +259,12 @@ export function Landing() {
           <p className={styles.demoSubtitle}>
             Посмотрите, как работает система изнутри
           </p>
-          <a 
-            href="https://www.burodigital.ru"
+          <button 
             className={styles.demoButton}
-            target="_blank"
-            rel="noopener noreferrer"
+            onClick={() => navigate('/login')}
           >
             Открыть демо
-          </a>
+          </button>
         </div>
       </section>
 

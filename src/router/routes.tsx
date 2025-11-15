@@ -61,6 +61,7 @@ const Pricing = lazyWithErrorHandling(() => import('../components/pages/Pricing'
 const Onboarding = lazyWithErrorHandling(() => import('../components/pages/Onboarding').then(module => ({ default: module.Onboarding })));
 const PaymentSuccess = lazyWithErrorHandling(() => import('../components/pages/PaymentSuccess').then(module => ({ default: module.PaymentSuccess })));
 const Landing = lazyWithErrorHandling(() => import('../components/pages/Landing').then(module => ({ default: module.Landing })));
+const Login = lazyWithErrorHandling(() => import('../components/pages/Login').then(module => ({ default: module.Login })));
 const OrgLogin = lazyWithErrorHandling(() => import('../components/pages/OrgLogin').then(module => ({ default: module.OrgLogin })));
 // const WorkflowDemo = lazy(() => import('../components/demo/WorkflowDemo').then(module => ({ default: module.WorkflowDemo })));
 
@@ -92,6 +93,10 @@ export const routes: RouteObject[] = [
   {
     path: '/payment/success',
     element: <PaymentSuccess />
+  },
+  {
+    path: '/login',
+    element: <Login />
   },
   {
     path: '/org/:slug/login',

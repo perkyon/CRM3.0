@@ -42,7 +42,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           </div>
           <CardTitle className="text-2xl">Buro CRM</CardTitle>
           <CardDescription>
-            Введите свои данные для входа в систему
+            Введите email и пароль для входа в систему
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -77,6 +77,18 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               Войти
             </Button>
           </form>
+          
+          <div className="mt-6 pt-6 border-t">
+            <p className="text-sm text-center text-muted-foreground">
+              Нет аккаунта?{' '}
+              <a 
+                href="/pricing" 
+                className="text-primary hover:underline font-medium"
+              >
+                Выберите тариф
+              </a>
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
