@@ -26,7 +26,11 @@ export function useServiceWorker() {
     const registerSW = async () => {
       try {
         // Не регистрируем SW на публичных страницах (лендинг)
-        if (window.location.pathname === '/' || window.location.pathname.startsWith('/pricing') || window.location.pathname.startsWith('/onboarding')) {
+        const publicPages = ['/', '/pricing', '/onboarding'];
+        const currentPath = window.location.pathname;
+        const isPublicPage = publicPages.some(page => currentPath === page || currentPath.startsWith(page + '/'));
+        
+        if (isPublicPage) {
           // Отключаем существующий SW если есть
           const registrations = await navigator.serviceWorker.getRegistrations();
           for (const registration of registrations) {

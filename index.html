@@ -34,6 +34,35 @@
       <meta name="twitter:title" content="Buro CRM" />
       <meta name="twitter:description" content="Система управления - CRM для управления проектами, клиентами и производством" />
       <meta name="twitter:image" content="/favicon.ico" />
+      <!-- Отключаем Service Worker для публичных страниц сразу при загрузке -->
+      <script>
+        (function() {
+          // Публичные страницы, где SW не нужен
+          const publicPages = ['/', '/pricing', '/onboarding'];
+          const currentPath = window.location.pathname;
+          const isPublicPage = publicPages.some(page => currentPath === page || currentPath.startsWith(page + '/'));
+          
+          if (isPublicPage && 'serviceWorker' in navigator) {
+            // Отключаем все существующие Service Workers
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+              for (let registration of registrations) {
+                registration.unregister().then(function(success) {
+                  if (success) {
+                    console.log('[SW] Service Worker unregistered for public page');
+                  }
+                });
+              }
+            });
+            
+            // Блокируем регистрацию новых SW на публичных страницах
+            const originalRegister = navigator.serviceWorker.register;
+            navigator.serviceWorker.register = function() {
+              console.log('[SW] Registration blocked for public page');
+              return Promise.reject(new Error('Service Worker disabled for public pages'));
+            };
+          }
+        })();
+      </script>
     </head>
 
     <body>
