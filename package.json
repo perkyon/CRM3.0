@@ -95,6 +95,11 @@
             "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
             "analyze": "npm run build && npx vite-bundle-analyzer dist/stats.html",
             "clean": "rm -rf dist node_modules/.vite",
-            "postinstall": "echo 'Installation complete'"
+            "postinstall": "echo 'Installation complete'",
+            "supabase:local:start": "supabase start",
+            "supabase:local:stop": "supabase stop",
+            "supabase:local:status": "supabase status",
+            "supabase:local:reset": "supabase db reset",
+            "supabase:local:init": "supabase init"
       }
 }

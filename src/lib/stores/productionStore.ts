@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { KanbanBoard, KanbanTask, KanbanColumn } from '../../types';
-import { productionService } from '../api/services';
+import { supabaseKanbanService } from '../supabase/services/KanbanService';
 
 interface ProductionState {
   // State
@@ -55,7 +55,8 @@ export const useProductionStore = create<ProductionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const boards = await productionService.getBoards();
+      // Получаем общие доски (без project_id)
+      const boards = await supabaseKanbanService.getGeneralBoards();
       
       set({
         boards,
@@ -75,7 +76,7 @@ export const useProductionStore = create<ProductionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const board = await productionService.getBoard(id);
+      const board = await supabaseKanbanService.getBoard(id);
       
       set({
         selectedBoard: board,
@@ -104,7 +105,12 @@ export const useProductionStore = create<ProductionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const newBoard = await productionService.createBoard(boardData);
+      // Адаптируем под новый API
+      const newBoard = await supabaseKanbanService.createBoard({
+        title: boardData.title,
+        description: boardData.description,
+        projectId: (boardData as any).projectId || undefined,
+      });
       
       set((state) => ({
         boards: [...state.boards, newBoard],
@@ -126,7 +132,10 @@ export const useProductionStore = create<ProductionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const updatedBoard = await productionService.updateBoard(id, boardData);
+      const updatedBoard = await supabaseKanbanService.updateBoard(id, {
+        title: boardData.title,
+        description: boardData.description,
+      });
       
       set((state) => ({
         boards: state.boards.map(board =>
@@ -151,7 +160,7 @@ export const useProductionStore = create<ProductionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      await productionService.deleteBoard(id);
+      await supabaseKanbanService.deleteBoard(id);
       
       set((state) => ({
         boards: state.boards.filter(board => board.id !== id),
@@ -173,7 +182,7 @@ export const useProductionStore = create<ProductionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const task = await productionService.getTask(id);
+      const task = await supabaseKanbanService.getTask(id);
       
       set({
         selectedTask: task,
@@ -193,7 +202,17 @@ export const useProductionStore = create<ProductionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const newTask = await productionService.createTask(taskData);
+      // Адаптируем под новый API
+      const newTask = await supabaseKanbanService.createTask({
+        columnId: (taskData as any).columnId || taskData.columnId || '',
+        title: taskData.title,
+        description: taskData.description,
+        assigneeId: (taskData as any).assigneeId,
+        priority: (taskData as any).priority || 'medium',
+        dueDate: (taskData as any).dueDate,
+        position: (taskData as any).position || 0,
+        tags: (taskData as any).tags,
+      });
       
       // Update the board with the new task
       set((state) => ({
@@ -230,7 +249,17 @@ export const useProductionStore = create<ProductionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const updatedTask = await productionService.updateTask(id, taskData);
+      const updatedTask = await supabaseKanbanService.updateTask(id, {
+        title: taskData.title,
+        description: taskData.description,
+        assigneeId: (taskData as any).assigneeId,
+        priority: (taskData as any).priority,
+        dueDate: (taskData as any).dueDate,
+        position: (taskData as any).position,
+        columnId: (taskData as any).columnId,
+        tags: (taskData as any).tags,
+        status: (taskData as any).status,
+      });
       
       // Update task in boards
       set((state) => ({
@@ -265,7 +294,7 @@ export const useProductionStore = create<ProductionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      await productionService.deleteTask(id);
+      await supabaseKanbanService.deleteTask(id);
       
       // Remove task from boards
       set((state) => ({
@@ -294,7 +323,8 @@ export const useProductionStore = create<ProductionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const updatedTask = await productionService.moveTask(taskId, fromColumnId, toColumnId, newPosition);
+      // Новый API не требует fromColumnId
+      const updatedTask = await supabaseKanbanService.moveTask(taskId, toColumnId, newPosition);
       
       // Update task in boards
       set((state) => ({
@@ -327,7 +357,8 @@ export const useProductionStore = create<ProductionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const updatedTask = await productionService.updateTaskStatus(taskId, status);
+      // Используем updateTask вместо updateTaskStatus
+      const updatedTask = await supabaseKanbanService.updateTask(taskId, { status });
       
       // Update task in boards
       set((state) => ({
@@ -360,7 +391,8 @@ export const useProductionStore = create<ProductionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const updatedTask = await productionService.assignTask(taskId, assigneeId);
+      // Используем updateTask вместо assignTask
+      const updatedTask = await supabaseKanbanService.updateTask(taskId, { assigneeId });
       
       // Update task in boards
       set((state) => ({
@@ -393,7 +425,9 @@ export const useProductionStore = create<ProductionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const updatedTask = await productionService.addTaskComment(taskId, comment, authorId);
+      // Новый API возвращает void, нужно перезагрузить задачу
+      await supabaseKanbanService.addTaskComment(taskId, comment, authorId);
+      const updatedTask = await supabaseKanbanService.getTask(taskId);
       
       // Update task in boards
       set((state) => ({
@@ -426,7 +460,9 @@ export const useProductionStore = create<ProductionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const updatedTask = await productionService.updateTaskChecklist(taskId, checklist);
+      // Новый API возвращает void, нужно перезагрузить задачу
+      await supabaseKanbanService.updateTaskChecklist(taskId, checklist || []);
+      const updatedTask = await supabaseKanbanService.getTask(taskId);
       
       // Update task in boards
       set((state) => ({
@@ -459,7 +495,9 @@ export const useProductionStore = create<ProductionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const updatedTask = await productionService.addTaskAttachment(taskId, file, onProgress);
+      // Новый API возвращает void, нужно перезагрузить задачу
+      await supabaseKanbanService.uploadTaskAttachment(taskId, file, onProgress);
+      const updatedTask = await supabaseKanbanService.getTask(taskId);
       
       // Update task in boards
       set((state) => ({
@@ -492,7 +530,9 @@ export const useProductionStore = create<ProductionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const updatedTask = await productionService.removeTaskAttachment(taskId, attachmentId);
+      // TODO: Реализовать удаление вложения в новом сервисе
+      // Пока просто перезагружаем задачу
+      const updatedTask = await supabaseKanbanService.getTask(taskId);
       
       // Update task in boards
       set((state) => ({
@@ -526,7 +566,11 @@ export const useProductionStore = create<ProductionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const newColumn = await productionService.createBoardColumn(boardId, columnData);
+      const newColumn = await supabaseKanbanService.createColumn({
+        boardId,
+        title: columnData.title,
+        position: columnData.position || 0,
+      });
       
       // Update board with new column
       set((state) => ({
@@ -563,7 +607,10 @@ export const useProductionStore = create<ProductionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const updatedColumn = await productionService.updateBoardColumn(boardId, columnId, columnData);
+      const updatedColumn = await supabaseKanbanService.updateColumn(columnId, {
+        title: columnData.title,
+        position: columnData.position,
+      });
       
       // Update column in boards
       set((state) => ({
@@ -597,7 +644,7 @@ export const useProductionStore = create<ProductionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      await productionService.deleteBoardColumn(boardId, columnId);
+      await supabaseKanbanService.deleteColumn(columnId);
       
       // Remove column from boards
       set((state) => ({

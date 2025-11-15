@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User, LoginRequest, LoginResponse } from '../../types';
-import { apiService } from '../api/client';
 import { supabase } from '../supabase/config';
 import { supabaseUserService } from '../supabase/services/UserService';
 
