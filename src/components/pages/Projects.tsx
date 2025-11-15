@@ -71,13 +71,15 @@ export function Projects() {
 
   // Загрузка клиентов при монтировании
   useEffect(() => {
-    console.log('🔄 Loading clients...');
-    fetchClients().then(() => {
-      console.log('✅ Clients loaded:', clients.length);
-    }).catch((err) => {
-      console.error('❌ Failed to load clients:', err);
-    });
-  }, [fetchClients]);
+    if (fetchClients) {
+      console.log('🔄 Loading clients...');
+      fetchClients().then(() => {
+        console.log('✅ Clients loaded:', clients.length);
+      }).catch((err) => {
+        console.error('❌ Failed to load clients:', err);
+      });
+    }
+  }, [fetchClients, clients.length]);
 
   // Получение прогресса по стадиям
   const getStageProgress = (stage: ProjectStage): number => {
