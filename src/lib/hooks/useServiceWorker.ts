@@ -25,6 +25,16 @@ export function useServiceWorker() {
     // Register service worker
     const registerSW = async () => {
       try {
+        // Не регистрируем SW на публичных страницах (лендинг)
+        if (window.location.pathname === '/' || window.location.pathname.startsWith('/pricing') || window.location.pathname.startsWith('/onboarding')) {
+          // Отключаем существующий SW если есть
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (const registration of registrations) {
+            await registration.unregister();
+          }
+          return;
+        }
+        
         const registration = await navigator.serviceWorker.register('/sw.js', {
           updateViaCache: 'none', // Всегда проверяем обновления
         });
