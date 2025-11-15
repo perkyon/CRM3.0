@@ -252,6 +252,7 @@ CREATE POLICY "users_see_org_subscriptions" ON subscriptions
 
 -- Обновляем политики для clients (добавляем проверку organization_id)
 DROP POLICY IF EXISTS "authenticated_all_clients" ON clients;
+DROP POLICY IF EXISTS "authenticated_org_clients" ON clients;
 CREATE POLICY "authenticated_org_clients" ON clients
     FOR ALL
     TO authenticated
@@ -266,6 +267,7 @@ CREATE POLICY "authenticated_org_clients" ON clients
 
 -- Обновляем политики для projects
 DROP POLICY IF EXISTS "authenticated_all_projects" ON projects;
+DROP POLICY IF EXISTS "authenticated_org_projects" ON projects;
 CREATE POLICY "authenticated_org_projects" ON projects
     FOR ALL
     TO authenticated
