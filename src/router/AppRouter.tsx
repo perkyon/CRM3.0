@@ -19,7 +19,13 @@ const router = createBrowserRouter(routes);
 export function AppRouter() {
   return (
     <Suspense fallback={<LoadingFallback />}>
-      <RouterProvider router={router} />
+      <RouterProvider 
+        router={router}
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      />
     </Suspense>
   );
 }

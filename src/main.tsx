@@ -20,7 +20,13 @@ import "./sentry.client.config";
 // Initialize authentication
 initializeAuth();
 
-createRoot(document.getElementById("root")!).render(
+// Проверяем наличие root элемента
+const rootElement = document.getElementById("root");
+if (!rootElement) {
+  throw new Error("Root element not found");
+}
+
+createRoot(rootElement).render(
   <ErrorBoundary>
     <AuthProvider>
       <ToastProvider>
