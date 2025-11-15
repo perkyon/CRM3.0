@@ -23,7 +23,7 @@ export function Landing() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="bg-white">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 bg-white z-50 border-b border-gray-100">
         <div className="container mx-auto px-6 md:px-12 py-6">
@@ -40,7 +40,7 @@ export function Landing() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen bg-white pt-32 md:pt-48 pb-24 md:pb-32">
+      <section className="relative bg-white pt-32 md:pt-48 pb-24 md:pb-32">
         <div className="container mx-auto px-6 md:px-12">
           <div className="max-w-4xl">
             <h1 className="text-6xl md:text-8xl lg:text-9xl leading-none mb-12 font-bold">
