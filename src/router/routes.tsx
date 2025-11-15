@@ -58,6 +58,8 @@ const ProductionManager = lazyWithErrorHandling(() => import('../components/page
 const EnhancedProductionKanban = lazyWithErrorHandling(() => import('../components/production/EnhancedProductionKanban').then(module => ({ default: module.EnhancedProductionKanban })));
 const RolesAndPermissions = lazyWithErrorHandling(() => import('../components/pages/RolesAndPermissions').then(module => ({ default: module.RolesAndPermissions })));
 const Pricing = lazyWithErrorHandling(() => import('../components/pages/Pricing').then(module => ({ default: module.Pricing })));
+const Onboarding = lazyWithErrorHandling(() => import('../components/pages/Onboarding').then(module => ({ default: module.Onboarding })));
+const PaymentSuccess = lazyWithErrorHandling(() => import('../components/pages/PaymentSuccess').then(module => ({ default: module.PaymentSuccess })));
 // const WorkflowDemo = lazy(() => import('../components/demo/WorkflowDemo').then(module => ({ default: module.WorkflowDemo })));
 
 // Компонент для страниц в разработке
@@ -127,6 +129,14 @@ export const routes: RouteObject[] = [
       {
         path: 'pricing',
         element: <Pricing />
+      },
+      {
+        path: 'onboarding',
+        element: <Onboarding />
+      },
+      {
+        path: 'payment/success',
+        element: <PaymentSuccess />
       },
       {
         path: 'integrations',

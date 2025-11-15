@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -118,13 +119,18 @@ const plans: PricingPlan[] = [
 ];
 
 export function Pricing() {
+  const navigate = useNavigate();
   const [billingPeriod, setBillingPeriod] = useState<'month' | 'year'>('month');
-  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
 
   const handleSelectPlan = (planId: SubscriptionPlan) => {
-    setSelectedPlan(planId);
-    // TODO: Переход на страницу оплаты или открытие модального окна
-    console.log('Selected plan:', planId);
+    if (planId === 'free') {
+      // Бесплатный план - сразу на onboarding
+      navigate('/onboarding?plan=free');
+    } else {
+      // Платные планы - на страницу оплаты (потом вернется на onboarding)
+      // TODO: Интеграция с ЮKassa
+      navigate(`/checkout?plan=${planId}&period=${billingPeriod}`);
+    }
   };
 
   const getPrice = (plan: PricingPlan) => {
