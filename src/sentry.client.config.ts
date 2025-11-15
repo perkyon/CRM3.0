@@ -1,8 +1,9 @@
 import * as Sentry from '@sentry/react';
 
-// Инициализируем Sentry только если есть DSN
-if (import.meta.env.VITE_SENTRY_DSN) {
-  Sentry.init({
+// Инициализируем Sentry только если есть DSN (не блокируем рендеринг)
+try {
+  if (import.meta.env.VITE_SENTRY_DSN) {
+    Sentry.init({
     dsn: import.meta.env.VITE_SENTRY_DSN,
     environment: import.meta.env.VITE_NODE_ENV || 'development',
     
@@ -41,7 +42,11 @@ if (import.meta.env.VITE_SENTRY_DSN) {
     },
   });
   
-  console.log('Sentry initialized for environment:', import.meta.env.VITE_NODE_ENV);
-} else {
-  console.log('Sentry DSN not found, skipping initialization');
+    console.log('Sentry initialized for environment:', import.meta.env.VITE_NODE_ENV);
+  } else {
+    console.log('Sentry DSN not found, skipping initialization');
+  }
+} catch (error) {
+  console.error('Sentry initialization error (non-blocking):', error);
+  // Не блокируем рендеринг при ошибке Sentry
 }

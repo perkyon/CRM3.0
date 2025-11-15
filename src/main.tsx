@@ -14,11 +14,14 @@ import { ErrorBoundary } from "./components/error/ErrorBoundary";
 import { initializeAuth } from "./lib/supabase/auth-setup";
 import "./index.css";
 
-// Initialize Sentry
+// Initialize Sentry (async, не блокирует рендеринг)
 import "./sentry.client.config";
 
-// Initialize authentication
-initializeAuth();
+// Initialize authentication (async, не блокирует рендеринг)
+// Не ждем завершения - приложение должно рендериться сразу
+initializeAuth().catch((error) => {
+  console.error('Auth initialization error (non-blocking):', error);
+});
 
 // Проверяем наличие root элемента
 const rootElement = document.getElementById("root");
