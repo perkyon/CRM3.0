@@ -17,6 +17,13 @@ const router = createBrowserRouter(routes);
 
 // Основной компонент роутера
 export function AppRouter() {
+  React.useEffect(() => {
+    // Логируем загрузку роутера
+    if (import.meta.env.DEV) {
+      console.log('AppRouter mounted');
+    }
+  }, []);
+
   return (
     <Suspense fallback={<LoadingFallback />}>
       <RouterProvider 
