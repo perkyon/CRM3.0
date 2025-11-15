@@ -147,7 +147,7 @@ export function Onboarding() {
       }
     } else if (currentStep === 3) {
       // Переход в систему
-      navigate('/dashboard');
+      navigate('/app/dashboard');
     }
   };
 

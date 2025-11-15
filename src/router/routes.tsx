@@ -60,6 +60,8 @@ const RolesAndPermissions = lazyWithErrorHandling(() => import('../components/pa
 const Pricing = lazyWithErrorHandling(() => import('../components/pages/Pricing').then(module => ({ default: module.Pricing })));
 const Onboarding = lazyWithErrorHandling(() => import('../components/pages/Onboarding').then(module => ({ default: module.Onboarding })));
 const PaymentSuccess = lazyWithErrorHandling(() => import('../components/pages/PaymentSuccess').then(module => ({ default: module.PaymentSuccess })));
+const Landing = lazyWithErrorHandling(() => import('../components/pages/Landing').then(module => ({ default: module.Landing })));
+const OrgLogin = lazyWithErrorHandling(() => import('../components/pages/OrgLogin').then(module => ({ default: module.OrgLogin })));
 // const WorkflowDemo = lazy(() => import('../components/demo/WorkflowDemo').then(module => ({ default: module.WorkflowDemo })));
 
 // Компонент для страниц в разработке
@@ -74,8 +76,30 @@ const DevelopmentPage = ({ title }: { title: string }) => (
 
 // Определение роутов
 export const routes: RouteObject[] = [
+  // Публичные страницы (без AppLayout)
   {
     path: '/',
+    element: <Landing />
+  },
+  {
+    path: '/pricing',
+    element: <Pricing />
+  },
+  {
+    path: '/onboarding',
+    element: <Onboarding />
+  },
+  {
+    path: '/payment/success',
+    element: <PaymentSuccess />
+  },
+  {
+    path: '/org/:slug/login',
+    element: <OrgLogin />
+  },
+  // Защищенные страницы (с AppLayout)
+  {
+    path: '/app',
     element: <AppLayout />,
     children: [
       {
@@ -125,18 +149,6 @@ export const routes: RouteObject[] = [
       {
         path: 'roles',
         element: <RolesAndPermissions />
-      },
-      {
-        path: 'pricing',
-        element: <Pricing />
-      },
-      {
-        path: 'onboarding',
-        element: <Onboarding />
-      },
-      {
-        path: 'payment/success',
-        element: <PaymentSuccess />
       },
       {
         path: 'integrations',
