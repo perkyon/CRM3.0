@@ -49,9 +49,6 @@ export function Landing() {
             >
               Попробовать бесплатно
             </button>
-            <div className={styles.heroScroll}>
-              ПРОКРУТИТЕ
-            </div>
           </div>
         </div>
       </section>
