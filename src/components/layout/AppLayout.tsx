@@ -48,12 +48,12 @@ export function AppLayout() {
     return null;
   }
   
-  // Получаем текущую страницу из URL
-  const currentPage = location.pathname.split('/')[1] || 'dashboard';
+  // Получаем текущую страницу из URL (убираем /app префикс)
+  const currentPage = location.pathname.replace('/app/', '').split('/')[0] || 'dashboard';
   
-  // Функция навигации через React Router
+  // Функция навигации через React Router (используем /app префикс)
   const handleNavigate = (page: string) => {
-    navigate(`/${page}`);
+    navigate(`/app/${page}`);
   };
 
   return (
