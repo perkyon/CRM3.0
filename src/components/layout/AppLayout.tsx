@@ -16,13 +16,37 @@ export function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser, fetchCurrentUser, fetchUsers } = useUserStore();
-  const { logout } = useAuth();
+  const { logout, isAuthenticated, loading } = useAuth();
   
   // Fetch current user and all users on mount
   React.useEffect(() => {
     fetchCurrentUser();
     fetchUsers(); // Загружаем всех пользователей для фильтров и т.д.
   }, [fetchCurrentUser, fetchUsers]);
+  
+  // Защита: редирект на главную если не авторизован
+  React.useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, loading, navigate]);
+  
+  // Показываем загрузку пока проверяем авторизацию
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center space-x-2">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <span className="text-muted-foreground">Загрузка...</span>
+        </div>
+      </div>
+    );
+  }
+  
+  // Если не авторизован - не показываем layout (будет редирект)
+  if (!isAuthenticated) {
+    return null;
+  }
   
   // Получаем текущую страницу из URL
   const currentPage = location.pathname.split('/')[1] || 'dashboard';
