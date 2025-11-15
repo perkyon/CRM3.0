@@ -312,10 +312,17 @@ DECLARE
     default_org_id UUID;
     user_record RECORD;
 BEGIN
-    -- Создаем дефолтную организацию
-    INSERT INTO organizations (name, slug, status)
-    VALUES ('Default Organization', 'default', 'active')
-    RETURNING id INTO default_org_id;
+    -- Получаем или создаем дефолтную организацию
+    SELECT id INTO default_org_id
+    FROM organizations
+    WHERE slug = 'default';
+    
+    -- Если не существует - создаем
+    IF default_org_id IS NULL THEN
+        INSERT INTO organizations (name, slug, status)
+        VALUES ('Default Organization', 'default', 'active')
+        RETURNING id INTO default_org_id;
+    END IF;
     
     -- Для каждого существующего пользователя:
     FOR user_record IN SELECT id FROM users LOOP
