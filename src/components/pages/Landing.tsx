@@ -180,15 +180,15 @@ export function Landing() {
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Напоминания о платежах</div>
-                <div className={styles.benefitItemValue}>Авто</div>
+                <div className={styles.benefitItemValue}>100%</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Контроль сроков</div>
-                <div className={styles.benefitItemValue}>24/7</div>
+                <div className={styles.benefitItemValue}>100%</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Формирование отчетов</div>
-                <div className={styles.benefitItemValue}>Авто</div>
+                <div className={styles.benefitItemValue}>100%</div>
               </div>
             </div>
 
@@ -198,19 +198,19 @@ export function Landing() {
               <h3 className={styles.benefitCardTitle}>АНАЛИТИКА</h3>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Динамика продаж</div>
-                <div className={styles.benefitItemValue}>Реал-тайм</div>
+                <div className={styles.benefitItemValue}>100%</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Загрузка производства</div>
-                <div className={styles.benefitItemValue}>Визуально</div>
+                <div className={styles.benefitItemValue}>100%</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Финансовые показатели</div>
-                <div className={styles.benefitItemValue}>Детально</div>
+                <div className={styles.benefitItemValue}>100%</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Эффективность менеджеров</div>
-                <div className={styles.benefitItemValue}>KPI</div>
+                <div className={styles.benefitItemValue}>100%</div>
               </div>
             </div>
 
@@ -220,7 +220,7 @@ export function Landing() {
               <h3 className={styles.benefitCardTitle}>БЕЗОПАСНОСТЬ</h3>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Резервное копирование</div>
-                <div className={styles.benefitItemValue}>Ежедневно</div>
+                <div className={styles.benefitItemValue}>100%</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Защита данных SSL</div>
@@ -228,7 +228,7 @@ export function Landing() {
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Разграничение доступа</div>
-                <div className={styles.benefitItemValue}>Роли</div>
+                <div className={styles.benefitItemValue}>100%</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>SLA Uptime</div>
@@ -240,7 +240,7 @@ export function Landing() {
           {/* Stats */}
           <div className={styles.statsGrid}>
             <div>
-              <div className={styles.statValue}>100+</div>
+              <div className={styles.statValue}>500+</div>
               <div className={styles.statLabel}>Мебельных компаний используют систему</div>
             </div>
             <div>
@@ -334,7 +334,8 @@ export function Landing() {
             </div>
 
             {/* Plan 2: Бизнес (Популярный) */}
-            <div className={`${styles.pricingCard} ${styles.pricingCardPopular}`}>
+            <div className={`${styles.pricingCard} ${styles.pricingCardPopular} ${styles.pricingCardBlack}`}>
+              <div className={styles.pricingCardPopularBadge}>Популярный</div>
               <h3 className={styles.pricingPlanTitle}>Бизнес</h3>
               <p className={styles.pricingPlanDescription}>Для растущих компаний</p>
               <div className={styles.pricingPlanPrice}>5 990₽/мес</div>
@@ -397,12 +398,12 @@ export function Landing() {
             </div>
 
             {/* Plan 3: Производство */}
-            <div className={styles.pricingCard}>
+            <div className={`${styles.pricingCard} ${styles.pricingCardBlack}`}>
               <h3 className={styles.pricingPlanTitle}>Производство</h3>
               <p className={styles.pricingPlanDescription}>Для крупных предприятий</p>
               <div className={styles.pricingPlanPrice}>12 990₽/мес</div>
               <button 
-                className={styles.pricingButton}
+                className={`${styles.pricingButton} ${styles.pricingButtonPopular}`}
                 onClick={() => navigate('/pricing')}
               >
                 Выбрать план →

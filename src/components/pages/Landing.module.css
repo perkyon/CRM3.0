@@ -442,8 +442,34 @@
   border-color: #000;
 }
 
-.pricingCardPopular::before {
-  content: 'Популярный';
+.pricingCardBlack {
+  background: #000;
+  color: white;
+  border-color: #000;
+}
+
+.pricingCardBlack .pricingPlanTitle,
+.pricingCardBlack .pricingPlanPrice {
+  color: white;
+}
+
+.pricingCardBlack .pricingPlanDescription {
+  color: #d1d5db;
+}
+
+.pricingCardBlack .pricingFeatureDot {
+  background: white;
+}
+
+.pricingCardBlack .pricingFeatureDotInner {
+  background: #000;
+}
+
+.pricingCardBlack .pricingFeature span {
+  color: white;
+}
+
+.pricingCardPopularBadge {
   position: absolute;
   top: -1rem;
   left: 50%;
@@ -452,6 +478,7 @@
   color: white;
   padding: 0.25rem 1rem;
   font-size: 0.875rem;
+  white-space: nowrap;
 }
 
 .pricingPlanTitle {
