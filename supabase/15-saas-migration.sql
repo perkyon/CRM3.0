@@ -284,16 +284,19 @@ CREATE POLICY "authenticated_org_projects" ON projects
 -- 8. ТРИГГЕРЫ ДЛЯ ОБНОВЛЕНИЯ updated_at
 -- ============================================
 
+DROP TRIGGER IF EXISTS update_organizations_updated_at ON organizations;
 CREATE TRIGGER update_organizations_updated_at
     BEFORE UPDATE ON organizations
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_organization_members_updated_at ON organization_members;
 CREATE TRIGGER update_organization_members_updated_at
     BEFORE UPDATE ON organization_members
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_subscriptions_updated_at ON subscriptions;
 CREATE TRIGGER update_subscriptions_updated_at
     BEFORE UPDATE ON subscriptions
     FOR EACH ROW
