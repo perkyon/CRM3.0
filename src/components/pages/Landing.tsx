@@ -70,7 +70,11 @@ export function Landing() {
         <div className={styles.heroContainer}>
           <div className={styles.heroContent}>
             <h1 className={styles.heroTitle}>
-              CRM система для мебельного производства
+              <span className={styles.heroTitleLine}>CRM</span>
+              <span className={styles.heroTitleLine}>система</span>
+              <span className={styles.heroTitleLine}>для</span>
+              <span className={styles.heroTitleLine}>мебельного</span>
+              <span className={styles.heroTitleLine}>производства</span>
             </h1>
             <p className={styles.heroDescription}>
               Управляйте клиентами, заказами и производством в одной системе. Увеличьте продажи на 40% и сократите время на рутину в 3 раза.
