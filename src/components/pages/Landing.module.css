@@ -1,6 +1,6 @@
 /* Изолированные стили для лендинга */
 .landing {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Unbounded', system-ui, -apple-system, sans-serif;
   background: white;
   color: #000;
   line-height: 1.5;
