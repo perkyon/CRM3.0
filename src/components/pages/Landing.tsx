@@ -7,7 +7,7 @@ import {
   Calendar, 
   DollarSign,
   TrendingUp,
-  Zap,
+  Clock,
   BarChart3,
   Shield,
   Menu,
@@ -179,8 +179,10 @@ export function Landing() {
           <div className={styles.benefitsGrid}>
             {/* Results */}
             <div className={styles.benefitCard}>
-              <TrendingUp className={styles.benefitIcon} />
-              <h3 className={styles.benefitCardTitle}>РЕЗУЛЬТАТЫ</h3>
+              <div className={styles.benefitHeader}>
+                <TrendingUp className={styles.benefitIcon} />
+                <h3 className={styles.benefitCardTitle}>РЕЗУЛЬТАТЫ</h3>
+              </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Рост продаж</div>
                 <div className={styles.benefitItemValue}>40%</div>
@@ -201,8 +203,10 @@ export function Landing() {
 
             {/* Automation */}
             <div className={styles.benefitCard}>
-              <Zap className={styles.benefitIcon} />
-              <h3 className={styles.benefitCardTitle}>АВТОМАТИЗАЦИЯ</h3>
+              <div className={styles.benefitHeader}>
+                <Clock className={styles.benefitIcon} />
+                <h3 className={styles.benefitCardTitle}>АВТОМАТИЗАЦИЯ</h3>
+              </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Уведомления клиентам</div>
                 <div className={styles.benefitItemValue}>100%</div>
@@ -223,8 +227,10 @@ export function Landing() {
 
             {/* Analytics */}
             <div className={styles.benefitCard}>
-              <BarChart3 className={styles.benefitIcon} />
-              <h3 className={styles.benefitCardTitle}>АНАЛИТИКА</h3>
+              <div className={styles.benefitHeader}>
+                <BarChart3 className={styles.benefitIcon} />
+                <h3 className={styles.benefitCardTitle}>АНАЛИТИКА</h3>
+              </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Динамика продаж</div>
                 <div className={styles.benefitItemValue}>100%</div>
@@ -245,8 +251,10 @@ export function Landing() {
 
             {/* Security */}
             <div className={styles.benefitCard}>
-              <Shield className={styles.benefitIcon} />
-              <h3 className={styles.benefitCardTitle}>БЕЗОПАСНОСТЬ</h3>
+              <div className={styles.benefitHeader}>
+                <Shield className={styles.benefitIcon} />
+                <h3 className={styles.benefitCardTitle}>БЕЗОПАСНОСТЬ</h3>
+              </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Резервное копирование</div>
                 <div className={styles.benefitItemValue}>100%</div>
@@ -261,7 +269,7 @@ export function Landing() {
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>SLA Uptime</div>
-                <div className={styles.benefitItemValue}>99.9%</div>
+                <div className={styles.benefitItemValue}>100%</div>
               </div>
             </div>
           </div>
