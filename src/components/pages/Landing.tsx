@@ -46,19 +46,30 @@ export function Landing() {
                 </button>
               </div>
               <nav className={styles.navMenuLinks}>
-                <a href="#services" onClick={() => setMenuOpen(false)}>Услуги</a>
-                <a href="#benefits" onClick={() => setMenuOpen(false)}>Преимущества</a>
-                <a href="#pricing" onClick={() => setMenuOpen(false)}>Тарифы</a>
-                <a href="#contact" onClick={() => setMenuOpen(false)}>Контакты</a>
-                <button 
-                  className={styles.navMenuButton}
-                  onClick={() => {
-                    setMenuOpen(false);
-                    navigate('/pricing');
-                  }}
-                >
-                  Попробовать бесплатно
-                </button>
+                <a href="#services" onClick={() => setMenuOpen(false)} className={styles.navMenuLink}>Возможности</a>
+                <a href="#benefits" onClick={() => setMenuOpen(false)} className={styles.navMenuLink}>Преимущества</a>
+                <a href="#pricing" onClick={() => setMenuOpen(false)} className={styles.navMenuLink}>Тарифы</a>
+                <a href="#contact" onClick={() => setMenuOpen(false)} className={styles.navMenuLink}>Контакты</a>
+                <div className={styles.navMenuActions}>
+                  <button 
+                    className={styles.navMenuActionButton}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      navigate('/login');
+                    }}
+                  >
+                    Войти
+                  </button>
+                  <button 
+                    className={`${styles.navMenuActionButton} ${styles.navMenuActionButtonSecondary}`}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      navigate('/pricing');
+                    }}
+                  >
+                    Регистрация
+                  </button>
+                </div>
               </nav>
             </div>
           </div>
@@ -574,7 +585,7 @@ export function Landing() {
                   <label className={styles.contactFormLabel}>СООБЩЕНИЕ</label>
                   <textarea 
                     placeholder="Расскажите о вашей компании" 
-                    className={styles.contactFormInput}
+                    className={`${styles.contactFormInput} ${styles.contactFormTextarea}`}
                     rows={4}
                   />
                 </div>
