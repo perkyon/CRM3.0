@@ -44,6 +44,107 @@
   opacity: 0.6;
 }
 
+.navMenuOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.navMenuContent {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  max-width: 400px;
+  height: 100%;
+  background: white;
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.3s ease-out;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.navMenuHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 3rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.navMenuClose {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: opacity 0.2s;
+}
+
+.navMenuClose:hover {
+  opacity: 0.6;
+}
+
+.navMenuLinks {
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 3rem;
+  gap: 1.5rem;
+  flex: 1;
+}
+
+.navMenuLinks a {
+  font-size: 1.125rem;
+  color: #000;
+  text-decoration: none;
+  transition: opacity 0.2s;
+  padding: 0.5rem 0;
+}
+
+.navMenuLinks a:hover {
+  opacity: 0.6;
+}
+
+.navMenuButton {
+  margin-top: auto;
+  padding: 1rem 2rem;
+  border: 2px solid #000;
+  background: white;
+  color: #000;
+  font-size: 1.125rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+}
+
+.navMenuButton:hover {
+  background: #000;
+  color: white;
+}
+
 .hero {
   background: white;
   padding-top: 8rem;
@@ -336,27 +437,41 @@
   width: 3rem;
   height: 3rem;
   margin-bottom: 1rem;
+  color: #000;
 }
 
 .benefitCardTitle {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  margin-bottom: 1.5rem;
 }
 
 .benefitItem {
-  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.benefitItem:last-child {
+  border-bottom: none;
 }
 
 .benefitItemLabel {
-  font-size: 0.875rem;
-  color: #4b5563;
-  margin-bottom: 0.25rem;
+  font-size: 1rem;
+  color: #000;
+  flex: 1;
 }
 
 .benefitItemValue {
   font-size: 1.5rem;
   font-weight: 700;
+  color: #000;
+  margin-left: 1rem;
 }
 
 .statsGrid {

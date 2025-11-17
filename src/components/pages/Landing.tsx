@@ -27,10 +27,42 @@ export function Landing() {
           <button 
             className={styles.navMenu}
             onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Меню"
           >
             {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
+        {menuOpen && (
+          <div className={styles.navMenuOverlay} onClick={() => setMenuOpen(false)}>
+            <div className={styles.navMenuContent} onClick={(e) => e.stopPropagation()}>
+              <div className={styles.navMenuHeader}>
+                <div className={styles.navLogo}>BURO CRM</div>
+                <button 
+                  className={styles.navMenuClose}
+                  onClick={() => setMenuOpen(false)}
+                  aria-label="Закрыть меню"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <nav className={styles.navMenuLinks}>
+                <a href="#services" onClick={() => setMenuOpen(false)}>Услуги</a>
+                <a href="#benefits" onClick={() => setMenuOpen(false)}>Преимущества</a>
+                <a href="#pricing" onClick={() => setMenuOpen(false)}>Тарифы</a>
+                <a href="#contact" onClick={() => setMenuOpen(false)}>Контакты</a>
+                <button 
+                  className={styles.navMenuButton}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    navigate('/pricing');
+                  }}
+                >
+                  Попробовать бесплатно
+                </button>
+              </nav>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
@@ -137,7 +169,7 @@ export function Landing() {
       </section>
 
       {/* Benefits Section */}
-      <section className={styles.section}>
+      <section id="benefits" className={styles.section}>
         <div className={styles.sectionContainer}>
           <h2 className={styles.benefitsTitle}>Преимущества</h2>
           <p className={styles.benefitsSubtitle}>
@@ -269,7 +301,7 @@ export function Landing() {
       </section>
 
       {/* Pricing Section */}
-      <section className={styles.section}>
+      <section id="pricing" className={styles.section}>
         <div className={styles.sectionContainer}>
           <h2 className={styles.pricingTitle}>Тарифы</h2>
           <p className={styles.pricingSubtitle}>
@@ -459,7 +491,7 @@ export function Landing() {
       </section>
 
       {/* Contact Section */}
-      <section className={`${styles.section} ${styles.contactSectionDark}`}>
+      <section id="contact" className={`${styles.section} ${styles.contactSectionDark}`}>
         <div className={styles.sectionContainer}>
           <div className={styles.contactGrid}>
             {/* Contact Info */}
