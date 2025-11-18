@@ -475,7 +475,11 @@ export function ProductionManager() {
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => navigate(`/projects/${projectId}`)}
+              onClick={() => {
+                // Находим проект чтобы получить code
+                const project = projects?.find(p => p.id === projectId);
+                navigate(`/app/projects/${project?.code || projectId}`);
+              }}
             >
               <ArrowLeft className="size-4 mr-2" />
               Назад к проекту

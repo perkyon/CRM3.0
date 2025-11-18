@@ -55,21 +55,23 @@ export function ProjectOverview() {
       setIsLoading(true);
       setNotFound(false);
       
-      // Сначала ищем в локальных проектах
-      const localProject = projects.find(p => p.id === projectId);
+      // Сначала ищем в локальных проектах (по code или id)
+      const localProject = projects.find(p => 
+        p.id === projectId || p.code === projectId
+      );
       if (localProject) {
         setProject(localProject);
         setIsLoading(false);
         // Загружаем документы проекта
-        loadProjectDocuments(projectId);
+        loadProjectDocuments(localProject.id);
       } else {
-        // Если не найден локально, загружаем из API
+        // Если не найден локально, загружаем из API (поддерживает и code и id)
         fetchProject(projectId)
           .then(() => {
-            if (selectedProject && selectedProject.id === projectId) {
+            if (selectedProject && (selectedProject.id === projectId || selectedProject.code === projectId)) {
               setProject(selectedProject);
               setIsLoading(false);
-              loadProjectDocuments(projectId);
+              loadProjectDocuments(selectedProject.id);
             } else {
               // Проект не найден
               setIsLoading(false);
@@ -100,7 +102,7 @@ export function ProjectOverview() {
 
   // Обновляем проект при изменении selectedProject
   useEffect(() => {
-    if (selectedProject && selectedProject.id === projectId) {
+    if (selectedProject && (selectedProject.id === projectId || selectedProject.code === projectId)) {
       setProject(selectedProject);
       setIsLoading(false);
       setNotFound(false);

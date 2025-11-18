@@ -531,7 +531,7 @@ export function Projects() {
                         projectTitle: project.title,
                         source: 'projects_table_click' 
                       });
-                      navigate(`/projects/${project.id}`);
+                      navigate(`/app/projects/${project.code || project.id}`);
                     }}
                   >
                     <TableCell>
@@ -592,7 +592,7 @@ export function Projects() {
                         <DropdownMenuContent align="end" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                           <DropdownMenuItem onClick={(e: React.MouseEvent) => {
                             e.stopPropagation();
-                            navigate(`/projects/${project.id}`);
+                            navigate(`/app/projects/${project.code || project.id}`);
                           }}>
                             <Eye className="size-4 mr-2" />
                             Открыть

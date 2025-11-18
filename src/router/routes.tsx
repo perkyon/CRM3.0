@@ -81,12 +81,22 @@ const ProjectRedirect = () => {
   return <Navigate to={`/app/projects/${projectId}`} replace />;
 };
 
+// Компонент для редиректа старых URL production
+const ProductionRedirect = () => {
+  const { projectId } = useParams<{ projectId: string }>();
+  return <Navigate to={`/app/production/${projectId}`} replace />;
+};
+
 // Определение роутов
 export const routes: RouteObject[] = [
   // Редирект старых URL на новые
   {
     path: '/projects/:projectId',
     element: <ProjectRedirect />
+  },
+  {
+    path: '/production/:projectId',
+    element: <ProductionRedirect />
   },
   // Публичные страницы (без AppLayout)
   {

@@ -80,24 +80,33 @@ export class SupabaseProjectService {
     };
   }
 
-  // Get single project by ID
-  async getProject(id: string): Promise<Project> {
-    const { data: project, error } = await supabase
+  // Get single project by ID or code
+  async getProject(idOrCode: string): Promise<Project> {
+    // Проверяем, это UUID или короткий code (PRJ-001)
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrCode);
+    
+    let query = supabase
       .from(TABLES.PROJECTS)
-      .select('*, code')
-      .eq('id', id)
-      .single();
+      .select('*, code');
+    
+    if (isUUID) {
+      query = query.eq('id', idOrCode);
+    } else {
+      query = query.eq('code', idOrCode);
+    }
+    
+    const { data: project, error } = await query.single();
 
     if (error) {
       // Если проект не найден (PGRST116 = no rows returned)
       if (error.code === 'PGRST116' || error.message?.includes('No rows')) {
-        throw new Error(`Project not found: ${id}`);
+        throw new Error(`Project not found: ${idOrCode}`);
       }
       throw new Error(`Failed to fetch project: ${error.message}`);
     }
 
     if (!project) {
-      throw new Error(`Project not found: ${id}`);
+      throw new Error(`Project not found: ${idOrCode}`);
     }
 
     // Transform snake_case to camelCase
