@@ -200,19 +200,19 @@ export function Landing() {
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Рост продаж</div>
-                <div className={styles.benefitItemValue}>40%</div>
+                <div className={styles.benefitItemValue}>0%</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Экономия времени</div>
-                <div className={styles.benefitItemValue}>3x</div>
+                <div className={styles.benefitItemValue}>0x</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Удовлетворенность клиентов</div>
-                <div className={styles.benefitItemValue}>95%</div>
+                <div className={styles.benefitItemValue}>0%</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Снижение ошибок</div>
-                <div className={styles.benefitItemValue}>60%</div>
+                <div className={styles.benefitItemValue}>0%</div>
               </div>
             </div>
 
@@ -224,19 +224,19 @@ export function Landing() {
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Уведомления клиентам</div>
-                <div className={styles.benefitItemValue}>100%</div>
+                <div className={styles.benefitItemValue}>0%</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Напоминания о платежах</div>
-                <div className={styles.benefitItemValue}>100%</div>
+                <div className={styles.benefitItemValue}>0%</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Контроль сроков</div>
-                <div className={styles.benefitItemValue}>100%</div>
+                <div className={styles.benefitItemValue}>0%</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Формирование отчетов</div>
-                <div className={styles.benefitItemValue}>100%</div>
+                <div className={styles.benefitItemValue}>0%</div>
               </div>
             </div>
 
@@ -248,19 +248,19 @@ export function Landing() {
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Динамика продаж</div>
-                <div className={styles.benefitItemValue}>100%</div>
+                <div className={styles.benefitItemValue}>0%</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Загрузка производства</div>
-                <div className={styles.benefitItemValue}>100%</div>
+                <div className={styles.benefitItemValue}>0%</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Финансовые показатели</div>
-                <div className={styles.benefitItemValue}>100%</div>
+                <div className={styles.benefitItemValue}>0%</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Эффективность менеджеров</div>
-                <div className={styles.benefitItemValue}>100%</div>
+                <div className={styles.benefitItemValue}>0%</div>
               </div>
             </div>
 
@@ -272,19 +272,19 @@ export function Landing() {
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Резервное копирование</div>
-                <div className={styles.benefitItemValue}>100%</div>
+                <div className={styles.benefitItemValue}>0%</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Защита данных SSL</div>
-                <div className={styles.benefitItemValue}>256bit</div>
+                <div className={styles.benefitItemValue}>0bit</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Разграничение доступа</div>
-                <div className={styles.benefitItemValue}>100%</div>
+                <div className={styles.benefitItemValue}>0%</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>SLA Uptime</div>
-                <div className={styles.benefitItemValue}>100%</div>
+                <div className={styles.benefitItemValue}>0%</div>
               </div>
             </div>
           </div>
@@ -292,15 +292,15 @@ export function Landing() {
           {/* Stats */}
           <div className={styles.statsGrid}>
             <div>
-              <div className={styles.statValue}>500+</div>
+              <div className={styles.statValue}>0+</div>
               <div className={styles.statLabel}>Мебельных компаний используют систему</div>
             </div>
             <div>
-              <div className={styles.statValue}>10K+</div>
+              <div className={styles.statValue}>0K+</div>
               <div className={styles.statLabel}>Заказов обрабатывается ежемесячно</div>
             </div>
             <div>
-              <div className={styles.statValue}>24/7</div>
+              <div className={styles.statValue}>0/7</div>
               <div className={styles.statLabel}>Поддержка на русском языке</div>
             </div>
           </div>
