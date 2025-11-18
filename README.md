@@ -49,6 +49,30 @@ cp .env.example .env.local
 
 ### Настройка Supabase
 
+#### Вариант 1: Облачная база данных (рекомендуется для продакшена)
+
+1. Создайте проект на [Supabase](https://supabase.com)
+2. Скопируйте URL и anon key из настроек проекта
+3. Выполните SQL схему:
+   - Откройте SQL Editor в Supabase Dashboard
+   - Скопируйте содержимое `supabase/schema.sql` и выполните
+4. Добавьте организацию для существующего пользователя (опционально):
+   - Выполните `supabase/add-buro-organization.sql` для добавления организации "Buro"
+   - Или используйте метод `organizationService.addExistingUserToOrganization()`
+
+#### Вариант 2: Локальная база данных (для разработки)
+
+```bash
+# Запустите Supabase локально
+npm run supabase:start
+
+# Примените схему
+npm run supabase:db:reset
+
+# Остановите Supabase
+npm run supabase:stop
+```
+
 1. **Создайте проект** на [supabase.com](https://supabase.com)
 
 2. **Примените схему БД:**

@@ -182,6 +182,127 @@ export class OrganizationService {
   }
 
   /**
+   * Добавить существующего пользователя в организацию
+   * ВНИМАНИЕ: Этот метод требует выполнения через Edge Function или SQL скрипт,
+   * так как поиск пользователя по email требует admin доступ.
+   * Рекомендуется использовать SQL скрипт: supabase/add-buro-organization.sql
+   */
+  async addExistingUserToOrganization(data: {
+    userId: string; // UUID пользователя из auth.users
+    organizationName: string;
+    organizationSlug: string;
+    subscriptionPlan?: SubscriptionPlan;
+  }) {
+    const { userId, organizationName, organizationSlug, subscriptionPlan = 'professional' } = data;
+
+    // Проверить, существует ли профиль пользователя
+    const { data: userProfile, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('id', userId)
+      .single();
+
+    if (userError || !userProfile) {
+      throw new Error(`Профиль пользователя не найден. Создайте профиль сначала.`);
+    }
+
+    // 2. Проверить, существует ли организация
+    let orgData;
+    const { data: existingOrg } = await supabase
+      .from('organizations')
+      .select('*')
+      .eq('slug', organizationSlug)
+      .single();
+
+    if (existingOrg) {
+      orgData = existingOrg;
+    } else {
+      // 3. Создать организацию
+      const { data: newOrg, error: orgError } = await supabase
+        .from('organizations')
+        .insert({
+          name: organizationName,
+          slug: organizationSlug,
+          status: 'active',
+          settings: {},
+          max_users: this.getPlanLimits(subscriptionPlan).users,
+          max_projects: this.getPlanLimits(subscriptionPlan).projects,
+          max_storage_gb: this.getPlanLimits(subscriptionPlan).storage,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (orgError) {
+        throw new Error(`Ошибка создания организации: ${orgError.message}`);
+      }
+      orgData = newOrg;
+    }
+
+    // 4. Добавить пользователя в организацию
+    const { error: memberError } = await supabase
+      .from('organization_members')
+      .insert({
+        organization_id: orgData.id,
+        user_id: userId,
+        role: 'Admin',
+        active: true,
+        joined_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (memberError) {
+      // Если пользователь уже в организации, обновляем роль
+      if (memberError.code === '23505') { // Unique violation
+        await supabase
+          .from('organization_members')
+          .update({
+            role: 'Admin',
+            active: true,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('organization_id', orgData.id)
+          .eq('user_id', userId);
+      } else {
+        throw new Error(`Ошибка добавления пользователя: ${memberError.message}`);
+      }
+    }
+
+    // 5. Установить default_organization_id
+    await supabase
+      .from('users')
+      .update({ default_organization_id: orgData.id })
+      .eq('id', userId);
+
+    // 6. Создать подписку (если не существует)
+    const { error: subError } = await supabase
+      .from('subscriptions')
+      .insert({
+        organization_id: orgData.id,
+        plan: subscriptionPlan,
+        status: 'active',
+        cancel_at_period_end: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (subError && subError.code !== '23505') { // Игнорируем если уже существует
+      throw new Error(`Ошибка создания подписки: ${subError.message}`);
+    }
+
+    return {
+      organization: this.mapOrganization(orgData),
+      userId,
+    };
+  }
+
+  /**
    * Маппинг данных из БД в тип Organization
    */
   private mapOrganization(data: any): Organization {
