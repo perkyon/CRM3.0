@@ -10,6 +10,8 @@ import { AppSidebar } from './AppSidebar';
 import { getInitials } from '../../lib/utils';
 import { useUserStore } from '../../lib/stores/userStore';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCurrentOrganization } from '../../lib/hooks/useCurrentOrganization';
+import { Building2 } from 'lucide-react';
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -17,6 +19,7 @@ export function AppLayout() {
   const navigate = useNavigate();
   const { currentUser, fetchCurrentUser, fetchUsers } = useUserStore();
   const { logout, isAuthenticated, loading } = useAuth();
+  const { currentOrganization } = useCurrentOrganization();
   
   // Fetch current user and all users on mount
   React.useEffect(() => {
@@ -69,6 +72,17 @@ export function AppLayout() {
             <Menu className="size-5" />
           </Button>
           <h1 className="text-lg font-medium">Buro CRM</h1>
+          {currentOrganization && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-muted/50 border border-border">
+              <Building2 className="size-4 text-muted-foreground" />
+              <span className="text-sm font-medium">{currentOrganization.name}</span>
+              {currentOrganization.slug === 'buro' && (
+                <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium">
+                  Enterprise
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-4">
@@ -115,12 +129,26 @@ export function AppLayout() {
 
       {/* Mobile Header */}
       <header className="lg:hidden flex items-center justify-between px-4 py-3 border-b bg-card">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="sm">
-              <Menu className="size-5" />
-            </Button>
-          </SheetTrigger>
+        <div className="flex items-center gap-2">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <Menu className="size-5" />
+              </Button>
+            </SheetTrigger>
+          </Sheet>
+          {currentOrganization && (
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 border border-border">
+              <Building2 className="size-3 text-muted-foreground" />
+              <span className="text-xs font-medium">{currentOrganization.name}</span>
+              {currentOrganization.slug === 'buro' && (
+                <span className="text-[10px] px-1 py-0.5 rounded bg-primary/10 text-primary font-medium">
+                  Enterprise
+                </span>
+              )}
+            </div>
+          )}
+        </div>
           <SheetContent side="left" className="p-0" aria-describedby="nav-sheet-description">
             <SheetDescription id="nav-sheet-description" className="sr-only">
               Боковая панель навигации с основными разделами системы

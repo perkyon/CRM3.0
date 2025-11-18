@@ -39,6 +39,18 @@ export function useServiceWorker() {
           return;
         }
         
+        // Проверяем существование файла перед регистрацией
+        try {
+          const response = await fetch('/sw.js', { method: 'HEAD' });
+          if (!response.ok || !response.headers.get('content-type')?.includes('javascript')) {
+            console.warn('[SW] Service Worker file not found or invalid, skipping registration');
+            return;
+          }
+        } catch (error) {
+          console.warn('[SW] Service Worker file not found, skipping registration');
+          return;
+        }
+        
         const registration = await navigator.serviceWorker.register('/sw.js', {
           updateViaCache: 'none', // Всегда проверяем обновления
         });
