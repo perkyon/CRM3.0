@@ -1,5 +1,10 @@
 -- Скрипт для добавления организации "Buro" и привязки существующего пользователя
 -- Email: fominsevil@gmail.com
+-- 
+-- ВАЖНО: Это собственная организация разработчиков, поэтому:
+-- - Используется Enterprise план с неограниченными лимитами
+-- - Подписка всегда активна (без проверки оплаты)
+-- - Все существующие данные (проекты, клиенты, пользователи) привязываются к этой организации
 
 DO $$
 DECLARE
@@ -26,8 +31,18 @@ BEGIN
     IF existing_org_id IS NOT NULL THEN
         RAISE NOTICE 'Организация "Buro" уже существует с ID: %', existing_org_id;
         org_id_var := existing_org_id;
+        
+        -- Обновить лимиты до Enterprise (неограниченные) для существующей организации
+        UPDATE organizations
+        SET max_users = -1,
+            max_projects = -1,
+            max_storage_gb = 1000,
+            updated_at = NOW()
+        WHERE id = org_id_var;
+        
+        RAISE NOTICE 'Обновлены лимиты организации до Enterprise (неограниченные)';
     ELSE
-        -- 3. Создать организацию "Buro"
+        -- 3. Создать организацию "Buro" с неограниченными лимитами (Enterprise)
         INSERT INTO organizations (
             name,
             slug,
@@ -43,9 +58,9 @@ BEGIN
             'buro',
             'active',
             '{}'::jsonb,
-            50,  -- Professional plan limits
-            -1,  -- Unlimited projects
-            100, -- 100 GB storage
+            -1,  -- Unlimited users (Enterprise)
+            -1,  -- Unlimited projects (Enterprise)
+            1000, -- 1000 GB storage (Enterprise)
             NOW(),
             NOW()
         )
@@ -88,7 +103,8 @@ BEGIN
     
     RAISE NOTICE 'Установлена дефолтная организация для пользователя';
     
-    -- 6. Создать подписку (если еще не существует)
+    -- 6. Создать подписку Enterprise (если еще не существует)
+    -- Для собственной организации "Buro" - всегда активная Enterprise подписка
     INSERT INTO subscriptions (
         organization_id,
         plan,
@@ -98,7 +114,7 @@ BEGIN
         updated_at
     ) VALUES (
         org_id_var,
-        'professional',
+        'enterprise',
         'active',
         false,
         NOW(),
@@ -106,34 +122,54 @@ BEGIN
     )
     ON CONFLICT (organization_id) 
     DO UPDATE SET 
-        plan = 'professional',
+        plan = 'enterprise',
         status = 'active',
+        cancel_at_period_end = false,
         updated_at = NOW();
     
-    RAISE NOTICE 'Создана/обновлена подписка Professional';
+    RAISE NOTICE 'Создана/обновлена подписка Enterprise (неограниченный план для собственной организации)';
     
-    -- 7. Привязать существующие проекты и клиентов к организации (если они не привязаны)
+    -- 7. Привязать ВСЕ существующие проекты и клиентов к организации "Buro"
+    -- (так как это собственная организация, привязываем все данные)
     UPDATE projects
     SET organization_id = org_id_var,
         updated_at = NOW()
-    WHERE organization_id IS NULL
-      AND EXISTS (
-          SELECT 1 FROM users u 
-          WHERE u.id = projects.manager_id 
-          AND u.id = user_id_var
-      );
+    WHERE organization_id IS NULL;
     
     UPDATE clients
     SET organization_id = org_id_var,
         updated_at = NOW()
-    WHERE organization_id IS NULL
-      AND EXISTS (
-          SELECT 1 FROM projects p
-          WHERE p.client_id = clients.id
-          AND p.organization_id = org_id_var
-      );
+    WHERE organization_id IS NULL;
     
-    RAISE NOTICE 'Существующие проекты и клиенты привязаны к организации';
+    RAISE NOTICE 'Все существующие проекты и клиенты привязаны к организации "Buro"';
+    
+    -- 8. Добавить всех существующих пользователей в организацию "Buro"
+    -- (так как это собственная организация, добавляем всех пользователей)
+    INSERT INTO organization_members (
+        organization_id,
+        user_id,
+        role,
+        active,
+        joined_at,
+        created_at,
+        updated_at
+    )
+    SELECT 
+        org_id_var,
+        u.id,
+        'Admin',
+        true,
+        NOW(),
+        NOW(),
+        NOW()
+    FROM users u
+    WHERE NOT EXISTS (
+        SELECT 1 FROM organization_members om
+        WHERE om.organization_id = org_id_var
+          AND om.user_id = u.id
+    );
+    
+    RAISE NOTICE 'Все существующие пользователи добавлены в организацию "Buro"';
     
     RAISE NOTICE 'Готово! Организация "Buro" успешно создана и настроена.';
     
