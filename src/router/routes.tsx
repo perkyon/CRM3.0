@@ -1,5 +1,5 @@
 import React, { lazy } from 'react';
-import { RouteObject, Navigate } from 'react-router-dom';
+import { RouteObject, Navigate, useParams } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
 
 // Компонент для ошибки загрузки модуля
@@ -75,12 +75,18 @@ const DevelopmentPage = ({ title }: { title: string }) => (
   </div>
 );
 
+// Компонент для редиректа старых URL проектов
+const ProjectRedirect = () => {
+  const { projectId } = useParams<{ projectId: string }>();
+  return <Navigate to={`/app/projects/${projectId}`} replace />;
+};
+
 // Определение роутов
 export const routes: RouteObject[] = [
   // Редирект старых URL на новые
   {
     path: '/projects/:projectId',
-    element: <Navigate to={(location) => `/app${location.pathname}`} replace />
+    element: <ProjectRedirect />
   },
   // Публичные страницы (без AppLayout)
   {
