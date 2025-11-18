@@ -136,17 +136,6 @@ export function AppLayout() {
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
-            {currentOrganization && (
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 border border-border ml-2">
-                <Building2 className="size-3 text-muted-foreground" />
-                <span className="text-xs font-medium">{currentOrganization.name}</span>
-                {currentOrganization.slug === 'buro' && (
-                  <span className="text-[10px] px-1 py-0.5 rounded bg-primary/10 text-primary font-medium">
-                    Enterprise
-                  </span>
-                )}
-              </div>
-            )}
             <SheetContent side="left" className="p-0" aria-describedby="nav-sheet-description">
             <SheetDescription id="nav-sheet-description" className="sr-only">
               Боковая панель навигации с основными разделами системы
@@ -161,6 +150,17 @@ export function AppLayout() {
             />
           </SheetContent>
         </Sheet>
+        {currentOrganization && (
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 border border-border">
+            <Building2 className="size-3 text-muted-foreground" />
+            <span className="text-xs font-medium">{currentOrganization.name}</span>
+            {currentOrganization.slug === 'buro' && (
+              <span className="text-[10px] px-1 py-0.5 rounded bg-primary/10 text-primary font-medium">
+                Enterprise
+              </span>
+            )}
+          </div>
+        )}
 
         <h1 className="text-base font-medium">CRM</h1>
 
