@@ -103,31 +103,38 @@ BEGIN
     
     RAISE NOTICE 'Установлена дефолтная организация для пользователя';
     
-    -- 6. Создать подписку Enterprise (если еще не существует)
+    -- 6. Создать/обновить подписку Enterprise
     -- Для собственной организации "Buro" - всегда активная Enterprise подписка
-    INSERT INTO subscriptions (
-        organization_id,
-        plan,
-        status,
-        cancel_at_period_end,
-        created_at,
-        updated_at
-    ) VALUES (
-        org_id_var,
-        'enterprise',
-        'active',
-        false,
-        NOW(),
-        NOW()
-    )
-    ON CONFLICT (organization_id) 
-    DO UPDATE SET 
-        plan = 'enterprise',
-        status = 'active',
-        cancel_at_period_end = false,
-        updated_at = NOW();
-    
-    RAISE NOTICE 'Создана/обновлена подписка Enterprise (неограниченный план для собственной организации)';
+    IF EXISTS (SELECT 1 FROM subscriptions WHERE organization_id = org_id_var) THEN
+        -- Обновить существующую подписку
+        UPDATE subscriptions
+        SET plan = 'enterprise',
+            status = 'active',
+            cancel_at_period_end = false,
+            updated_at = NOW()
+        WHERE organization_id = org_id_var;
+        
+        RAISE NOTICE 'Обновлена подписка Enterprise (неограниченный план для собственной организации)';
+    ELSE
+        -- Создать новую подписку
+        INSERT INTO subscriptions (
+            organization_id,
+            plan,
+            status,
+            cancel_at_period_end,
+            created_at,
+            updated_at
+        ) VALUES (
+            org_id_var,
+            'enterprise',
+            'active',
+            false,
+            NOW(),
+            NOW()
+        );
+        
+        RAISE NOTICE 'Создана подписка Enterprise (неограниченный план для собственной организации)';
+    END IF;
     
     -- 7. Привязать ВСЕ существующие проекты и клиентов к организации "Buro"
     -- (так как это собственная организация, привязываем все данные)
