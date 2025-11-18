@@ -47,24 +47,44 @@ export function ProjectOverview() {
   const [project, setProject] = useState<Project | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     if (projectId) {
+      setIsLoading(true);
+      setNotFound(false);
+      
       // Сначала ищем в локальных проектах
       const localProject = projects.find(p => p.id === projectId);
       if (localProject) {
         setProject(localProject);
+        setIsLoading(false);
         // Загружаем документы проекта
         loadProjectDocuments(projectId);
       } else {
         // Если не найден локально, загружаем из API
-        fetchProject(projectId).then(() => {
-          if (selectedProject && selectedProject.id === projectId) {
-            setProject(selectedProject);
-            loadProjectDocuments(projectId);
-          }
-        });
+        fetchProject(projectId)
+          .then(() => {
+            if (selectedProject && selectedProject.id === projectId) {
+              setProject(selectedProject);
+              setIsLoading(false);
+              loadProjectDocuments(projectId);
+            } else {
+              // Проект не найден
+              setIsLoading(false);
+              setNotFound(true);
+            }
+          })
+          .catch((error) => {
+            console.error('Error fetching project:', error);
+            setIsLoading(false);
+            setNotFound(true);
+          });
       }
+    } else {
+      setIsLoading(false);
+      setNotFound(true);
     }
   }, [projectId, projects, selectedProject, fetchProject]);
 
@@ -82,21 +102,48 @@ export function ProjectOverview() {
   useEffect(() => {
     if (selectedProject && selectedProject.id === projectId) {
       setProject(selectedProject);
+      setIsLoading(false);
+      setNotFound(false);
     }
   }, [selectedProject, projectId]);
   
-  if (!project) {
+  // Состояние загрузки
+  if (isLoading) {
     return (
       <div className="p-6 lg:p-8">
         <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/projects')}>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/app/projects')}>
             <ArrowLeft className="size-4 mr-2" />
             Назад к проектам
           </Button>
         </div>
         <div className="text-center py-16">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <h2 className="text-xl font-medium mb-2">Загрузка проекта...</h2>
+        </div>
+      </div>
+    );
+  }
+  
+  // Проект не найден
+  if (!project || notFound) {
+    return (
+      <div className="p-6 lg:p-8">
+        <div className="flex items-center gap-4 mb-6">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/app/projects')}>
+            <ArrowLeft className="size-4 mr-2" />
+            Назад к проектам
+          </Button>
+        </div>
+        <div className="text-center py-16">
+          <AlertTriangle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
           <h2 className="text-xl font-medium mb-2">Проект не найден</h2>
-          <p className="text-muted-foreground">Проект с ID {projectId} не существует</p>
+          <p className="text-muted-foreground mb-4">
+            Проект с ID {projectId} не существует или у вас нет доступа к нему
+          </p>
+          <Button onClick={() => navigate('/app/projects')}>
+            Вернуться к списку проектов
+          </Button>
         </div>
       </div>
     );

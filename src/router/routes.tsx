@@ -1,5 +1,5 @@
 import React, { lazy } from 'react';
-import { RouteObject } from 'react-router-dom';
+import { RouteObject, Navigate } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
 
 // Компонент для ошибки загрузки модуля
@@ -77,6 +77,11 @@ const DevelopmentPage = ({ title }: { title: string }) => (
 
 // Определение роутов
 export const routes: RouteObject[] = [
+  // Редирект старых URL на новые
+  {
+    path: '/projects/:projectId',
+    element: <Navigate to={(location) => `/app${location.pathname}`} replace />
+  },
   // Публичные страницы (без AppLayout)
   {
     path: '/',

@@ -89,7 +89,15 @@ export class SupabaseProjectService {
       .single();
 
     if (error) {
+      // Если проект не найден (PGRST116 = no rows returned)
+      if (error.code === 'PGRST116' || error.message?.includes('No rows')) {
+        throw new Error(`Project not found: ${id}`);
+      }
       throw new Error(`Failed to fetch project: ${error.message}`);
+    }
+
+    if (!project) {
+      throw new Error(`Project not found: ${id}`);
     }
 
     // Transform snake_case to camelCase
