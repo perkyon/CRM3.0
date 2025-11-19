@@ -16,7 +16,7 @@ export function Landing() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Отключен preloader для отладки
 
   const handleLogin = () => {
     setIsLoginOpen(true);
@@ -42,46 +42,44 @@ export function Landing() {
         {isLoading && <Preloader onComplete={() => setIsLoading(false)} />}
       </AnimatePresence>
 
-      {!isLoading && (
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6 }}
-          className="min-h-screen bg-white"
-        >
-          <Hero 
-            onLogin={handleLogin}
-            onRegister={handleRegister}
-            isMenuOpen={isMenuOpen}
-            setIsMenuOpen={setIsMenuOpen}
-          />
-          <Services />
-          <Technologies />
-          <CRMDemo />
-          <Pricing onSelectPlan={handleRegister} />
-          <Contact />
-          
-          <LoginModal 
-            isOpen={isLoginOpen} 
-            onClose={() => setIsLoginOpen(false)}
-            onRegister={() => {
-              setIsLoginOpen(false);
-              setIsRegisterOpen(true);
-            }}
-            onSubmit={handleLoginSubmit}
-          />
-          
-          <RegisterModal 
-            isOpen={isRegisterOpen} 
-            onClose={() => setIsRegisterOpen(false)}
-            onLogin={() => {
-              setIsRegisterOpen(false);
-              setIsLoginOpen(true);
-            }}
-            onSubmit={handleRegisterSubmit}
-          />
-        </motion.div>
-      )}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        className="min-h-screen bg-white"
+      >
+        <Hero 
+          onLogin={handleLogin}
+          onRegister={handleRegister}
+          isMenuOpen={isMenuOpen}
+          setIsMenuOpen={setIsMenuOpen}
+        />
+        <Services />
+        <Technologies />
+        <CRMDemo />
+        <Pricing onSelectPlan={handleRegister} />
+        <Contact />
+        
+        <LoginModal 
+          isOpen={isLoginOpen} 
+          onClose={() => setIsLoginOpen(false)}
+          onRegister={() => {
+            setIsLoginOpen(false);
+            setIsRegisterOpen(true);
+          }}
+          onSubmit={handleLoginSubmit}
+        />
+        
+        <RegisterModal 
+          isOpen={isRegisterOpen} 
+          onClose={() => setIsRegisterOpen(false)}
+          onLogin={() => {
+            setIsRegisterOpen(false);
+            setIsLoginOpen(true);
+          }}
+          onSubmit={handleRegisterSubmit}
+        />
+      </motion.div>
     </>
   );
 }
