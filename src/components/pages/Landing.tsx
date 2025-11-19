@@ -248,7 +248,7 @@ export function Landing() {
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Скорость загрузки</div>
-                <div className={styles.benefitItemValue}><2с</div>
+                <div className={styles.benefitItemValue}>&lt;2с</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>SEO оптимизация</div>
