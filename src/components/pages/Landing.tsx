@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Landing.module.css';
 import { 
-  Users, 
-  ShoppingCart, 
-  Calendar, 
-  DollarSign,
+  Code, 
+  Smartphone, 
+  Palette, 
+  Lightbulb,
   TrendingUp,
   Clock,
   BarChart3,
@@ -23,7 +23,7 @@ export function Landing() {
       {/* Navigation */}
       <nav className={styles.nav}>
         <div className={styles.navContainer}>
-          <div className={styles.navLogo}>BURO CRM</div>
+          <div className={styles.navLogo}>BURO DIGITAL</div>
           <button 
             className={styles.navMenu}
             onClick={() => setMenuOpen(!menuOpen)}
@@ -36,7 +36,7 @@ export function Landing() {
           <div className={styles.navMenuOverlay} onClick={() => setMenuOpen(false)}>
             <div className={styles.navMenuContent} onClick={(e) => e.stopPropagation()}>
               <div className={styles.navMenuHeader}>
-                <div className={styles.navLogo}>BURO CRM</div>
+                <div className={styles.navLogo}>BURO DIGITAL</div>
                 <button 
                   className={styles.navMenuClose}
                   onClick={() => setMenuOpen(false)}
@@ -81,20 +81,20 @@ export function Landing() {
         <div className={styles.heroContainer}>
           <div className={styles.heroContent}>
             <h1 className={styles.heroTitle}>
-              <span className={styles.heroTitleLine}>CRM</span>
-              <span className={styles.heroTitleLine}>система</span>
+              <span className={styles.heroTitleLine}>Цифровые</span>
+              <span className={styles.heroTitleLine}>решения</span>
               <span className={styles.heroTitleLine}>для</span>
-              <span className={styles.heroTitleLine}>мебельного</span>
-              <span className={styles.heroTitleLine}>производства</span>
+              <span className={styles.heroTitleLine}>вашего</span>
+              <span className={styles.heroTitleLine}>бизнеса</span>
             </h1>
             <p className={styles.heroDescription}>
-              Управляйте клиентами, заказами и производством в одной системе. Увеличьте продажи на 40% и сократите время на рутину в 3 раза.
+              Создаем современные веб-приложения, мобильные приложения и цифровые продукты, которые помогают бизнесу расти и развиваться.
             </p>
             <button 
               className={styles.heroButton}
               onClick={() => navigate('/pricing')}
             >
-              Попробовать бесплатно
+              Обсудить проект
             </button>
           </div>
         </div>
@@ -109,17 +109,17 @@ export function Landing() {
               <div>
                 <div className={`${styles.serviceNumber} ${styles.serviceNumberWhite}`}>01</div>
                 <div className={styles.serviceIcon} style={{ borderColor: '#000' }}>
-                  <Users size={32} />
+                  <Code size={32} />
                 </div>
-                <h2 className={styles.serviceTitle}>Управление клиентами</h2>
+                <h2 className={styles.serviceTitle}>Веб-разработка</h2>
                 <p className={`${styles.serviceDescription} ${styles.serviceDescriptionWhite}`}>
-                  База клиентов с полной историей заказов, контактами и предпочтениями. CRM для долгосрочных отношений.
+                  Создаем современные веб-приложения и сайты с использованием передовых технологий и лучших практик разработки.
                 </p>
               </div>
               <div className={styles.serviceTags}>
-                <span className={`${styles.serviceTag} ${styles.serviceTagWhite}`}>CRM</span>
-                <span className={`${styles.serviceTag} ${styles.serviceTagWhite}`}>База клиентов</span>
-                <span className={`${styles.serviceTag} ${styles.serviceTagWhite}`}>История заказов</span>
+                <span className={`${styles.serviceTag} ${styles.serviceTagWhite}`}>React</span>
+                <span className={`${styles.serviceTag} ${styles.serviceTagWhite}`}>TypeScript</span>
+                <span className={`${styles.serviceTag} ${styles.serviceTagWhite}`}>Next.js</span>
               </div>
             </div>
 
@@ -128,17 +128,17 @@ export function Landing() {
               <div>
                 <div className={`${styles.serviceNumber} ${styles.serviceNumberBlack}`}>02</div>
                 <div className={styles.serviceIcon} style={{ borderColor: '#fff' }}>
-                  <ShoppingCart size={32} />
+                  <Smartphone size={32} />
                 </div>
-                <h2 className={styles.serviceTitle}>Контроль заказов</h2>
+                <h2 className={styles.serviceTitle}>Мобильная разработка</h2>
                 <p className={`${styles.serviceDescription} ${styles.serviceDescriptionBlack}`}>
-                  Отслеживайте каждый заказ от замера до установки. Все этапы под контролем в одном интерфейсе.
+                  Разрабатываем нативные и кроссплатформенные мобильные приложения для iOS и Android.
                 </p>
               </div>
               <div className={styles.serviceTags}>
-                <span className={`${styles.serviceTag} ${styles.serviceTagBlack}`}>Заказы</span>
-                <span className={`${styles.serviceTag} ${styles.serviceTagBlack}`}>Статусы</span>
-                <span className={`${styles.serviceTag} ${styles.serviceTagBlack}`}>Отслеживание</span>
+                <span className={`${styles.serviceTag} ${styles.serviceTagBlack}`}>iOS</span>
+                <span className={`${styles.serviceTag} ${styles.serviceTagBlack}`}>Android</span>
+                <span className={`${styles.serviceTag} ${styles.serviceTagBlack}`}>React Native</span>
               </div>
             </div>
 
@@ -147,17 +147,17 @@ export function Landing() {
               <div>
                 <div className={`${styles.serviceNumber} ${styles.serviceNumberWhite}`}>03</div>
                 <div className={styles.serviceIcon} style={{ borderColor: '#000' }}>
-                  <Calendar size={32} />
+                  <Palette size={32} />
                 </div>
-                <h2 className={styles.serviceTitle}>Производственный календарь</h2>
+                <h2 className={styles.serviceTitle}>UI/UX дизайн</h2>
                 <p className={`${styles.serviceDescription} ${styles.serviceDescriptionWhite}`}>
-                  Планируйте загрузку цеха, распределяйте задачи между работниками и контролируйте сроки.
+                  Создаем интуитивные и красивые интерфейсы, которые обеспечивают отличный пользовательский опыт.
                 </p>
               </div>
               <div className={styles.serviceTags}>
-                <span className={`${styles.serviceTag} ${styles.serviceTagWhite}`}>Планирование</span>
-                <span className={`${styles.serviceTag} ${styles.serviceTagWhite}`}>Календарь</span>
-                <span className={`${styles.serviceTag} ${styles.serviceTagWhite}`}>Задачи</span>
+                <span className={`${styles.serviceTag} ${styles.serviceTagWhite}`}>Figma</span>
+                <span className={`${styles.serviceTag} ${styles.serviceTagWhite}`}>Прототипирование</span>
+                <span className={`${styles.serviceTag} ${styles.serviceTagWhite}`}>Дизайн-системы</span>
               </div>
             </div>
 
@@ -166,17 +166,17 @@ export function Landing() {
               <div>
                 <div className={`${styles.serviceNumber} ${styles.serviceNumberBlack}`}>04</div>
                 <div className={styles.serviceIcon} style={{ borderColor: '#fff' }}>
-                  <DollarSign size={32} />
+                  <Lightbulb size={32} />
                 </div>
-                <h2 className={styles.serviceTitle}>Финансовый учет</h2>
+                <h2 className={styles.serviceTitle}>Консалтинг</h2>
                 <p className={`${styles.serviceDescription} ${styles.serviceDescriptionBlack}`}>
-                  Отслеживайте платежи, авансы и долги. Формируйте отчеты о прибыли и убытках.
+                  Помогаем бизнесу выбрать правильные технологии и архитектурные решения для цифровой трансформации.
                 </p>
               </div>
               <div className={styles.serviceTags}>
-                <span className={`${styles.serviceTag} ${styles.serviceTagBlack}`}>Финансы</span>
-                <span className={`${styles.serviceTag} ${styles.serviceTagBlack}`}>Платежи</span>
-                <span className={`${styles.serviceTag} ${styles.serviceTagBlack}`}>Отчеты</span>
+                <span className={`${styles.serviceTag} ${styles.serviceTagBlack}`}>Архитектура</span>
+                <span className={`${styles.serviceTag} ${styles.serviceTagBlack}`}>Стратегия</span>
+                <span className={`${styles.serviceTag} ${styles.serviceTagBlack}`}>Оптимизация</span>
               </div>
             </div>
           </div>
@@ -199,20 +199,20 @@ export function Landing() {
                 <h3 className={styles.benefitCardTitle}>РЕЗУЛЬТАТЫ</h3>
               </div>
               <div className={styles.benefitItem}>
-                <div className={styles.benefitItemLabel}>Рост продаж</div>
-                <div className={styles.benefitItemValue}>0%</div>
+                <div className={styles.benefitItemLabel}>Реализованных проектов</div>
+                <div className={styles.benefitItemValue}>50+</div>
               </div>
               <div className={styles.benefitItem}>
-                <div className={styles.benefitItemLabel}>Экономия времени</div>
-                <div className={styles.benefitItemValue}>0x</div>
+                <div className={styles.benefitItemLabel}>Довольных клиентов</div>
+                <div className={styles.benefitItemValue}>30+</div>
               </div>
               <div className={styles.benefitItem}>
-                <div className={styles.benefitItemLabel}>Удовлетворенность клиентов</div>
-                <div className={styles.benefitItemValue}>0%</div>
+                <div className={styles.benefitItemLabel}>Лет опыта</div>
+                <div className={styles.benefitItemValue}>5+</div>
               </div>
               <div className={styles.benefitItem}>
-                <div className={styles.benefitItemLabel}>Снижение ошибок</div>
-                <div className={styles.benefitItemValue}>0%</div>
+                <div className={styles.benefitItemLabel}>Средняя оценка</div>
+                <div className={styles.benefitItemValue}>4.9/5</div>
               </div>
             </div>
 
@@ -223,20 +223,20 @@ export function Landing() {
                 <h3 className={styles.benefitCardTitle}>АВТОМАТИЗАЦИЯ</h3>
               </div>
               <div className={styles.benefitItem}>
-                <div className={styles.benefitItemLabel}>Уведомления клиентам</div>
-                <div className={styles.benefitItemValue}>0%</div>
+                <div className={styles.benefitItemLabel}>Адаптивный дизайн</div>
+                <div className={styles.benefitItemValue}>100%</div>
               </div>
               <div className={styles.benefitItem}>
-                <div className={styles.benefitItemLabel}>Напоминания о платежах</div>
-                <div className={styles.benefitItemValue}>0%</div>
+                <div className={styles.benefitItemLabel}>Оптимизация производительности</div>
+                <div className={styles.benefitItemValue}>95%</div>
               </div>
               <div className={styles.benefitItem}>
-                <div className={styles.benefitItemLabel}>Контроль сроков</div>
-                <div className={styles.benefitItemValue}>0%</div>
+                <div className={styles.benefitItemLabel}>Соблюдение сроков</div>
+                <div className={styles.benefitItemValue}>98%</div>
               </div>
               <div className={styles.benefitItem}>
-                <div className={styles.benefitItemLabel}>Формирование отчетов</div>
-                <div className={styles.benefitItemValue}>0%</div>
+                <div className={styles.benefitItemLabel}>Поддержка после запуска</div>
+                <div className={styles.benefitItemValue}>24/7</div>
               </div>
             </div>
 
@@ -247,20 +247,20 @@ export function Landing() {
                 <h3 className={styles.benefitCardTitle}>АНАЛИТИКА</h3>
               </div>
               <div className={styles.benefitItem}>
-                <div className={styles.benefitItemLabel}>Динамика продаж</div>
-                <div className={styles.benefitItemValue}>0%</div>
+                <div className={styles.benefitItemLabel}>Скорость загрузки</div>
+                <div className={styles.benefitItemValue}><2с</div>
               </div>
               <div className={styles.benefitItem}>
-                <div className={styles.benefitItemLabel}>Загрузка производства</div>
-                <div className={styles.benefitItemValue}>0%</div>
+                <div className={styles.benefitItemLabel}>SEO оптимизация</div>
+                <div className={styles.benefitItemValue}>90+</div>
               </div>
               <div className={styles.benefitItem}>
-                <div className={styles.benefitItemLabel}>Финансовые показатели</div>
-                <div className={styles.benefitItemValue}>0%</div>
+                <div className={styles.benefitItemLabel}>Доступность</div>
+                <div className={styles.benefitItemValue}>WCAG AA</div>
               </div>
               <div className={styles.benefitItem}>
-                <div className={styles.benefitItemLabel}>Эффективность менеджеров</div>
-                <div className={styles.benefitItemValue}>0%</div>
+                <div className={styles.benefitItemLabel}>Кроссбраузерность</div>
+                <div className={styles.benefitItemValue}>100%</div>
               </div>
             </div>
 
@@ -271,20 +271,20 @@ export function Landing() {
                 <h3 className={styles.benefitCardTitle}>БЕЗОПАСНОСТЬ</h3>
               </div>
               <div className={styles.benefitItem}>
-                <div className={styles.benefitItemLabel}>Резервное копирование</div>
-                <div className={styles.benefitItemValue}>0%</div>
+                <div className={styles.benefitItemLabel}>Шифрование данных</div>
+                <div className={styles.benefitItemValue}>256bit</div>
               </div>
               <div className={styles.benefitItem}>
                 <div className={styles.benefitItemLabel}>Защита данных SSL</div>
-                <div className={styles.benefitItemValue}>0bit</div>
+                <div className={styles.benefitItemValue}>100%</div>
               </div>
               <div className={styles.benefitItem}>
-                <div className={styles.benefitItemLabel}>Разграничение доступа</div>
-                <div className={styles.benefitItemValue}>0%</div>
+                <div className={styles.benefitItemLabel}>Соответствие GDPR</div>
+                <div className={styles.benefitItemValue}>100%</div>
               </div>
               <div className={styles.benefitItem}>
-                <div className={styles.benefitItemLabel}>SLA Uptime</div>
-                <div className={styles.benefitItemValue}>0%</div>
+                <div className={styles.benefitItemLabel}>Uptime</div>
+                <div className={styles.benefitItemValue}>99.9%</div>
               </div>
             </div>
           </div>
@@ -292,16 +292,16 @@ export function Landing() {
           {/* Stats */}
           <div className={styles.statsGrid}>
             <div>
-              <div className={styles.statValue}>0+</div>
-              <div className={styles.statLabel}>Мебельных компаний используют систему</div>
+              <div className={styles.statValue}>50+</div>
+              <div className={styles.statLabel}>Успешно реализованных проектов</div>
             </div>
             <div>
-              <div className={styles.statValue}>0K+</div>
-              <div className={styles.statLabel}>Заказов обрабатывается ежемесячно</div>
+              <div className={styles.statValue}>30+</div>
+              <div className={styles.statLabel}>Довольных клиентов по всему миру</div>
             </div>
             <div>
-              <div className={styles.statValue}>0/7</div>
-              <div className={styles.statLabel}>Поддержка на русском языке</div>
+              <div className={styles.statValue}>24/7</div>
+              <div className={styles.statLabel}>Техническая поддержка</div>
             </div>
           </div>
         </div>
@@ -310,15 +310,15 @@ export function Landing() {
       {/* Demo Section */}
       <section className={`${styles.section} ${styles.demoSection}`}>
         <div className={styles.sectionContainer}>
-          <h2 className={styles.demoTitle}>Демо-версия</h2>
+          <h2 className={styles.demoTitle}>Портфолио</h2>
           <p className={styles.demoSubtitle}>
-            Посмотрите, как работает система изнутри
+            Посмотрите примеры наших работ и успешных проектов
           </p>
           <button 
             className={styles.demoButton}
-            onClick={() => navigate('/login')}
+            onClick={() => window.open('https://www.burodigital.ru/portfolio', '_blank')}
           >
-            Открыть демо
+            Смотреть портфолио
           </button>
         </div>
       </section>
@@ -326,186 +326,162 @@ export function Landing() {
       {/* Pricing Section */}
       <section id="pricing" className={styles.section}>
         <div className={styles.sectionContainer}>
-          <h2 className={styles.pricingTitle}>Тарифы</h2>
+          <h2 className={styles.pricingTitle}>Услуги</h2>
           <p className={styles.pricingSubtitle}>
-            Прозрачное ценообразование без скрытых платежей. Первые 3 месяца бесплатно.
+            Гибкие тарифы и индивидуальный подход к каждому проекту. Свяжитесь с нами для расчета стоимости.
           </p>
 
           <div className={styles.pricingGrid}>
-            {/* Plan 1: Старт */}
+            {/* Service 1: Веб-разработка */}
             <div className={styles.pricingCard}>
-              <h3 className={styles.pricingPlanTitle}>Старт</h3>
-              <p className={styles.pricingPlanDescription}>Для небольших мастерских</p>
-              <div className={styles.pricingPlanPrice}>2 990₽/мес</div>
+              <h3 className={styles.pricingPlanTitle}>Веб-разработка</h3>
+              <p className={styles.pricingPlanDescription}>Современные веб-приложения</p>
+              <div className={styles.pricingPlanPrice}>от 150 000₽</div>
               <button 
                 className={styles.pricingButton}
                 onClick={() => navigate('/pricing')}
               >
-                Выбрать план →
+                Обсудить проект →
               </button>
               <ul className={styles.pricingFeatures}>
                 <li className={styles.pricingFeature}>
                   <div className={styles.pricingFeatureDot}>
                     <div className={styles.pricingFeatureDotInner} />
                   </div>
-                  <span>До 3 пользователей</span>
+                  <span>React / Next.js</span>
                 </li>
                 <li className={styles.pricingFeature}>
                   <div className={styles.pricingFeatureDot}>
                     <div className={styles.pricingFeatureDotInner} />
                   </div>
-                  <span>До 50 заказов в месяц</span>
+                  <span>TypeScript</span>
                 </li>
                 <li className={styles.pricingFeature}>
                   <div className={styles.pricingFeatureDot}>
                     <div className={styles.pricingFeatureDotInner} />
                   </div>
-                  <span>Управление клиентами</span>
+                  <span>Адаптивный дизайн</span>
                 </li>
                 <li className={styles.pricingFeature}>
                   <div className={styles.pricingFeatureDot}>
                     <div className={styles.pricingFeatureDotInner} />
                   </div>
-                  <span>Каталог продукции</span>
+                  <span>SEO оптимизация</span>
                 </li>
                 <li className={styles.pricingFeature}>
                   <div className={styles.pricingFeatureDot}>
                     <div className={styles.pricingFeatureDotInner} />
                   </div>
-                  <span>Базовая аналитика</span>
+                  <span>Интеграции API</span>
                 </li>
                 <li className={styles.pricingFeature}>
                   <div className={styles.pricingFeatureDot}>
                     <div className={styles.pricingFeatureDotInner} />
                   </div>
-                  <span>Email поддержка</span>
+                  <span>Техническая поддержка</span>
                 </li>
               </ul>
             </div>
 
-            {/* Plan 2: Бизнес (Популярный) */}
+            {/* Service 2: Мобильная разработка (Популярный) */}
             <div className={`${styles.pricingCard} ${styles.pricingCardPopular} ${styles.pricingCardBlack}`}>
               <div className={styles.pricingCardPopularBadge}>Популярный</div>
-              <h3 className={styles.pricingPlanTitle}>Бизнес</h3>
-              <p className={styles.pricingPlanDescription}>Для растущих компаний</p>
-              <div className={styles.pricingPlanPrice}>5 990₽/мес</div>
+              <h3 className={styles.pricingPlanTitle}>Мобильная разработка</h3>
+              <p className={styles.pricingPlanDescription}>iOS и Android приложения</p>
+              <div className={styles.pricingPlanPrice}>от 200 000₽</div>
               <button 
                 className={`${styles.pricingButton} ${styles.pricingButtonPopular}`}
                 onClick={() => navigate('/pricing')}
               >
-                Выбрать план →
+                Обсудить проект →
               </button>
               <ul className={styles.pricingFeatures}>
                 <li className={styles.pricingFeature}>
                   <div className={styles.pricingFeatureDot}>
                     <div className={styles.pricingFeatureDotInner} />
                   </div>
-                  <span>До 10 пользователей</span>
+                  <span>Нативная разработка</span>
                 </li>
                 <li className={styles.pricingFeature}>
                   <div className={styles.pricingFeatureDot}>
                     <div className={styles.pricingFeatureDotInner} />
                   </div>
-                  <span>До 200 заказов в месяц</span>
+                  <span>React Native</span>
                 </li>
                 <li className={styles.pricingFeature}>
                   <div className={styles.pricingFeatureDot}>
                     <div className={styles.pricingFeatureDotInner} />
                   </div>
-                  <span>Все функции Старт</span>
+                  <span>Кроссплатформенность</span>
                 </li>
                 <li className={styles.pricingFeature}>
                   <div className={styles.pricingFeatureDot}>
                     <div className={styles.pricingFeatureDotInner} />
                   </div>
-                  <span>Производственный календарь</span>
+                  <span>Публикация в сторы</span>
                 </li>
                 <li className={styles.pricingFeature}>
                   <div className={styles.pricingFeatureDot}>
                     <div className={styles.pricingFeatureDotInner} />
                   </div>
-                  <span>Финансовый учет</span>
+                  <span>Push-уведомления</span>
                 </li>
                 <li className={styles.pricingFeature}>
                   <div className={styles.pricingFeatureDot}>
                     <div className={styles.pricingFeatureDotInner} />
                   </div>
-                  <span>Расширенная аналитика</span>
-                </li>
-                <li className={styles.pricingFeature}>
-                  <div className={styles.pricingFeatureDot}>
-                    <div className={styles.pricingFeatureDotInner} />
-                  </div>
-                  <span>Интеграции с 1С</span>
-                </li>
-                <li className={styles.pricingFeature}>
-                  <div className={styles.pricingFeatureDot}>
-                    <div className={styles.pricingFeatureDotInner} />
-                  </div>
-                  <span>Приоритетная поддержка</span>
+                  <span>Обновления и поддержка</span>
                 </li>
               </ul>
             </div>
 
-            {/* Plan 3: Производство */}
+            {/* Service 3: UI/UX дизайн */}
             <div className={`${styles.pricingCard} ${styles.pricingCardBlack}`}>
-              <h3 className={styles.pricingPlanTitle}>Производство</h3>
-              <p className={styles.pricingPlanDescription}>Для крупных предприятий</p>
-              <div className={styles.pricingPlanPrice}>12 990₽/мес</div>
+              <h3 className={styles.pricingPlanTitle}>UI/UX дизайн</h3>
+              <p className={styles.pricingPlanDescription}>Дизайн интерфейсов</p>
+              <div className={styles.pricingPlanPrice}>от 80 000₽</div>
               <button 
                 className={`${styles.pricingButton} ${styles.pricingButtonPopular}`}
                 onClick={() => navigate('/pricing')}
               >
-                Выбрать план →
+                Обсудить проект →
               </button>
               <ul className={styles.pricingFeatures}>
                 <li className={styles.pricingFeature}>
                   <div className={styles.pricingFeatureDot}>
                     <div className={styles.pricingFeatureDotInner} />
                   </div>
-                  <span>Неограниченно пользователей</span>
+                  <span>Исследование пользователей</span>
                 </li>
                 <li className={styles.pricingFeature}>
                   <div className={styles.pricingFeatureDot}>
                     <div className={styles.pricingFeatureDotInner} />
                   </div>
-                  <span>Неограниченно заказов</span>
+                  <span>Прототипирование</span>
                 </li>
                 <li className={styles.pricingFeature}>
                   <div className={styles.pricingFeatureDot}>
                     <div className={styles.pricingFeatureDotInner} />
                   </div>
-                  <span>Все функции Бизнес</span>
+                  <span>Дизайн-системы</span>
                 </li>
                 <li className={styles.pricingFeature}>
                   <div className={styles.pricingFeatureDot}>
                     <div className={styles.pricingFeatureDotInner} />
                   </div>
-                  <span>Управление складом</span>
+                  <span>Адаптивные макеты</span>
                 </li>
                 <li className={styles.pricingFeature}>
                   <div className={styles.pricingFeatureDot}>
                     <div className={styles.pricingFeatureDotInner} />
                   </div>
-                  <span>API доступ</span>
+                  <span>Анимации и переходы</span>
                 </li>
                 <li className={styles.pricingFeature}>
                   <div className={styles.pricingFeatureDot}>
                     <div className={styles.pricingFeatureDotInner} />
                   </div>
-                  <span>Персональный менеджер</span>
-                </li>
-                <li className={styles.pricingFeature}>
-                  <div className={styles.pricingFeatureDot}>
-                    <div className={styles.pricingFeatureDotInner} />
-                  </div>
-                  <span>Обучение команды</span>
-                </li>
-                <li className={styles.pricingFeature}>
-                  <div className={styles.pricingFeatureDot}>
-                    <div className={styles.pricingFeatureDotInner} />
-                  </div>
-                  <span>SLA 99.9%</span>
+                  <span>Гайдлайны и документация</span>
                 </li>
               </ul>
             </div>
@@ -521,13 +497,13 @@ export function Landing() {
             <div>
               <h2 className={styles.contactTitle}>Контакты</h2>
               <p className={styles.contactDescription}>
-                Готовы начать работу с Buro CRM? Свяжитесь с нами любым удобным способом.
+                Готовы начать работу с Buro Digital? Свяжитесь с нами любым удобным способом.
               </p>
               <div className={styles.contactInfo}>
                 <div className={styles.contactInfoItem}>
                   <div className={styles.contactInfoLabel}>EMAIL</div>
-                  <a href="mailto:support@burocrm.ru" className={styles.contactInfoLink}>
-                    support@burocrm.ru
+                  <a href="mailto:info@burodigital.ru" className={styles.contactInfoLink}>
+                    info@burodigital.ru
                   </a>
                 </div>
                 <div className={styles.contactInfoItem}>

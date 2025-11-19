@@ -150,6 +150,7 @@ export function AppLayout() {
             />
           </SheetContent>
         </Sheet>
+        </div>
         {currentOrganization && (
           <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 border border-border">
             <Building2 className="size-3 text-muted-foreground" />
