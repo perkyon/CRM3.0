@@ -37,31 +37,24 @@ export interface OrganizationSettings {
 export class SupabaseSettingsService {
   // Get user settings
   async getUserSettings(userId: string): Promise<UserSettings> {
-    const { data, error } = await supabase
-      .from(TABLES.USERS)
-      .select('settings')
-      .eq('id', userId)
-      .single();
-
-    if (error) {
-      throw handleApiError(error, 'SupabaseSettingsService.getUserSettings');
+    // Пока используем localStorage, так как поле settings может отсутствовать в БД
+    // В будущем можно добавить поле settings JSONB в таблицу users
+    try {
+      const stored = localStorage.getItem(`user_settings_${userId}`);
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
     }
-
-    return (data?.settings as UserSettings) || {};
   }
 
   // Update user settings
   async updateUserSettings(userId: string, settings: UserSettings): Promise<void> {
-    const { error } = await supabase
-      .from(TABLES.USERS)
-      .update({
-        settings: settings,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', userId);
-
-    if (error) {
-      throw handleApiError(error, 'SupabaseSettingsService.updateUserSettings');
+    // Пока используем localStorage
+    // В будущем можно добавить поле settings JSONB в таблицу users
+    try {
+      localStorage.setItem(`user_settings_${userId}`, JSON.stringify(settings));
+    } catch (error) {
+      throw new Error('Failed to save settings');
     }
   }
 
