@@ -14,6 +14,7 @@ import {
   X
 } from 'lucide-react';
 import { useUsers } from '../../lib/hooks/useUsers';
+import { useCurrentOrganization } from '../../lib/hooks/useCurrentOrganization';
 import { KanbanBoard, KanbanColumn, KanbanTask, User as UserType } from '../../types';
 import { supabaseKanbanService } from '../../lib/supabase/services/KanbanService';
 import { supabase, TABLES } from '../../lib/supabase/config';
@@ -43,6 +44,7 @@ interface DraggedItem {
 export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate }: EnhancedProductionKanbanProps) {
   const { projectId: urlProjectId } = useParams<{ projectId: string }>();
   const projectId = propProjectId || urlProjectId;
+  const { currentOrganization } = useCurrentOrganization();
   
   const [boards, setBoards] = useState<KanbanBoard[]>([]);
   const [selectedTask, setSelectedTask] = useState<KanbanTask | null>(null);
@@ -52,15 +54,20 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
   // Load single board from Supabase
   useEffect(() => {
     const loadBoard = async () => {
+      if (!currentOrganization?.id) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
         setIsLoading(true);
         
         // КАНБАН НЕЗАВИСИМ ОТ ПРОЕКТОВ - всегда загружаем только общие доски
         try {
-          console.log('[Kanban] Loading general boards (independent from projects)...');
+          console.log('[Kanban] Loading general boards for organization:', currentOrganization.id);
           
-          // Загружаем общие доски (project_id = NULL)
-          const generalBoards = await supabaseKanbanService.getGeneralBoards();
+          // Загружаем общие доски (project_id = NULL) для текущей организации
+          const generalBoards = await supabaseKanbanService.getGeneralBoards(currentOrganization.id);
           console.log('[Kanban] Loaded general boards:', generalBoards);
           
           // Трансформируем данные из БД в формат фронтенда

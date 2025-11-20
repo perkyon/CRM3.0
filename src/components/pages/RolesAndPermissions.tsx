@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { useCurrentOrganization } from '../../lib/hooks/useCurrentOrganization';
 import { 
   Shield, 
   Users, 
@@ -138,6 +139,7 @@ const PERMISSION_CATEGORIES = [
 export function RolesAndPermissions() {
   const { users, fetchUsers } = useUserStore();
   const { user: currentUser } = useAuth();
+  const { currentOrganization } = useCurrentOrganization();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState<Role | 'all'>('all');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -157,8 +159,10 @@ export function RolesAndPermissions() {
   });
 
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    if (currentOrganization?.id) {
+      fetchUsers(currentOrganization.id);
+    }
+  }, [fetchUsers, currentOrganization?.id]);
 
   // Проверка прав администратора
   const isAdmin = currentUser?.role === 'Admin';

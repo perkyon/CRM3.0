@@ -3,18 +3,42 @@ import { User, CreateUserRequest } from '../../../types';
 import { handleApiError } from '../../error/ErrorHandler';
 
 export class SupabaseUserService {
-  // Get all users
-  async getUsers(): Promise<User[]> {
-    const { data, error } = await supabase
-      .from(TABLES.USERS)
-      .select('*')
-      .order('name', { ascending: true });
+  // Get all users (filtered by organization if organizationId provided)
+  async getUsers(organizationId?: string): Promise<User[]> {
+    if (organizationId) {
+      // Если указана организация, получаем пользователей через organization_members
+      const { data: members, error: membersError } = await supabase
+        .from('organization_members')
+        .select('user_id, users(*)')
+        .eq('organization_id', organizationId)
+        .eq('active', true);
 
-    if (error) {
-      throw handleApiError(error, 'SupabaseUserService.getUsers');
+      if (membersError) {
+        throw handleApiError(membersError, 'SupabaseUserService.getUsers (members)');
+      }
+
+      // Извлекаем пользователей из результатов
+      const users = (members || [])
+        .map((member: any) => member.users)
+        .filter(Boolean)
+        .map(this.mapSupabaseUserToUser)
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      return users;
+    } else {
+      // Если организация не указана, возвращаем всех пользователей
+      // (но RLS политики все равно ограничат доступ)
+      const { data, error } = await supabase
+        .from(TABLES.USERS)
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (error) {
+        throw handleApiError(error, 'SupabaseUserService.getUsers');
+      }
+
+      return (data || []).map(this.mapSupabaseUserToUser);
     }
-
-    return (data || []).map(this.mapSupabaseUserToUser);
   }
 
   // Get users by role

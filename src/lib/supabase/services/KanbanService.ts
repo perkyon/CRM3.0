@@ -80,8 +80,8 @@ export class SupabaseKanbanService {
     return data || [];
   }
 
-  // Get all general boards (without project_id)
-  async getGeneralBoards(): Promise<KanbanBoard[]> {
+  // Get all general boards (without project_id) for a specific organization
+  async getGeneralBoards(organizationId: string): Promise<KanbanBoard[]> {
     const { data, error } = await supabase
       .from(TABLES.KANBAN_BOARDS)
       .select(`
@@ -101,6 +101,7 @@ export class SupabaseKanbanService {
         )
       `)
       .is('project_id', null)
+      .eq('organization_id', organizationId)
       .order('created_at', { ascending: true });
 
     if (error) {
@@ -141,7 +142,7 @@ export class SupabaseKanbanService {
   }
 
   // Create new board
-  async createBoard(boardData: CreateKanbanBoardRequest): Promise<KanbanBoard> {
+  async createBoard(boardData: CreateKanbanBoardRequest & { organizationId?: string }): Promise<KanbanBoard> {
     // Доска может быть независимой от проекта (project_id = NULL)
     const insertData: any = {
       title: boardData.title,
@@ -152,8 +153,21 @@ export class SupabaseKanbanService {
     // Добавляем project_id только если он есть (опционально)
     if (boardData.projectId) {
       insertData.project_id = boardData.projectId;
+      // Если есть project_id, получаем organization_id из проекта
+      const { data: project } = await supabase
+        .from('projects')
+        .select('organization_id')
+        .eq('id', boardData.projectId)
+        .single();
+      if (project?.organization_id) {
+        insertData.organization_id = project.organization_id;
+      }
+    } else if (boardData.organizationId) {
+      // Для общих досок используем переданный organizationId
+      insertData.organization_id = boardData.organizationId;
+    } else {
+      throw new Error('organizationId is required for general boards');
     }
-    // Иначе project_id остается NULL - это нормально для общих досок
     
     const { data: board, error: boardError } = await supabase
       .from(TABLES.KANBAN_BOARDS)
@@ -300,10 +314,10 @@ export class SupabaseKanbanService {
   
   // Create new task
   async createTask(taskData: CreateKanbanTaskRequest): Promise<KanbanTask> {
-    // Получаем board_id из колонки
+    // Получаем board_id и organization_id из колонки
     const { data: columnData, error: columnError } = await supabase
       .from(TABLES.KANBAN_COLUMNS)
-      .select('board_id, board:kanban_boards(project_id)')
+      .select('board_id, board:kanban_boards(project_id, organization_id)')
       .eq('id', taskData.columnId)
       .single();
 
@@ -313,6 +327,11 @@ export class SupabaseKanbanService {
 
     const boardId = columnData.board_id;
     const projectId = (columnData.board as any)?.project_id;
+    const organizationId = (columnData.board as any)?.organization_id;
+
+    if (!organizationId) {
+      throw new Error('Organization ID is required for task creation');
+    }
 
     const { data, error } = await supabase
       .from(TABLES.KANBAN_TASKS)
@@ -320,6 +339,7 @@ export class SupabaseKanbanService {
         board_id: boardId,
         column_id: taskData.columnId,
         project_id: projectId || null,
+        organization_id: organizationId,
         title: taskData.title,
         description: taskData.description,
         assignee_id: taskData.assigneeId,

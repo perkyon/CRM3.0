@@ -11,7 +11,7 @@ interface UserState {
   lastFetchTime: number | null;
 
   // Actions
-  fetchUsers: () => Promise<void>;
+  fetchUsers: (organizationId?: string) => Promise<void>;
   fetchUsersByRole: (role: string) => Promise<User[]>;
   fetchCurrentUser: () => Promise<void>;
   setCurrentUser: (user: User | null) => void;
@@ -28,11 +28,13 @@ export const useUserStore = create<UserState>((set, get) => ({
   lastFetchTime: null,
 
   // Actions
-  fetchUsers: async () => {
+  fetchUsers: async (organizationId?: string) => {
     const state = get();
     const now = Date.now();
     
     // Кэширование: не загружаем повторно в течение 60 секунд
+    // Но только если organizationId не изменился
+    const cacheKey = `${organizationId || 'all'}_${state.lastFetchTime}`;
     if (state.lastFetchTime && (now - state.lastFetchTime) < 60000 && state.users.length > 0) {
       return;
     }
@@ -40,7 +42,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const users = await supabaseUserService.getUsers();
+      const users = await supabaseUserService.getUsers(organizationId);
       
       set({
         users,
