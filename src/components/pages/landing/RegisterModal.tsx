@@ -111,8 +111,8 @@ export default function RegisterModal({ isOpen, onClose, onLogin, onSubmit }: Re
             <X className="w-6 h-6" />
           </button>
 
-          <h2 className="text-4xl md:text-5xl mb-4" aria-hidden="true">Регистрация</h2>
-          <p className="text-gray-600 mb-12" aria-hidden="true">
+          <h2 className="text-4xl md:text-5xl mb-4" aria-hidden="true" style={{ color: '#151515' }}>Регистрация</h2>
+          <p className="mb-12" aria-hidden="true" style={{ color: '#151515' }}>
             Создайте аккаунт и получите 3 месяца бесплатно
           </p>
 
@@ -188,7 +188,7 @@ export default function RegisterModal({ isOpen, onClose, onLogin, onSubmit }: Re
               )}
             </button>
 
-            <div className="text-center text-gray-600">
+            <div className="text-center" style={{ color: '#151515' }}>
               Уже есть аккаунт?{' '}
               <button
                 type="button"

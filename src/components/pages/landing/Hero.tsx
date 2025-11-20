@@ -26,7 +26,7 @@ export default function Hero({ onLogin, onRegister, isMenuOpen, setIsMenuOpen }:
       >
         <div className="container mx-auto px-6 md:px-12 py-6">
           <div className="flex items-center justify-between">
-            <div className="text-sm tracking-widest">BURO CRM</div>
+            <div className="text-sm tracking-widest" style={{ color: '#151515' }}>BURO CRM</div>
             <button 
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-sm tracking-wide hover:opacity-60 transition-opacity"
@@ -54,6 +54,7 @@ export default function Hero({ onLogin, onRegister, isMenuOpen, setIsMenuOpen }:
                 transition={{ delay: index * 0.1 }}
                 onClick={() => scrollToSection(item === 'Возможности' ? 'services' : item === 'Преимущества' ? 'technologies' : item === 'Тарифы' ? 'pricing' : 'contact')}
                 className="block text-4xl md:text-5xl hover:opacity-60 transition-opacity"
+                style={{ color: '#151515' }}
               >
                 {item}
               </motion.button>
@@ -68,6 +69,7 @@ export default function Hero({ onLogin, onRegister, isMenuOpen, setIsMenuOpen }:
                   onLogin();
                 }}
                 className="block text-2xl hover:opacity-60 transition-opacity"
+                style={{ color: '#151515' }}
               >
                 Войти
               </motion.button>
@@ -79,7 +81,8 @@ export default function Hero({ onLogin, onRegister, isMenuOpen, setIsMenuOpen }:
                   setIsMenuOpen(false);
                   onRegister();
                 }}
-                className="block text-2xl text-gray-500 hover:opacity-60 transition-opacity"
+                className="block text-2xl hover:opacity-60 transition-opacity"
+                style={{ color: '#151515' }}
               >
                 Регистрация
               </motion.button>
@@ -96,6 +99,7 @@ export default function Hero({ onLogin, onRegister, isMenuOpen, setIsMenuOpen }:
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-6xl md:text-8xl lg:text-9xl leading-none mb-12"
+            style={{ color: '#151515' }}
           >
             CRM система для мебельного производства
           </motion.h1>
@@ -104,7 +108,8 @@ export default function Hero({ onLogin, onRegister, isMenuOpen, setIsMenuOpen }:
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-xl md:text-2xl text-gray-600 mb-16 max-w-2xl leading-relaxed"
+            className="text-xl md:text-2xl mb-16 max-w-2xl leading-relaxed"
+            style={{ color: '#151515' }}
           >
             Управляйте клиентами, заказами и производством в одной системе. Увеличьте продажи на 40% и сократите время на рутину в 3 раза.
           </motion.p>

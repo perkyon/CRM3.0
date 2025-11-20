@@ -60,6 +60,7 @@ export default function Technologies() {
           animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
           transition={{ duration: 0.8 }}
           className="text-5xl md:text-7xl mb-8"
+          style={{ color: '#151515' }}
         >
           Преимущества
         </motion.h2>
@@ -67,7 +68,8 @@ export default function Technologies() {
           initial={{ opacity: 0, y: 40 }}
           animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-xl md:text-2xl text-gray-600 mb-24 max-w-3xl"
+          className="text-xl md:text-2xl mb-24 max-w-3xl"
+          style={{ color: '#151515' }}
         >
           Реальные результаты, которые получают наши клиенты
         </motion.p>
@@ -140,7 +142,7 @@ function AnimatedMetric({ item, inView, delay }: { item: any; inView: boolean; d
       transition={{ duration: 0.6, delay }}
     >
       <div className="flex items-baseline justify-between mb-3">
-        <span className="text-xl">{item.name}</span>
+        <span className="text-xl" style={{ color: '#151515' }}>{item.name}</span>
         <motion.span 
           className="text-xl"
           initial={{ opacity: 0 }}
@@ -200,7 +202,7 @@ function StatCounter({ value, suffix, label, inView }: { value: number; suffix: 
       >
         {count}{suffix}
       </motion.div>
-      <div className="text-gray-600">{label}</div>
+      <div style={{ color: '#151515' }}>{label}</div>
     </div>
   );
 }

@@ -69,6 +69,7 @@ export default function Pricing({ onSelectPlan }: PricingProps) {
           animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
           transition={{ duration: 0.8 }}
           className="text-5xl md:text-7xl mb-8"
+          style={{ color: '#151515' }}
         >
           Тарифы
         </motion.h2>
@@ -76,7 +77,8 @@ export default function Pricing({ onSelectPlan }: PricingProps) {
           initial={{ opacity: 0, y: 40 }}
           animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-xl md:text-2xl text-gray-600 mb-24 max-w-3xl"
+          className="text-xl md:text-2xl mb-24 max-w-3xl"
+          style={{ color: '#151515' }}
         >
           Прозрачное ценообразование без скрытых платежей. Первые 3 месяца бесплатно.
         </motion.p>
@@ -139,9 +141,7 @@ export default function Pricing({ onSelectPlan }: PricingProps) {
                     >
                       {plan.name}
                     </motion.h3>
-                    <p className={`text-sm mb-8 ${
-                      plan.highlighted ? 'text-gray-400' : 'text-gray-600'
-                    }`}>
+                    <p className="text-sm mb-8" style={{ color: plan.highlighted ? '#ffffff' : '#151515' }}>
                       {plan.description}
                     </p>
                     
@@ -153,9 +153,7 @@ export default function Pricing({ onSelectPlan }: PricingProps) {
                       transition={{ duration: 0.3 }}
                     >
                       <span className="text-5xl">{plan.price}</span>
-                      <span className={`text-lg ml-2 ${
-                        plan.highlighted ? 'text-gray-400' : 'text-gray-600'
-                      }`}>
+                      <span className="text-lg ml-2" style={{ color: plan.highlighted ? '#ffffff' : '#151515' }}>
                         ₽/мес
                       </span>
                     </motion.div>
@@ -205,7 +203,7 @@ export default function Pricing({ onSelectPlan }: PricingProps) {
                             plan.highlighted ? 'text-white' : 'text-black'
                           }`} />
                         </motion.div>
-                        <span className={plan.highlighted ? 'text-gray-300' : 'text-gray-700'}>
+                        <span style={{ color: plan.highlighted ? '#ffffff' : '#151515' }}>
                           {feature}
                         </span>
                       </motion.li>

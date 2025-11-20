@@ -37,7 +37,7 @@ export default function LoginModal({ isOpen, onClose, onRegister, onSubmit }: Lo
             <X className="w-6 h-6" />
           </button>
 
-          <h2 className="text-4xl md:text-5xl mb-12" aria-hidden="true">Вход</h2>
+          <h2 className="text-4xl md:text-5xl mb-12" aria-hidden="true" style={{ color: '#151515' }}>Вход</h2>
 
           <form onSubmit={handleSubmit} className="space-y-8">
             <div>
@@ -81,7 +81,7 @@ export default function LoginModal({ isOpen, onClose, onRegister, onSubmit }: Lo
               Войти
             </button>
 
-            <div className="text-center text-gray-600">
+            <div className="text-center" style={{ color: '#151515' }}>
               Нет аккаунта?{' '}
               <button
                 type="button"
