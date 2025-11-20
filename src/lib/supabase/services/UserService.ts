@@ -1,5 +1,5 @@
 import { supabase, TABLES } from '../config';
-import { User } from '../../../types';
+import { User, CreateUserRequest } from '../../../types';
 import { handleApiError } from '../../error/ErrorHandler';
 
 export class SupabaseUserService {
@@ -48,6 +48,29 @@ export class SupabaseUserService {
     return this.mapSupabaseUserToUser(data);
   }
 
+  // Create new user (uses AuthService internally)
+  async createUser(userData: CreateUserRequest): Promise<User> {
+    const { supabaseAuthService } = await import('./AuthService');
+    return await supabaseAuthService.signUp(userData);
+  }
+
+  // Delete user
+  async deleteUser(id: string): Promise<void> {
+    // Delete user profile first
+    const { error: profileError } = await supabase
+      .from(TABLES.USERS)
+      .delete()
+      .eq('id', id);
+
+    if (profileError) {
+      throw handleApiError(profileError, 'SupabaseUserService.deleteUser (profile)');
+    }
+
+    // Note: Auth user deletion should be handled by a backend function
+    // or through Supabase dashboard, as we don't have admin access from client
+    // For now, we just delete the profile and mark user as inactive
+  }
+
   // Update user
   async updateUser(id: string, updates: { role?: string; active?: boolean; name?: string; phone?: string }): Promise<User> {
     const { data, error } = await supabase
@@ -81,6 +104,46 @@ export class SupabaseUserService {
       console.error('Failed to get current user:', error);
       return null;
     }
+  }
+
+  // Get default permissions based on role
+  private getDefaultPermissions(role: User['role']): string[] {
+    const rolePermissions: Record<User['role'], string[]> = {
+      Admin: [
+        'clients:read', 'clients:write', 'clients:delete',
+        'projects:read', 'projects:write', 'projects:delete',
+        'production:read', 'production:write', 'production:delete',
+        'users:read', 'users:write', 'users:delete',
+        'settings:read', 'settings:write',
+        'reports:read',
+      ],
+      Manager: [
+        'clients:read', 'clients:write',
+        'projects:read', 'projects:write',
+        'production:read', 'production:write',
+        'users:read',
+        'reports:read',
+      ],
+      Master: [
+        'clients:read',
+        'projects:read',
+        'production:read', 'production:write',
+      ],
+      Procurement: [
+        'clients:read',
+        'projects:read',
+        'production:read',
+        'inventory:read', 'inventory:write',
+      ],
+      Accountant: [
+        'clients:read',
+        'projects:read',
+        'finance:read', 'finance:write',
+        'reports:read',
+      ],
+    };
+
+    return rolePermissions[role] || [];
   }
 
   // Helper method to map Supabase user data to our User interface

@@ -141,7 +141,18 @@ export function RolesAndPermissions() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState<Role | 'all'>('all');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
+  const [newUser, setNewUser] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    role: 'Manager' as Role,
+    password: '',
+    active: true,
+  });
 
   useEffect(() => {
     fetchUsers();
@@ -170,6 +181,8 @@ export function RolesAndPermissions() {
       await supabaseUserService.updateUser(editingUser.id, {
         role: editingUser.role,
         active: editingUser.active,
+        name: editingUser.name,
+        phone: editingUser.phone,
       });
       toast.success('Пользователь обновлен');
       setIsEditDialogOpen(false);
@@ -179,6 +192,57 @@ export function RolesAndPermissions() {
       console.error('Error updating user:', error);
       toast.error(error?.message || 'Ошибка при обновлении пользователя');
     }
+  };
+
+  const handleCreateUser = async () => {
+    if (!newUser.name || !newUser.email || !newUser.password) {
+      toast.error('Заполните все обязательные поля');
+      return;
+    }
+
+    try {
+      const { supabaseUserService } = await import('../../lib/supabase/services/UserService');
+      await supabaseUserService.createUser(newUser);
+      toast.success('Пользователь создан');
+      setIsCreateDialogOpen(false);
+      setNewUser({
+        name: '',
+        email: '',
+        phone: '',
+        role: 'Manager',
+        password: '',
+        active: true,
+      });
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error creating user:', error);
+      toast.error(error?.message || 'Ошибка при создании пользователя');
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deletingUser) return;
+
+    try {
+      const { supabaseUserService } = await import('../../lib/supabase/services/UserService');
+      await supabaseUserService.deleteUser(deletingUser.id);
+      toast.success('Пользователь удален');
+      setIsDeleteDialogOpen(false);
+      setDeletingUser(null);
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      toast.error(error?.message || 'Ошибка при удалении пользователя');
+    }
+  };
+
+  const handleDeleteClick = (user: User) => {
+    if (user.id === currentUser?.id) {
+      toast.error('Нельзя удалить самого себя');
+      return;
+    }
+    setDeletingUser(user);
+    setIsDeleteDialogOpen(true);
   };
 
   if (!isAdmin) {
@@ -207,6 +271,10 @@ export function RolesAndPermissions() {
           <h1 className="text-2xl font-medium">Роли и права доступа</h1>
           <p className="text-muted-foreground">Управление правами пользователей системы</p>
         </div>
+        <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <UserPlus className="size-4 mr-2" />
+          Добавить пользователя
+        </Button>
       </div>
 
       <Tabs defaultValue="users" className="space-y-6">
@@ -297,14 +365,26 @@ export function RolesAndPermissions() {
                           )}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditUser(user)}
-                          >
-                            <Edit className="size-4 mr-2" />
-                            Изменить
-                          </Button>
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditUser(user)}
+                            >
+                              <Edit className="size-4 mr-2" />
+                              Изменить
+                            </Button>
+                            {user.id !== currentUser?.id && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteClick(user)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -317,64 +397,93 @@ export function RolesAndPermissions() {
 
         {/* Вкладка: Роли */}
         <TabsContent value="roles" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Object.entries(ROLE_PERMISSIONS).map(([role, config]) => {
-              const userCount = users.filter(u => u.role === role).length;
-              
-              return (
-                <Card key={role} className="hover:shadow-md transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${
-                          config.color === 'red' ? 'bg-red-100' :
-                          config.color === 'blue' ? 'bg-blue-100' :
-                          config.color === 'green' ? 'bg-green-100' :
-                          config.color === 'purple' ? 'bg-purple-100' :
-                          config.color === 'orange' ? 'bg-orange-100' :
-                          'bg-gray-100'
-                        }`}>
-                          <Shield className={`size-5 ${
-                            config.color === 'red' ? 'text-red-600' :
-                            config.color === 'blue' ? 'text-blue-600' :
-                            config.color === 'green' ? 'text-green-600' :
-                            config.color === 'purple' ? 'text-purple-600' :
-                            config.color === 'orange' ? 'text-orange-600' :
-                            'text-gray-600'
-                          }`} />
+          <Card>
+            <CardHeader>
+              <CardTitle>Роли в системе</CardTitle>
+              <CardDescription>
+                Обзор всех ролей и их прав доступа
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Object.entries(ROLE_PERMISSIONS).map(([role, config]) => {
+                  const roleUsers = users.filter(u => u.role === role);
+                  const activeUsers = roleUsers.filter(u => u.active);
+                  
+                  return (
+                    <Card key={role} className="hover:shadow-md transition-shadow border-2">
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className={`p-3 rounded-lg ${
+                              config.color === 'red' ? 'bg-red-100 dark:bg-red-900/20' :
+                              config.color === 'blue' ? 'bg-blue-100 dark:bg-blue-900/20' :
+                              config.color === 'green' ? 'bg-green-100 dark:bg-green-900/20' :
+                              config.color === 'purple' ? 'bg-purple-100 dark:bg-purple-900/20' :
+                              config.color === 'orange' ? 'bg-orange-100 dark:bg-orange-900/20' :
+                              'bg-gray-100 dark:bg-gray-900/20'
+                            }`}>
+                              <Shield className={`size-6 ${
+                                config.color === 'red' ? 'text-red-600 dark:text-red-400' :
+                                config.color === 'blue' ? 'text-blue-600 dark:text-blue-400' :
+                                config.color === 'green' ? 'text-green-600 dark:text-green-400' :
+                                config.color === 'purple' ? 'text-purple-600 dark:text-purple-400' :
+                                config.color === 'orange' ? 'text-orange-600 dark:text-orange-400' :
+                                'text-gray-600 dark:text-gray-400'
+                              }`} />
+                            </div>
+                            <div className="flex-1">
+                              <CardTitle className="text-lg mb-1">{config.label}</CardTitle>
+                              <CardDescription className="text-xs">
+                                {activeUsers.length} активных из {roleUsers.length} всего
+                              </CardDescription>
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <CardTitle className="text-base">{config.label}</CardTitle>
-                          <CardDescription className="text-xs">
-                            {userCount} {userCount === 1 ? 'пользователь' : 'пользователей'}
-                          </CardDescription>
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground">{config.description}</p>
-                    
-                    <div className="space-y-2">
-                      <div className="text-xs font-medium text-muted-foreground">Права доступа:</div>
-                      <div className="flex flex-wrap gap-1">
-                        {config.permissions.slice(0, 5).map(permission => (
-                          <Badge key={permission} variant="secondary" className="text-xs">
-                            {PERMISSION_LABELS[permission] || permission}
-                          </Badge>
-                        ))}
-                        {config.permissions.length > 5 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{config.permissions.length - 5} еще
-                          </Badge>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <p className="text-sm text-muted-foreground">{config.description}</p>
+                        
+                        {roleUsers.length > 0 && (
+                          <div className="space-y-2">
+                            <div className="text-xs font-medium text-muted-foreground">Пользователи:</div>
+                            <div className="flex flex-wrap gap-1">
+                              {roleUsers.slice(0, 3).map(user => (
+                                <Badge key={user.id} variant="outline" className="text-xs">
+                                  {user.name}
+                                </Badge>
+                              ))}
+                              {roleUsers.length > 3 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  +{roleUsers.length - 3}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
                         )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                        
+                        <div className="space-y-2">
+                          <div className="text-xs font-medium text-muted-foreground">Права доступа ({config.permissions.length}):</div>
+                          <div className="flex flex-wrap gap-1">
+                            {config.permissions.slice(0, 6).map(permission => (
+                              <Badge key={permission} variant="secondary" className="text-xs">
+                                {PERMISSION_LABELS[permission] || permission}
+                              </Badge>
+                            ))}
+                            {config.permissions.length > 6 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{config.permissions.length - 6} еще
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Вкладка: Матрица прав */}
@@ -515,6 +624,184 @@ export function RolesAndPermissions() {
             </Button>
             <Button onClick={handleSaveUser}>
               Сохранить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Диалог создания пользователя */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Добавить нового пользователя</DialogTitle>
+            <DialogDescription>
+              Создайте нового пользователя в системе
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="new-name">Имя *</Label>
+              <Input
+                id="new-name"
+                value={newUser.name}
+                onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                placeholder="Иван Иванов"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="new-email">Email *</Label>
+              <Input
+                id="new-email"
+                type="email"
+                value={newUser.email}
+                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                placeholder="ivan@example.com"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="new-phone">Телефон</Label>
+              <Input
+                id="new-phone"
+                type="tel"
+                value={newUser.phone}
+                onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
+                placeholder="+7 (999) 123-45-67"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="new-role">Роль *</Label>
+              <Select
+                value={newUser.role}
+                onValueChange={(value: Role) => setNewUser({ ...newUser, role: value })}
+              >
+                <SelectTrigger id="new-role" className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(ROLE_PERMISSIONS).map(([role, config]) => (
+                    <SelectItem key={role} value={role}>
+                      <div className="flex flex-col items-start">
+                        <span className="font-medium">{config.label}</span>
+                        <span className="text-xs text-muted-foreground">{config.description}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="new-password">Пароль *</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={newUser.password}
+                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                placeholder="Минимум 8 символов"
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Пароль будет отправлен пользователю по email
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="space-y-0.5">
+                <Label>Активен</Label>
+                <div className="text-sm text-muted-foreground">
+                  Пользователь сможет войти в систему
+                </div>
+              </div>
+              <Switch
+                checked={newUser.active}
+                onCheckedChange={(checked) => setNewUser({ ...newUser, active: checked })}
+              />
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="text-sm font-medium text-blue-900 mb-2">
+                Права роли "{ROLE_PERMISSIONS[newUser.role]?.label}"
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {ROLE_PERMISSIONS[newUser.role]?.permissions.slice(0, 8).map(permission => (
+                  <Badge key={permission} variant="secondary" className="text-xs">
+                    {PERMISSION_LABELS[permission]}
+                  </Badge>
+                ))}
+                {ROLE_PERMISSIONS[newUser.role]?.permissions.length > 8 && (
+                  <Badge variant="outline" className="text-xs">
+                    +{ROLE_PERMISSIONS[newUser.role]?.permissions.length - 8} еще
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+              Отмена
+            </Button>
+            <Button onClick={handleCreateUser}>
+              <UserPlus className="size-4 mr-2" />
+              Создать пользователя
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Диалог подтверждения удаления */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Удалить пользователя?</DialogTitle>
+            <DialogDescription>
+              Это действие нельзя отменить. Пользователь будет удален из системы.
+            </DialogDescription>
+          </DialogHeader>
+
+          {deletingUser && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
+                <Avatar className="size-12">
+                  <AvatarImage src={deletingUser.avatar} />
+                  <AvatarFallback>{getInitials(deletingUser.name)}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <div className="font-medium">{deletingUser.name}</div>
+                  <div className="text-sm text-muted-foreground">{deletingUser.email}</div>
+                  <Badge variant="outline" className="mt-1">
+                    {ROLE_PERMISSIONS[deletingUser.role]?.label || deletingUser.role}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="text-sm text-red-900">
+                  <strong>Внимание!</strong> При удалении пользователя:
+                  <ul className="list-disc list-inside mt-2 space-y-1">
+                    <li>Профиль пользователя будет удален</li>
+                    <li>Все связанные данные останутся в системе</li>
+                    <li>Пользователь не сможет войти в систему</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Отмена
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteUser}>
+              <Trash2 className="size-4 mr-2" />
+              Удалить
             </Button>
           </DialogFooter>
         </DialogContent>
