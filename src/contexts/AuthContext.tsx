@@ -13,6 +13,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
+  refreshUser: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -79,6 +80,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return authStore.login({ email, password });
   };
 
+  const refreshUser = async () => {
+    try {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (authUser) {
+        const { supabaseUserService } = await import('../lib/supabase/services/UserService');
+        const userData = await supabaseUserService.getUser(authUser.id);
+        if (userData) {
+          authStore.updateUser(userData);
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing user:', error);
+    }
+  };
+
   const contextValue: AuthContextType = {
     user: authStore.user,
     isAuthenticated: authStore.isAuthenticated,
@@ -87,6 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     logout: authStore.logout,
     updateUser: authStore.updateUser,
+    refreshUser,
     clearError: authStore.clearError,
   };
 

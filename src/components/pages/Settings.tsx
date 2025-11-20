@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Textarea } from '../ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
 import { 
   User,
   Bell,
@@ -20,14 +21,29 @@ import {
   Download,
   Trash2,
   Camera,
-  Save
+  Save,
+  Loader2
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from '../../lib/toast';
 import { getInitials } from '../../lib/utils';
+import { supabaseAuthService } from '../../lib/supabase/services/AuthService';
+import { supabaseUserService } from '../../lib/supabase/services/UserService';
+import { supabaseSettingsService } from '../../lib/supabase/services/SettingsService';
+import { useUserStore } from '../../lib/stores/userStore';
 
 export function Settings() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
+  const { fetchUsers } = useUserStore();
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  
   const [settings, setSettings] = useState({
     // Профиль
     name: user?.name || '',
@@ -68,16 +84,163 @@ export function Settings() {
 
   const isAdmin = user?.role === 'Admin';
 
-  const handleSave = () => {
-    // TODO: Сохранить настройки в базу данных
-    toast.success('Настройки сохранены');
+  // Загрузка настроек при монтировании
+  useEffect(() => {
+    if (user) {
+      loadSettings();
+    }
+  }, [user]);
+
+  const loadSettings = async () => {
+    if (!user?.id) return;
+    
+    setLoading(true);
+    try {
+      // Загружаем настройки пользователя
+      const userSettings = await supabaseSettingsService.getUserSettings(user.id);
+      
+      setSettings(prev => ({
+        ...prev,
+        name: user?.name || '',
+        email: user?.email || '',
+        phone: user?.phone || '',
+        avatar: user?.avatar || null,
+        ...userSettings,
+      }));
+
+      // Загружаем настройки организации для админов
+      if (isAdmin) {
+        // TODO: Получить organizationId из контекста или хранилища
+        // const orgSettings = await supabaseSettingsService.getOrganizationSettings(organizationId);
+        // setSettings(prev => ({ ...prev, ...orgSettings }));
+      }
+    } catch (error: any) {
+      console.error('Error loading settings:', error);
+      toast.error('Ошибка загрузки настроек');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSave = async () => {
+    if (!user?.id) return;
+    
+    setSaving(true);
+    try {
+      // Обновляем профиль пользователя
+      await supabaseUserService.updateUser(user.id, {
+        name: settings.name,
+        phone: settings.phone,
+        // email обновляется через auth
+      });
+
+      // Обновляем email через auth, если он изменился
+      if (settings.email !== user.email) {
+        const { error } = await supabaseAuthService.updateUserProfile(user.id, {
+          email: settings.email,
+        });
+        if (error) {
+          throw error;
+        }
+      }
+
+      // Сохраняем настройки пользователя
+      const userSettings = {
+        language: settings.language,
+        theme: settings.theme,
+        timezone: settings.timezone,
+        dateFormat: settings.dateFormat,
+        timeFormat: settings.timeFormat,
+        weekStart: settings.weekStart,
+        emailSignature: settings.emailSignature,
+        emailNotifications: settings.emailNotifications,
+        pushNotifications: settings.pushNotifications,
+        projectUpdates: settings.projectUpdates,
+        clientUpdates: settings.clientUpdates,
+        taskReminders: settings.taskReminders,
+        deadlineReminders: settings.deadlineReminders,
+        mentionNotifications: settings.mentionNotifications,
+        twoFactorAuth: settings.twoFactorAuth,
+        sessionTimeout: settings.sessionTimeout,
+      };
+
+      await supabaseSettingsService.updateUserSettings(user.id, userSettings);
+
+      // Обновляем настройки организации для админов
+      if (isAdmin) {
+        // TODO: Сохранить настройки организации
+      }
+
+      // Обновляем данные пользователя в контексте
+      await refreshUser();
+      await fetchUsers();
+
+      toast.success('Настройки сохранены');
+    } catch (error: any) {
+      console.error('Error saving settings:', error);
+      toast.error(error?.message || 'Ошибка при сохранении настроек');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // TODO: Загрузить аватар
+    if (!file || !user?.id) return;
+
+    // Проверка размера файла (макс 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Размер файла не должен превышать 5MB');
+      return;
+    }
+
+    // Проверка типа файла
+    if (!file.type.startsWith('image/')) {
+      toast.error('Выберите изображение');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { avatarUrl } = await supabaseAuthService.uploadAvatar(file, user.id);
+      setSettings(prev => ({ ...prev, avatar: avatarUrl }));
+      await refreshUser();
+      await fetchUsers();
       toast.success('Аватар обновлен');
+    } catch (error: any) {
+      console.error('Error uploading avatar:', error);
+      toast.error(error?.message || 'Ошибка при загрузке аватара');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('Пароли не совпадают');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 8) {
+      toast.error('Пароль должен содержать минимум 8 символов');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await supabaseAuthService.changePassword(passwordData.currentPassword, passwordData.newPassword);
+      toast.success('Пароль изменен');
+      setIsPasswordDialogOpen(false);
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+    } catch (error: any) {
+      console.error('Error changing password:', error);
+      toast.error(error?.message || 'Ошибка при изменении пароля');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -89,9 +252,18 @@ export function Settings() {
           <h1 className="text-2xl font-medium">Настройки</h1>
           <p className="text-muted-foreground">Управление профилем и настройками системы</p>
         </div>
-        <Button onClick={handleSave}>
-          <Save className="size-4 mr-2" />
-          Сохранить изменения
+        <Button onClick={handleSave} disabled={saving || loading}>
+          {saving ? (
+            <>
+              <Loader2 className="size-4 mr-2 animate-spin" />
+              Сохранение...
+            </>
+          ) : (
+            <>
+              <Save className="size-4 mr-2" />
+              Сохранить изменения
+            </>
+          )}
         </Button>
       </div>
 
@@ -564,6 +736,77 @@ export function Settings() {
           </TabsContent>
         )}
       </Tabs>
+
+      {/* Диалог изменения пароля */}
+      <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Изменить пароль</DialogTitle>
+            <DialogDescription>
+              Введите текущий пароль и новый пароль
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="current-password">Текущий пароль *</Label>
+              <Input
+                id="current-password"
+                type="password"
+                value={passwordData.currentPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                className="mt-1"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="new-password">Новый пароль *</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={passwordData.newPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                className="mt-1"
+                required
+                minLength={8}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Минимум 8 символов
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="confirm-password">Подтвердите новый пароль *</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={passwordData.confirmPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                className="mt-1"
+                required
+                minLength={8}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsPasswordDialogOpen(false)}>
+              Отмена
+            </Button>
+            <Button onClick={handleChangePassword} disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  Изменение...
+                </>
+              ) : (
+                'Изменить пароль'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
