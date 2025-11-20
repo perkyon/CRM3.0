@@ -143,6 +143,8 @@ export function RolesAndPermissions() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isRoleDetailOpen, setIsRoleDetailOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [newUser, setNewUser] = useState({
@@ -243,6 +245,11 @@ export function RolesAndPermissions() {
     }
     setDeletingUser(user);
     setIsDeleteDialogOpen(true);
+  };
+
+  const handleRoleClick = (role: Role) => {
+    setSelectedRole(role);
+    setIsRoleDetailOpen(true);
   };
 
   if (!isAdmin) {
@@ -401,7 +408,7 @@ export function RolesAndPermissions() {
             <CardHeader>
               <CardTitle>Роли в системе</CardTitle>
               <CardDescription>
-                Обзор всех ролей и их прав доступа
+                Нажмите на карточку роли, чтобы посмотреть подробную информацию
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -411,7 +418,11 @@ export function RolesAndPermissions() {
                   const activeUsers = roleUsers.filter(u => u.active);
                   
                   return (
-                    <Card key={role} className="hover:shadow-md transition-shadow border-2">
+                    <Card 
+                      key={role} 
+                      className="hover:shadow-lg transition-all cursor-pointer border-2 hover:border-primary/50"
+                      onClick={() => handleRoleClick(role as Role)}
+                    >
                       <CardHeader>
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-3 flex-1">
@@ -441,42 +452,29 @@ export function RolesAndPermissions() {
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="space-y-4">
-                        <p className="text-sm text-muted-foreground">{config.description}</p>
-                        
+                      <CardContent>
                         {roleUsers.length > 0 && (
                           <div className="space-y-2">
                             <div className="text-xs font-medium text-muted-foreground">Пользователи:</div>
                             <div className="flex flex-wrap gap-1">
-                              {roleUsers.slice(0, 3).map(user => (
+                              {roleUsers.slice(0, 4).map(user => (
                                 <Badge key={user.id} variant="outline" className="text-xs">
                                   {user.name}
                                 </Badge>
                               ))}
-                              {roleUsers.length > 3 && (
+                              {roleUsers.length > 4 && (
                                 <Badge variant="secondary" className="text-xs">
-                                  +{roleUsers.length - 3}
+                                  +{roleUsers.length - 4}
                                 </Badge>
                               )}
                             </div>
                           </div>
                         )}
-                        
-                        <div className="space-y-2">
-                          <div className="text-xs font-medium text-muted-foreground">Права доступа ({config.permissions.length}):</div>
-                          <div className="flex flex-wrap gap-1">
-                            {config.permissions.slice(0, 6).map(permission => (
-                              <Badge key={permission} variant="secondary" className="text-xs">
-                                {PERMISSION_LABELS[permission] || permission}
-                              </Badge>
-                            ))}
-                            {config.permissions.length > 6 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{config.permissions.length - 6} еще
-                              </Badge>
-                            )}
+                        {roleUsers.length === 0 && (
+                          <div className="text-sm text-muted-foreground py-2">
+                            Нет пользователей с этой ролью
                           </div>
-                        </div>
+                        )}
                       </CardContent>
                     </Card>
                   );
@@ -802,6 +800,115 @@ export function RolesAndPermissions() {
             <Button variant="destructive" onClick={handleDeleteUser}>
               <Trash2 className="size-4 mr-2" />
               Удалить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Диалог детального просмотра роли */}
+      <Dialog open={isRoleDetailOpen} onOpenChange={setIsRoleDetailOpen}>
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedRole && ROLE_PERMISSIONS[selectedRole]?.label}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedRole && ROLE_PERMISSIONS[selectedRole]?.description}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedRole && (
+            <div className="space-y-6">
+              {/* Статистика */}
+              <div className="grid grid-cols-2 gap-4">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-2xl font-bold">
+                      {users.filter(u => u.role === selectedRole).length}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Всего пользователей</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-2xl font-bold text-green-600">
+                      {users.filter(u => u.role === selectedRole && u.active).length}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Активных</div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Пользователи с этой ролью */}
+              <div>
+                <h3 className="text-lg font-medium mb-3">Пользователи</h3>
+                {users.filter(u => u.role === selectedRole).length > 0 ? (
+                  <div className="space-y-2">
+                    {users.filter(u => u.role === selectedRole).map(user => (
+                      <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="size-10">
+                            <AvatarImage src={user.avatar} />
+                            <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">{user.name}</div>
+                            <div className="text-sm text-muted-foreground">{user.email}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {user.active ? (
+                            <Badge variant="default" className="bg-green-500">
+                              <CheckCircle2 className="size-3 mr-1" />
+                              Активен
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary">
+                              <XCircle className="size-3 mr-1" />
+                              Неактивен
+                            </Badge>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setIsRoleDetailOpen(false);
+                              handleEditUser(user);
+                            }}
+                          >
+                            <Edit className="size-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Нет пользователей с этой ролью
+                  </div>
+                )}
+              </div>
+
+              {/* Права доступа */}
+              <div>
+                <h3 className="text-lg font-medium mb-3">
+                  Права доступа ({ROLE_PERMISSIONS[selectedRole]?.permissions.length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {ROLE_PERMISSIONS[selectedRole]?.permissions.map(permission => (
+                    <div key={permission} className="flex items-center gap-2 p-2 border rounded-lg">
+                      <CheckCircle2 className="size-4 text-green-600" />
+                      <span className="text-sm">{PERMISSION_LABELS[permission] || permission}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRoleDetailOpen(false)}>
+              Закрыть
             </Button>
           </DialogFooter>
         </DialogContent>
