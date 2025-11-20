@@ -21,38 +21,113 @@ export class OrganizationService {
   }) {
     const { organization, user, subscriptionPlan } = data;
 
-    // 1. Создать пользователя в Supabase Auth
+    let userId: string;
+    let isNewUser = false;
+
+    // 1. Проверяем, существует ли пользователь с таким email
+    // Пытаемся найти пользователя через auth.admin (если доступно) или через попытку входа
+    // Если пользователь не найден, создаем нового
+    
+    // Пытаемся создать пользователя в Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: user.email,
       password: user.password,
     });
 
     if (authError) {
-      throw new Error(`Ошибка создания пользователя: ${authError.message}`);
+      // Если ошибка "User already registered", пытаемся войти и использовать существующего пользователя
+      if (authError.message.includes('already registered') || authError.message.includes('User already registered')) {
+        // Пытаемся войти с предоставленным паролем
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: user.email,
+          password: user.password,
+        });
+
+        if (signInError || !signInData.user) {
+          throw new Error(
+            `Пользователь с email ${user.email} уже зарегистрирован, но неверный пароль. ` +
+            `Пожалуйста, войдите в систему или используйте другой email.`
+          );
+        }
+
+        userId = signInData.user.id;
+        isNewUser = false;
+      } else {
+        throw new Error(`Ошибка создания пользователя: ${authError.message}`);
+      }
+    } else {
+      if (!authData.user) {
+        throw new Error('Пользователь не был создан');
+      }
+      userId = authData.user.id;
+      isNewUser = true;
     }
 
-    if (!authData.user) {
-      throw new Error('Пользователь не был создан');
-    }
+    // 2. Создать или обновить профиль пользователя
+    if (isNewUser) {
+      // Для нового пользователя создаем профиль
+      const { error: userError } = await supabase
+        .from('users')
+        .insert({
+          id: userId,
+          name: user.name,
+          email: user.email,
+          phone: user.phone || null,
+          role: 'Admin',
+          active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
 
-    const userId = authData.user.id;
+      if (userError) {
+        // Если профиль уже существует (например, создан вручную), обновляем его
+        if (userError.code === '23505') { // Unique violation
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({
+              name: user.name,
+              phone: user.phone || null,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', userId);
 
-    // 2. Создать профиль пользователя
-    const { error: userError } = await supabase
-      .from('users')
-      .insert({
-        id: userId,
-        name: user.name,
-        email: user.email,
-        phone: user.phone || null,
-        role: 'Admin',
-        active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
+          if (updateError) {
+            throw new Error(`Ошибка обновления профиля: ${updateError.message}`);
+          }
+        } else {
+          throw new Error(`Ошибка создания профиля: ${userError.message}`);
+        }
+      }
+    } else {
+      // Для существующего пользователя обновляем профиль, если нужно
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          name: user.name,
+          phone: user.phone || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
 
-    if (userError) {
-      throw new Error(`Ошибка создания профиля: ${userError.message}`);
+      if (updateError) {
+        // Если профиль не существует, создаем его
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert({
+            id: userId,
+            name: user.name,
+            email: user.email,
+            phone: user.phone || null,
+            role: 'Admin',
+            active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+
+        if (insertError) {
+          throw new Error(`Ошибка создания профиля: ${insertError.message}`);
+        }
+      }
     }
 
     // 3. Создать организацию
