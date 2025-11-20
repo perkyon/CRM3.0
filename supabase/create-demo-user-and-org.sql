@@ -8,8 +8,6 @@ DO $$
 DECLARE
     demo_org_id UUID;
     demo_user_id UUID;
-    demo_client_id UUID;
-    demo_project_id UUID;
     demo_user_exists BOOLEAN;
 BEGIN
     -- 1. Создать демо-пользователя в auth.users (если еще не создан)
@@ -213,7 +211,7 @@ BEGIN
         NOW() - INTERVAL '5 days',
         NOW()
     )
-    RETURNING id INTO demo_client_id;
+    ON CONFLICT DO NOTHING;
 
     -- 8. Создать контакты для клиентов
     INSERT INTO contacts (client_id, name, phone, email, is_primary, created_at)
