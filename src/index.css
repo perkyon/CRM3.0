@@ -5,7 +5,7 @@
 
 :root {
   --font-size: 16px;
-  --radius: .625rem;
+  --radius: 0.625rem; /* 10px */
   --text-primary: #172b4d;
   --text-secondary: #5e6c84;
   --text-subtle: #6b778c;
@@ -108,4 +108,57 @@ html {
 body {
   background-color: var(--background);
   color: var(--foreground);
+}
+
+@layer base {
+  /* Глобальное скругление углов для всех элементов */
+  button,
+  [role="button"],
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  textarea,
+  select,
+  [class*="rounded"],
+  [class*="card"],
+  [class*="Card"],
+  [class*="dialog"],
+  [class*="Dialog"],
+  [class*="modal"],
+  [class*="Modal"],
+  [class*="popover"],
+  [class*="Popover"],
+  [class*="dropdown"],
+  [class*="Dropdown"],
+  [class*="sheet"],
+  [class*="Sheet"],
+  [class*="alert"],
+  [class*="Alert"],
+  [class*="badge"],
+  [class*="Badge"],
+  [class*="chip"],
+  [class*="Chip"],
+  [data-slot="card"],
+  [data-slot="dialog-content"],
+  [data-slot="dialog-overlay"] {
+    border-radius: 10px !important;
+  }
+  
+  /* Для элементов, которые должны быть менее скругленными (например, инпуты) */
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    border-radius: 10px !important;
+  }
+  
+  /* Для карточек и контейнеров */
+  [class*="card"],
+  [class*="Card"],
+  [data-slot="card"] {
+    border-radius: 10px !important;
+  }
 }

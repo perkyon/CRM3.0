@@ -55,11 +55,13 @@ export default {
         "text-disabled": "var(--text-disabled)",
       },
       borderRadius: {
-        xs: "var(--radius-xs)",
-        sm: "var(--radius-sm)",
-        md: "var(--radius-md)",
-        lg: "var(--radius-lg)",
-        xl: "var(--radius-xl)",
+        DEFAULT: "10px",
+        xs: "0.5rem",  /* 8px */
+        sm: "0.625rem", /* 10px */
+        md: "0.625rem", /* 10px */
+        lg: "0.75rem",  /* 12px */
+        xl: "1rem",     /* 16px */
+        full: "9999px",
       },
       fontSize: {
         xs: ["var(--text-xs)", { lineHeight: "1.33" }],
