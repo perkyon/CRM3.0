@@ -135,10 +135,14 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
           } else {
             // Если нет досок в БД - создаем одну в БД
             console.log('[Kanban] No board found, creating single board in DB...');
+            if (!currentOrganization?.id) {
+              throw new Error('Organization ID is required');
+            }
             const newBoard = await supabaseKanbanService.createBoard({
               projectId: null,
               title: 'Общая производственная доска',
-              description: 'Главная канбан-доска CRM'
+              description: 'Главная канбан-доска CRM',
+              organizationId: currentOrganization.id
             });
             
             // Создаем дефолтные колонки
@@ -345,10 +349,14 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
           ? currentBoard.projectId 
           : null;
           
+        if (!currentOrganization?.id) {
+          throw new Error('Organization ID is required');
+        }
         const newBoard = await supabaseKanbanService.createBoard({
           projectId: projectIdForBoard,
           title: currentBoard.title || 'Общая производственная доска',
-          description: 'Общая канбан-доска для задач'
+          description: 'Общая канбан-доска для задач',
+          organizationId: currentOrganization.id
         });
         
         realBoardId = newBoard.id;
