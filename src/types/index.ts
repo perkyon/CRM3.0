@@ -414,6 +414,7 @@ export interface CreateClientRequest {
   source: string;
   status: Client['status'];
   ownerId: string;
+  organizationId?: string; // ID организации (автоматически устанавливается если не указан)
   tags?: Omit<ClientTag, 'id'>[];
   notes?: string;
 }
@@ -446,6 +447,7 @@ export interface CreateProjectRequest {
   riskNotes?: string;
   briefComplete?: boolean;
   productionSubStage?: Project['productionSubStage'];
+  organizationId?: string; // ID организации (автоматически устанавливается если не указан)
 }
 
 export interface UpdateProjectRequest {
@@ -511,6 +513,7 @@ export interface ClientSearchParams extends SearchParams {
   type?: string;
   tags?: string[];
   ownerId?: string;
+  organizationId?: string; // Фильтр по организации
 }
 
 export interface ProjectSearchParams extends SearchParams {
@@ -519,6 +522,7 @@ export interface ProjectSearchParams extends SearchParams {
   clientId?: string;
   managerId?: string;
   foremanId?: string;
+  organizationId?: string; // Фильтр по организации
 }
 
 export interface UserSearchParams extends SearchParams {

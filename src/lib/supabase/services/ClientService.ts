@@ -34,7 +34,7 @@ function mapSupabaseClientToClient(supabaseClient: any): Client {
 export class SupabaseClientService {
   // Get all clients with pagination and filters
   async getClients(params?: ClientSearchParams): Promise<PaginatedResponse<Client>> {
-    const { page = 1, limit = 20, search, status, type, tags, ownerId } = params || {};
+    const { page = 1, limit = 20, search, status, type, tags, ownerId, organizationId } = params || {};
     
     let query = supabase
       .from(TABLES.CLIENTS)
@@ -43,6 +43,9 @@ export class SupabaseClientService {
       .order('created_at', { ascending: false });
 
     // Apply filters
+    if (organizationId) {
+      query = query.eq('organization_id', organizationId);
+    }
     if (search) {
       query = query.or(`name.ilike.%${search}%,company.ilike.%${search}%`);
     }
@@ -152,6 +155,7 @@ export class SupabaseClientService {
         source: clientInfo.source,
         status: clientInfo.status,
         owner_id: clientInfo.ownerId || '9fc4d042-f598-487c-a383-cccfe0e219db',
+        organization_id: clientInfo.organizationId || null, // Добавляем organization_id
         notes: clientInfo.notes,
         projects_count: 0,
         ar_balance: 0,

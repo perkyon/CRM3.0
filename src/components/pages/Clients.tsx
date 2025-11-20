@@ -32,6 +32,7 @@ import {
 import { useUserStore } from '../../lib/stores/userStore';
 import { useProjects } from '../../contexts/ProjectContextNew';
 import { useClientStore } from '../../lib/stores/clientStore';
+import { useCurrentOrganization } from '../../lib/hooks/useCurrentOrganization';
 import { formatCurrency, formatDate, getInitials, formatPhone } from '../../lib/utils';
 import { StatusBadge } from '../ui/status-badge';
 import { Client } from '../../types';
@@ -58,6 +59,7 @@ const typeLabels: Record<string, string> = {
 export function Clients() {
   const navigate = useNavigate();
   const { projects } = useProjects();
+  const { currentOrganization } = useCurrentOrganization();
   const {
     clients,
     isLoading,
@@ -83,11 +85,11 @@ export function Clients() {
   React.useEffect(() => {
     // Предзагрузка с небольшой задержкой для лучшего UX
     const timer = setTimeout(() => {
-      fetchClients();
+      fetchClients(currentOrganization ? { organizationId: currentOrganization.id } : undefined);
     }, 100);
     
     return () => clearTimeout(timer);
-  }, [fetchClients]);
+  }, [fetchClients, currentOrganization?.id]);
 
   // Subscribe to real-time updates for collaboration
   useEffect(() => {
@@ -156,6 +158,7 @@ export function Clients() {
         status: clientData.status,
         preferredChannel: clientData.preferredChannel || 'Phone', // Default to Phone if not specified
         ownerId: clientData.ownerId,
+        organizationId: currentOrganization?.id, // Добавляем organizationId
         contacts: clientData.contacts,
         addresses: clientData.addresses,
         source: clientData.source || 'manual', // Use provided source or default to manual

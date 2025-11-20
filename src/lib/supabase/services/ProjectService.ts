@@ -6,7 +6,7 @@ import { handleApiError } from '../../error/ErrorHandler';
 export class SupabaseProjectService {
   // Get all projects with pagination and filters
   async getProjects(params?: ProjectSearchParams): Promise<PaginatedResponse<Project>> {
-    const { page = 1, limit = 20, search, stage, priority, clientId, managerId } = params || {};
+    const { page = 1, limit = 20, search, stage, priority, clientId, managerId, organizationId } = params || {};
     
     let query = supabase
       .from(TABLES.PROJECTS)
@@ -15,6 +15,9 @@ export class SupabaseProjectService {
       .order('created_at', { ascending: false });
 
     // Apply filters
+    if (organizationId) {
+      query = query.eq('organization_id', organizationId);
+    }
     if (search) {
       query = query.or(`title.ilike.%${search}%,site_address.ilike.%${search}%,code.ilike.%${search}%`);
     }
@@ -145,6 +148,7 @@ export class SupabaseProjectService {
       production_sub_stage: projectInfo.productionSubStage || null,
       risk_notes: projectInfo.riskNotes || null,
       brief_complete: projectInfo.briefComplete || false,
+      organization_id: projectInfo.organizationId || null, // Добавляем organization_id
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };

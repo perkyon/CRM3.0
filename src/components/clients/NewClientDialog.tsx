@@ -21,6 +21,7 @@ interface NewClientDialogProps {
 export function NewClientDialog({ open, onOpenChange, onClientCreate }: NewClientDialogProps) {
   const [loading, setLoading] = useState(false);
   const { users, fetchUsers } = useUserStore();
+  const { currentOrganization } = useCurrentOrganization();
   
   // Форма
   const [formData, setFormData] = useState({

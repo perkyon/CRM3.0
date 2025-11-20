@@ -32,6 +32,7 @@ import { useAnalytics, CRM_EVENTS } from '../../lib/hooks/useAnalytics';
 import { Project, ProjectStage } from '../../types';
 import { useProjects } from '../../contexts/ProjectContextNew';
 import { useClientStore } from '../../lib/stores/clientStore';
+import { useCurrentOrganization } from '../../lib/hooks/useCurrentOrganization';
 import { EmptyProjectsState, ErrorState, LoadingState } from '../ui/empty-state';
 
 export function Projects() {
@@ -40,6 +41,7 @@ export function Projects() {
   const { clients, fetchClients } = useClientStore();
   const { trackUserAction } = useAnalytics();
   const { users, getUsersByRole, loading: usersLoading } = useUsers();
+  const { currentOrganization } = useCurrentOrganization();
   const [searchQuery, setSearchQuery] = useState('');
   const [stageFilter, setStageFilter] = useState<string>('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
