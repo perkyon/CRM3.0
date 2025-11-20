@@ -53,12 +53,12 @@ export class OrganizationService {
         userId = signInData.user.id;
         isNewUser = false;
       } else {
-        throw new Error(`Ошибка создания пользователя: ${authError.message}`);
-      }
+      throw new Error(`Ошибка создания пользователя: ${authError.message}`);
+    }
     } else {
-      if (!authData.user) {
-        throw new Error('Пользователь не был создан');
-      }
+    if (!authData.user) {
+      throw new Error('Пользователь не был создан');
+    }
       userId = authData.user.id;
       isNewUser = true;
     }
@@ -66,20 +66,20 @@ export class OrganizationService {
     // 2. Создать или обновить профиль пользователя
     if (isNewUser) {
       // Для нового пользователя создаем профиль
-      const { error: userError } = await supabase
-        .from('users')
-        .insert({
-          id: userId,
-          name: user.name,
-          email: user.email,
-          phone: user.phone || null,
-          role: 'Admin',
-          active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        });
+    const { error: userError } = await supabase
+      .from('users')
+      .insert({
+        id: userId,
+        name: user.name,
+        email: user.email,
+        phone: user.phone || null,
+        role: 'Admin',
+        active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
 
-      if (userError) {
+    if (userError) {
         // Если профиль уже существует (например, создан вручную), обновляем его
         if (userError.code === '23505') { // Unique violation
           const { error: updateError } = await supabase
@@ -95,7 +95,7 @@ export class OrganizationService {
             throw new Error(`Ошибка обновления профиля: ${updateError.message}`);
           }
         } else {
-          throw new Error(`Ошибка создания профиля: ${userError.message}`);
+      throw new Error(`Ошибка создания профиля: ${userError.message}`);
         }
       }
     } else {

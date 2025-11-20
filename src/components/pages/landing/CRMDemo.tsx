@@ -1,6 +1,34 @@
 import { motion } from 'motion/react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../../lib/supabase/config';
+import { toast } from '../../../lib/toast';
 
 export default function CRMDemo() {
+  const navigate = useNavigate();
+
+  const handleDemoLogin = async () => {
+    try {
+      // Вход в демо-аккаунт
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: 'demo@burocrm.ru',
+        password: 'demo123456',
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data.user) {
+        // Редирект в систему
+        navigate('/app/dashboard');
+        toast.success('Добро пожаловать в демо-версию!');
+      }
+    } catch (error: any) {
+      console.error('Demo login error:', error);
+      toast.error(error?.message || 'Ошибка входа в демо-версию');
+    }
+  };
+
   return (
     <section className="py-24 md:py-32 bg-black text-white border-t border-gray-800">
       <div className="container mx-auto px-6 md:px-12">
@@ -11,18 +39,19 @@ export default function CRMDemo() {
           transition={{ duration: 0.8 }}
         >
           <h2 className="text-5xl md:text-7xl mb-8">Демо-версия</h2>
-          <p className="text-xl md:text-2xl text-gray-400 mb-16 max-w-3xl">
-            Посмотрите, как работает система изнутри
+          <p className="text-xl md:text-2xl text-gray-400 mb-8 max-w-3xl">
+            Попробуйте систему бесплатно с предзаполненными данными. Все функции доступны для ознакомления.
+          </p>
+          <p className="text-sm text-gray-500 mb-16 max-w-3xl">
+            Демо-аккаунт: demo@burocrm.ru / demo123456
           </p>
 
-          <a
-            href="https://www.burodigital.ru"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={handleDemoLogin}
             className="inline-block px-8 py-4 border-2 border-white text-lg hover:bg-white hover:text-black transition-colors duration-300"
           >
             Открыть демо
-          </a>
+          </button>
         </motion.div>
       </div>
     </section>

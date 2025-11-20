@@ -326,45 +326,45 @@ export function Onboarding() {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="userName">Ваше имя *</Label>
-                    <Input
-                      id="userName"
-                      value={userName}
-                      onChange={(e) => setUserName(e.target.value)}
-                      placeholder="Иван Иванов"
-                      className="mt-1"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="userEmail">Email *</Label>
-                    <Input
-                      id="userEmail"
-                      value={userEmail}
-                      onChange={(e) => setUserEmail(e.target.value)}
-                      placeholder="ivan@example.com"
-                      type="email"
-                      className="mt-1"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Будет использован для входа в систему
-                    </p>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="userPhone">Телефон (необязательно)</Label>
-                    <Input
-                      id="userPhone"
-                      value={userPhone}
-                      onChange={(e) => setUserPhone(e.target.value)}
-                      placeholder="+7 (999) 123-45-67"
-                      type="tel"
-                      className="mt-1"
-                    />
-                  </div>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="userName">Ваше имя *</Label>
+                  <Input
+                    id="userName"
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
+                    placeholder="Иван Иванов"
+                    className="mt-1"
+                  />
                 </div>
+
+                <div>
+                  <Label htmlFor="userEmail">Email *</Label>
+                  <Input
+                    id="userEmail"
+                    value={userEmail}
+                    onChange={(e) => setUserEmail(e.target.value)}
+                    placeholder="ivan@example.com"
+                    type="email"
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Будет использован для входа в систему
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="userPhone">Телефон (необязательно)</Label>
+                  <Input
+                    id="userPhone"
+                    value={userPhone}
+                    onChange={(e) => setUserPhone(e.target.value)}
+                    placeholder="+7 (999) 123-45-67"
+                    type="tel"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
               )}
             </div>
           )}

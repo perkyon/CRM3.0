@@ -373,14 +373,14 @@ export function RolesAndPermissions() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditUser(user)}
-                            >
-                              <Edit className="size-4 mr-2" />
-                              Изменить
-                            </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditUser(user)}
+                          >
+                            <Edit className="size-4 mr-2" />
+                            Изменить
+                          </Button>
                             {user.id !== currentUser?.id && (
                               <Button
                                 variant="ghost"
@@ -412,19 +412,19 @@ export function RolesAndPermissions() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Object.entries(ROLE_PERMISSIONS).map(([role, config]) => {
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Object.entries(ROLE_PERMISSIONS).map(([role, config]) => {
                   const roleUsers = users.filter(u => u.role === role);
                   const activeUsers = roleUsers.filter(u => u.active);
-                  
-                  return (
+              
+              return (
                     <Card 
                       key={role} 
                       className="hover:shadow-lg transition-all cursor-pointer border-2 hover:border-primary/50"
                       onClick={() => handleRoleClick(role as Role)}
                     >
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
                           <div className="flex items-center gap-3 flex-1">
                             <div className={`p-3 rounded-lg ${
                               config.color === 'red' ? 'bg-red-100 dark:bg-red-900/20' :
@@ -433,7 +433,7 @@ export function RolesAndPermissions() {
                               config.color === 'purple' ? 'bg-purple-100 dark:bg-purple-900/20' :
                               config.color === 'orange' ? 'bg-orange-100 dark:bg-orange-900/20' :
                               'bg-gray-100 dark:bg-gray-900/20'
-                            }`}>
+                        }`}>
                               <Shield className={`size-6 ${
                                 config.color === 'red' ? 'text-red-600 dark:text-red-400' :
                                 config.color === 'blue' ? 'text-blue-600 dark:text-blue-400' :
@@ -441,45 +441,45 @@ export function RolesAndPermissions() {
                                 config.color === 'purple' ? 'text-purple-600 dark:text-purple-400' :
                                 config.color === 'orange' ? 'text-orange-600 dark:text-orange-400' :
                                 'text-gray-600 dark:text-gray-400'
-                              }`} />
-                            </div>
+                          }`} />
+                        </div>
                             <div className="flex-1">
                               <CardTitle className="text-lg mb-1">{config.label}</CardTitle>
-                              <CardDescription className="text-xs">
+                          <CardDescription className="text-xs">
                                 {activeUsers.length} активных из {roleUsers.length} всего
-                              </CardDescription>
-                            </div>
-                          </div>
+                          </CardDescription>
                         </div>
-                      </CardHeader>
+                      </div>
+                    </div>
+                  </CardHeader>
                       <CardContent>
                         {roleUsers.length > 0 && (
-                          <div className="space-y-2">
+                    <div className="space-y-2">
                             <div className="text-xs font-medium text-muted-foreground">Пользователи:</div>
-                            <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-1">
                               {roleUsers.slice(0, 4).map(user => (
                                 <Badge key={user.id} variant="outline" className="text-xs">
                                   {user.name}
-                                </Badge>
-                              ))}
+                          </Badge>
+                        ))}
                               {roleUsers.length > 4 && (
                                 <Badge variant="secondary" className="text-xs">
                                   +{roleUsers.length - 4}
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
                         )}
                         {roleUsers.length === 0 && (
                           <div className="text-sm text-muted-foreground py-2">
                             Нет пользователей с этой ролью
                           </div>
                         )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
             </CardContent>
           </Card>
         </TabsContent>
