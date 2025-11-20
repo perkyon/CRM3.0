@@ -144,7 +144,7 @@ export function RolesAndPermissions() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isRoleDetailOpen, setIsRoleDetailOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [detailRole, setDetailRole] = useState<Role | null>(null);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [newUser, setNewUser] = useState({
@@ -248,7 +248,7 @@ export function RolesAndPermissions() {
   };
 
   const handleRoleClick = (role: Role) => {
-    setSelectedRole(role);
+    setDetailRole(role);
     setIsRoleDetailOpen(true);
   };
 
@@ -810,21 +810,21 @@ export function RolesAndPermissions() {
         <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {selectedRole && ROLE_PERMISSIONS[selectedRole]?.label}
+              {detailRole && ROLE_PERMISSIONS[detailRole]?.label}
             </DialogTitle>
             <DialogDescription>
-              {selectedRole && ROLE_PERMISSIONS[selectedRole]?.description}
+              {detailRole && ROLE_PERMISSIONS[detailRole]?.description}
             </DialogDescription>
           </DialogHeader>
 
-          {selectedRole && (
+          {detailRole && (
             <div className="space-y-6">
               {/* Статистика */}
               <div className="grid grid-cols-2 gap-4">
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-2xl font-bold">
-                      {users.filter(u => u.role === selectedRole).length}
+                      {users.filter(u => u.role === detailRole).length}
                     </div>
                     <div className="text-sm text-muted-foreground">Всего пользователей</div>
                   </CardContent>
@@ -832,7 +832,7 @@ export function RolesAndPermissions() {
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-2xl font-bold text-green-600">
-                      {users.filter(u => u.role === selectedRole && u.active).length}
+                      {users.filter(u => u.role === detailRole && u.active).length}
                     </div>
                     <div className="text-sm text-muted-foreground">Активных</div>
                   </CardContent>
@@ -842,9 +842,9 @@ export function RolesAndPermissions() {
               {/* Пользователи с этой ролью */}
               <div>
                 <h3 className="text-lg font-medium mb-3">Пользователи</h3>
-                {users.filter(u => u.role === selectedRole).length > 0 ? (
+                {users.filter(u => u.role === detailRole).length > 0 ? (
                   <div className="space-y-2">
-                    {users.filter(u => u.role === selectedRole).map(user => (
+                    {users.filter(u => u.role === detailRole).map(user => (
                       <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex items-center gap-3">
                           <Avatar className="size-10">
@@ -892,10 +892,10 @@ export function RolesAndPermissions() {
               {/* Права доступа */}
               <div>
                 <h3 className="text-lg font-medium mb-3">
-                  Права доступа ({ROLE_PERMISSIONS[selectedRole]?.permissions.length})
+                  Права доступа ({ROLE_PERMISSIONS[detailRole]?.permissions.length})
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {ROLE_PERMISSIONS[selectedRole]?.permissions.map(permission => (
+                  {ROLE_PERMISSIONS[detailRole]?.permissions.map(permission => (
                     <div key={permission} className="flex items-center gap-2 p-2 border rounded-lg">
                       <CheckCircle2 className="size-4 text-green-600" />
                       <span className="text-sm">{PERMISSION_LABELS[permission] || permission}</span>
