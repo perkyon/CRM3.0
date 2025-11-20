@@ -25,6 +25,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCurrentOrganization } from '../../lib/hooks/useCurrentOrganization';
 import { toast } from '../../lib/toast';
 import { getInitials } from '../../lib/utils';
 import { supabaseAuthService } from '../../lib/supabase/services/AuthService';
@@ -34,6 +35,7 @@ import { useUserStore } from '../../lib/stores/userStore';
 
 export function Settings() {
   const { user, refreshUser } = useAuth();
+  const { currentOrganization } = useCurrentOrganization();
   const { fetchUsers } = useUserStore();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -109,10 +111,20 @@ export function Settings() {
       }));
 
       // Загружаем настройки организации для админов
-      if (isAdmin) {
-        // TODO: Получить organizationId из контекста или хранилища
-        // const orgSettings = await supabaseSettingsService.getOrganizationSettings(organizationId);
-        // setSettings(prev => ({ ...prev, ...orgSettings }));
+      if (isAdmin && currentOrganization?.id) {
+        try {
+          const orgSettings = await supabaseSettingsService.getOrganizationSettings(currentOrganization.id);
+          setSettings(prev => ({
+            ...prev,
+            organizationName: orgSettings.name || prev.organizationName,
+            organizationPhone: orgSettings.phone || prev.organizationPhone,
+            organizationEmail: orgSettings.email || prev.organizationEmail,
+            organizationAddress: orgSettings.address || prev.organizationAddress,
+          }));
+        } catch (error: any) {
+          console.error('Error loading organization settings:', error);
+          // Не показываем ошибку, так как это не критично
+        }
       }
     } catch (error: any) {
       console.error('Error loading settings:', error);
@@ -167,8 +179,14 @@ export function Settings() {
       await supabaseSettingsService.updateUserSettings(user.id, userSettings);
 
       // Обновляем настройки организации для админов
-      if (isAdmin) {
-        // TODO: Сохранить настройки организации
+      if (isAdmin && currentOrganization?.id) {
+        const orgSettings = {
+          name: settings.organizationName,
+          phone: settings.organizationPhone,
+          email: settings.organizationEmail,
+          address: settings.organizationAddress,
+        };
+        await supabaseSettingsService.updateOrganizationSettings(currentOrganization.id, orgSettings);
       }
 
       // Обновляем данные пользователя в контексте

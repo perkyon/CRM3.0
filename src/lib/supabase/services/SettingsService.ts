@@ -62,7 +62,7 @@ export class SupabaseSettingsService {
   async getOrganizationSettings(organizationId: string): Promise<OrganizationSettings> {
     const { data, error } = await supabase
       .from('organizations')
-      .select('settings, name')
+      .select('settings, name, phone, email, address')
       .eq('id', organizationId)
       .single();
 
@@ -72,24 +72,48 @@ export class SupabaseSettingsService {
 
     return {
       ...(data?.settings as OrganizationSettings || {}),
-      name: data?.name,
+      name: data?.name || '',
+      phone: data?.phone || '',
+      email: data?.email || '',
+      address: data?.address || '',
     };
   }
 
   // Update organization settings
   async updateOrganizationSettings(organizationId: string, settings: OrganizationSettings): Promise<void> {
-    const { name, ...otherSettings } = settings;
+    const { name, phone, email, address, ...otherSettings } = settings;
     
     const updateData: any = {
       updated_at: new Date().toISOString(),
     };
 
-    if (name) {
+    if (name !== undefined) {
       updateData.name = name;
     }
 
+    if (phone !== undefined) {
+      updateData.phone = phone;
+    }
+
+    if (email !== undefined) {
+      updateData.email = email;
+    }
+
+    if (address !== undefined) {
+      updateData.address = address;
+    }
+
+    // Дополнительные настройки сохраняем в JSONB поле settings
     if (Object.keys(otherSettings).length > 0) {
-      updateData.settings = otherSettings;
+      // Получаем текущие settings, чтобы не перезаписать их полностью
+      const { data: currentData } = await supabase
+        .from('organizations')
+        .select('settings')
+        .eq('id', organizationId)
+        .single();
+      
+      const currentSettings = (currentData?.settings as any) || {};
+      updateData.settings = { ...currentSettings, ...otherSettings };
     }
 
     const { error } = await supabase
