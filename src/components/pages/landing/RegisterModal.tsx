@@ -1,6 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '../../ui/dialog';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
+import { organizationService } from '../../../lib/supabase/services/OrganizationService';
+import { toast } from '../../../lib/toast';
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -10,6 +13,8 @@ interface RegisterModalProps {
 }
 
 export default function RegisterModal({ isOpen, onClose, onLogin, onSubmit }: RegisterModalProps) {
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     company: '',
@@ -17,12 +22,77 @@ export default function RegisterModal({ isOpen, onClose, onLogin, onSubmit }: Re
     password: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Генерация slug из названия компании
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (onSubmit) {
+      // Если есть кастомный обработчик, используем его
       onSubmit();
-    } else {
-      console.log('Register:', formData);
+      return;
+    }
+
+    // Валидация
+    if (!formData.name.trim()) {
+      toast.error('Укажите ваше имя');
+      return;
+    }
+    if (!formData.company.trim()) {
+      toast.error('Укажите название компании');
+      return;
+    }
+    if (!formData.email.trim() || !formData.email.includes('@')) {
+      toast.error('Укажите корректный email');
+      return;
+    }
+    if (formData.password.length < 8) {
+      toast.error('Пароль должен содержать минимум 8 символов');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const orgSlug = generateSlug(formData.company);
+      
+      // Создаем организацию с пользователем (free план по умолчанию)
+      await organizationService.createOrganizationWithUser({
+        organization: {
+          name: formData.company,
+          slug: orgSlug,
+        },
+        user: {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        },
+        subscriptionPlan: 'free',
+      });
+
+      toast.success('Организация создана! Выполняется вход...');
+      
+      // Перенаправляем на onboarding для завершения настройки
+      navigate('/onboarding', {
+        state: {
+          orgName: formData.company,
+          orgSlug: orgSlug,
+          userName: formData.name,
+          userEmail: formData.email,
+        }
+      });
+      
+      onClose();
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      toast.error(error?.message || 'Ошибка при регистрации');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -105,9 +175,17 @@ export default function RegisterModal({ isOpen, onClose, onLogin, onSubmit }: Re
 
             <button
               type="submit"
-              className="w-full py-4 border-2 border-black text-lg hover:bg-black hover:text-white transition-colors duration-300"
+              disabled={isLoading}
+              className="w-full py-4 border-2 border-black text-lg hover:bg-black hover:text-white transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              Создать аккаунт
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Создание...
+                </>
+              ) : (
+                'Создать аккаунт'
+              )}
             </button>
 
             <div className="text-center text-gray-600">

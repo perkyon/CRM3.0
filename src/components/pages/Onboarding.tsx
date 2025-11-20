@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -38,6 +38,7 @@ const steps: OnboardingStep[] = [
 
 export function Onboarding() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const authStore = useAuthStore();
   const [currentStep, setCurrentStep] = useState(1);
@@ -54,8 +55,18 @@ export function Onboarding() {
   const [userEmail, setUserEmail] = useState('');
   const [userPhone, setUserPhone] = useState('');
 
-  // Заполнение данных из URL (если пришли после оплаты)
+  // Заполнение данных из URL (если пришли после оплаты) или из state (если пришли после регистрации)
   useEffect(() => {
+    // Проверяем state из навигации (после регистрации)
+    const state = location.state as any;
+    if (state) {
+      if (state.orgName) setOrgName(state.orgName);
+      if (state.orgSlug) setOrgSlug(state.orgSlug);
+      if (state.userName) setUserName(state.userName);
+      if (state.userEmail) setUserEmail(state.userEmail);
+    }
+
+    // Проверяем URL параметры (после оплаты)
     const urlOrgName = searchParams.get('org_name');
     const urlOrgSlug = searchParams.get('org_slug');
     const urlUserName = searchParams.get('user_name');
@@ -69,7 +80,7 @@ export function Onboarding() {
     if (urlUserEmail) setUserEmail(urlUserEmail);
     if (urlUserPhone) setUserPhone(urlUserPhone);
     if (urlWebsite) setWebsite(urlWebsite);
-  }, [searchParams]);
+  }, [searchParams, location]);
 
   // Генерация slug из названия
   const generateSlug = (name: string) => {
@@ -100,6 +111,14 @@ export function Onboarding() {
       setError(null);
       setCurrentStep(2);
     } else if (currentStep === 2) {
+      // Если организация уже создана (пришли после регистрации), просто переходим дальше
+      const state = location.state as any;
+      if (state?.orgName) {
+        // Организация уже создана, просто выполняем вход если нужно
+        setCurrentStep(3);
+        return;
+      }
+
       // Валидация шага 2
       if (!userName.trim()) {
         setError('Укажите ваше имя');
@@ -297,45 +316,56 @@ export function Onboarding() {
                 <h3 className="text-lg font-semibold">Данные администратора</h3>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="userName">Ваше имя *</Label>
-                  <Input
-                    id="userName"
-                    value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
-                    placeholder="Иван Иванов"
-                    className="mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="userEmail">Email *</Label>
-                  <Input
-                    id="userEmail"
-                    value={userEmail}
-                    onChange={(e) => setUserEmail(e.target.value)}
-                    placeholder="ivan@example.com"
-                    type="email"
-                    className="mt-1"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Будет использован для входа в систему
+              {(location.state as any)?.orgName ? (
+                <div className="text-center py-8 space-y-4">
+                  <p className="text-muted-foreground">
+                    Организация "{orgName}" уже создана!
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Вы будете перенаправлены в систему...
                   </p>
                 </div>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="userName">Ваше имя *</Label>
+                    <Input
+                      id="userName"
+                      value={userName}
+                      onChange={(e) => setUserName(e.target.value)}
+                      placeholder="Иван Иванов"
+                      className="mt-1"
+                    />
+                  </div>
 
-                <div>
-                  <Label htmlFor="userPhone">Телефон (необязательно)</Label>
-                  <Input
-                    id="userPhone"
-                    value={userPhone}
-                    onChange={(e) => setUserPhone(e.target.value)}
-                    placeholder="+7 (999) 123-45-67"
-                    type="tel"
-                    className="mt-1"
-                  />
+                  <div>
+                    <Label htmlFor="userEmail">Email *</Label>
+                    <Input
+                      id="userEmail"
+                      value={userEmail}
+                      onChange={(e) => setUserEmail(e.target.value)}
+                      placeholder="ivan@example.com"
+                      type="email"
+                      className="mt-1"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Будет использован для входа в систему
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="userPhone">Телефон (необязательно)</Label>
+                    <Input
+                      id="userPhone"
+                      value={userPhone}
+                      onChange={(e) => setUserPhone(e.target.value)}
+                      placeholder="+7 (999) 123-45-67"
+                      type="tel"
+                      className="mt-1"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
