@@ -10,6 +10,7 @@ import { X } from 'lucide-react';
 import { Client, User } from '../../types';
 import { toast } from 'sonner';
 import { useUserStore } from '../../lib/stores/userStore';
+import { useCurrentOrganization } from '../../lib/hooks/useCurrentOrganization';
 import { supabase } from '../../lib/supabase/config';
 
 interface NewClientDialogProps {
