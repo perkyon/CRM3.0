@@ -282,11 +282,11 @@ BEGIN
             WHEN c.name LIKE '%Петров%' THEN 180000
             ELSE NULL
         END,
-        'high',
+        'high'::priority,
         CASE 
-            WHEN c.name LIKE '%Иванов%' THEN 'production'
-            WHEN c.name LIKE '%Петров%' THEN 'design'
-            ELSE 'brief'
+            WHEN c.name LIKE '%Иванов%' THEN 'production'::project_stage
+            WHEN c.name LIKE '%Петров%' THEN 'preliminary_design'::project_stage
+            ELSE 'brief'::project_stage
         END,
         NOW() - INTERVAL '15 days',
         NOW()
