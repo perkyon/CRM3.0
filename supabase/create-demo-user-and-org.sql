@@ -131,23 +131,30 @@ BEGIN
         updated_at = NOW();
 
     -- 6. Создать или обновить подписку
-    INSERT INTO subscriptions (
-        organization_id,
-        plan,
-        status,
-        created_at,
-        updated_at
-    ) VALUES (
-        demo_org_id,
-        'professional',
-        'active',
-        NOW(),
-        NOW()
-    )
-    ON CONFLICT (organization_id) DO UPDATE SET
-        plan = 'professional',
-        status = 'active',
-        updated_at = NOW();
+    -- Проверяем, существует ли уже подписка для этой организации
+    IF EXISTS (SELECT 1 FROM subscriptions WHERE organization_id = demo_org_id) THEN
+        -- Обновляем существующую подписку
+        UPDATE subscriptions
+        SET plan = 'professional',
+            status = 'active',
+            updated_at = NOW()
+        WHERE organization_id = demo_org_id;
+    ELSE
+        -- Создаем новую подписку
+        INSERT INTO subscriptions (
+            organization_id,
+            plan,
+            status,
+            created_at,
+            updated_at
+        ) VALUES (
+            demo_org_id,
+            'professional',
+            'active',
+            NOW(),
+            NOW()
+        );
+    END IF;
 
     -- 7. Создать демо-клиентов
     INSERT INTO clients (
