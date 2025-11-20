@@ -82,3 +82,169 @@ CREATE POLICY "admins_can_read_all_org_users" ON users
 -- может потребоваться дополнительная политика UPDATE/DELETE для админов,
 -- но это зависит от требований безопасности вашего приложения.
 
+-- ============================================
+-- RLS ПОЛИТИКИ ДЛЯ ТАБЛИЦЫ ORGANIZATIONS
+-- ============================================
+
+-- Включаем RLS для organizations (если еще не включен)
+ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
+
+-- Удаляем старые политики, если они есть
+DROP POLICY IF EXISTS "users_can_create_organizations" ON organizations;
+DROP POLICY IF EXISTS "users_can_read_own_organizations" ON organizations;
+DROP POLICY IF EXISTS "users_can_update_own_organizations" ON organizations;
+DROP POLICY IF EXISTS "admins_can_update_own_organizations" ON organizations;
+
+-- 1. Пользователи могут создавать новые организации
+-- Это нужно для регистрации и создания организации
+CREATE POLICY "users_can_create_organizations" ON organizations
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (true); -- Любой авторизованный пользователь может создать организацию
+
+-- 2. Пользователи могут читать организации, в которых они состоят
+CREATE POLICY "users_can_read_own_organizations" ON organizations
+    FOR SELECT
+    TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM organization_members om
+            WHERE om.organization_id = organizations.id
+              AND om.user_id = auth.uid()
+              AND om.active = true
+        )
+    );
+
+-- 3. Пользователи могут обновлять организации, в которых они являются админами
+CREATE POLICY "users_can_update_own_organizations" ON organizations
+    FOR UPDATE
+    TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM organization_members om
+            WHERE om.organization_id = organizations.id
+              AND om.user_id = auth.uid()
+              AND om.role = 'Admin'
+              AND om.active = true
+        )
+    )
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM organization_members om
+            WHERE om.organization_id = organizations.id
+              AND om.user_id = auth.uid()
+              AND om.role = 'Admin'
+              AND om.active = true
+        )
+    );
+
+-- ============================================
+-- RLS ПОЛИТИКИ ДЛЯ ТАБЛИЦЫ ORGANIZATION_MEMBERS
+-- ============================================
+
+-- Включаем RLS для organization_members (если еще не включен)
+ALTER TABLE organization_members ENABLE ROW LEVEL SECURITY;
+
+-- Удаляем старые политики, если они есть
+DROP POLICY IF EXISTS "users_can_create_memberships" ON organization_members;
+DROP POLICY IF EXISTS "users_can_read_own_memberships" ON organization_members;
+DROP POLICY IF EXISTS "admins_can_manage_members" ON organization_members;
+
+-- 1. Пользователи могут создавать членства в организациях
+-- Это нужно для добавления пользователя в организацию при создании
+CREATE POLICY "users_can_create_memberships" ON organization_members
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (
+        -- Пользователь может добавить себя в организацию
+        user_id = auth.uid()
+        OR
+        -- Или админ организации может добавлять других пользователей
+        EXISTS (
+            SELECT 1 FROM organization_members om
+            WHERE om.organization_id = organization_members.organization_id
+              AND om.user_id = auth.uid()
+              AND om.role = 'Admin'
+              AND om.active = true
+        )
+    );
+
+-- 2. Пользователи могут читать свои членства
+CREATE POLICY "users_can_read_own_memberships" ON organization_members
+    FOR SELECT
+    TO authenticated
+    USING (
+        user_id = auth.uid()
+        OR
+        -- Или видеть членства в организациях, где пользователь является админом
+        EXISTS (
+            SELECT 1 FROM organization_members om
+            WHERE om.organization_id = organization_members.organization_id
+              AND om.user_id = auth.uid()
+              AND om.role = 'Admin'
+              AND om.active = true
+        )
+    );
+
+-- 3. Админы могут управлять членствами в своих организациях
+CREATE POLICY "admins_can_manage_members" ON organization_members
+    FOR UPDATE
+    TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM organization_members om
+            WHERE om.organization_id = organization_members.organization_id
+              AND om.user_id = auth.uid()
+              AND om.role = 'Admin'
+              AND om.active = true
+        )
+    )
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM organization_members om
+            WHERE om.organization_id = organization_members.organization_id
+              AND om.user_id = auth.uid()
+              AND om.role = 'Admin'
+              AND om.active = true
+        )
+    );
+
+-- ============================================
+-- RLS ПОЛИТИКИ ДЛЯ ТАБЛИЦЫ SUBSCRIPTIONS
+-- ============================================
+
+-- Включаем RLS для subscriptions (если еще не включен)
+ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+
+-- Удаляем старые политики, если они есть
+DROP POLICY IF EXISTS "users_can_create_subscriptions" ON subscriptions;
+DROP POLICY IF EXISTS "users_can_read_org_subscriptions" ON subscriptions;
+
+-- 1. Пользователи могут создавать подписки для своих организаций
+-- Это нужно при создании организации
+CREATE POLICY "users_can_create_subscriptions" ON subscriptions
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM organization_members om
+            WHERE om.organization_id = subscriptions.organization_id
+              AND om.user_id = auth.uid()
+              AND om.role = 'Admin'
+              AND om.active = true
+        )
+    );
+
+-- 2. Пользователи могут читать подписки своих организаций
+CREATE POLICY "users_can_read_org_subscriptions" ON subscriptions
+    FOR SELECT
+    TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM organization_members om
+            WHERE om.organization_id = subscriptions.organization_id
+              AND om.user_id = auth.uid()
+              AND om.active = true
+        )
+    );
+
