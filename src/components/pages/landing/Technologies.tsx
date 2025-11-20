@@ -86,7 +86,7 @@ export default function Technologies() {
               >
                 <div className="flex items-center gap-4 mb-8">
                   <Icon className="w-6 h-6" />
-                  <h3 className="text-sm tracking-widest text-gray-400">
+                  <h3 className="text-sm tracking-widest" style={{ color: '#151515' }}>
                     {category.title.toUpperCase()}
                   </h3>
                 </div>

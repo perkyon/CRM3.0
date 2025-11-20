@@ -82,7 +82,7 @@ export default function Services() {
                     <Icon className="w-8 h-8" />
                   </motion.div>
 
-                  <h2 className="text-3xl md:text-4xl mb-6 transition-transform duration-500 group-hover:translate-x-2">
+                  <h2 className="text-3xl md:text-4xl mb-6 transition-transform duration-500 group-hover:translate-x-2" style={{ color: service.color === 'black' ? '#ffffff' : '#151515' }}>
                     {service.title}
                   </h2>
                   <p className="text-lg md:text-xl leading-relaxed" style={{ color: service.color === 'black' ? '#ffffff' : '#151515' }}>

@@ -41,7 +41,7 @@ export default function LoginModal({ isOpen, onClose, onRegister, onSubmit }: Lo
 
           <form onSubmit={handleSubmit} className="space-y-8">
             <div>
-              <label className="block text-sm text-gray-500 mb-2 tracking-widest">EMAIL</label>
+              <label className="block text-sm mb-2 tracking-widest" style={{ color: '#151515' }}>EMAIL</label>
               <input
                 type="email"
                 value={email}
@@ -53,7 +53,7 @@ export default function LoginModal({ isOpen, onClose, onRegister, onSubmit }: Lo
             </div>
 
             <div>
-              <label className="block text-sm text-gray-500 mb-2 tracking-widest">ПАРОЛЬ</label>
+              <label className="block text-sm mb-2 tracking-widest" style={{ color: '#151515' }}>ПАРОЛЬ</label>
               <input
                 type="password"
                 value={password}

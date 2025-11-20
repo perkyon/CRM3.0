@@ -118,7 +118,7 @@ export default function RegisterModal({ isOpen, onClose, onLogin, onSubmit }: Re
 
           <form onSubmit={handleSubmit} className="space-y-8">
             <div>
-              <label className="block text-sm text-gray-500 mb-2 tracking-widest">ИМЯ</label>
+              <label className="block text-sm mb-2 tracking-widest" style={{ color: '#151515' }}>ИМЯ</label>
               <input
                 type="text"
                 value={formData.name}
@@ -130,7 +130,7 @@ export default function RegisterModal({ isOpen, onClose, onLogin, onSubmit }: Re
             </div>
 
             <div>
-              <label className="block text-sm text-gray-500 mb-2 tracking-widest">КОМПАНИЯ</label>
+              <label className="block text-sm mb-2 tracking-widest" style={{ color: '#151515' }}>КОМПАНИЯ</label>
               <input
                 type="text"
                 value={formData.company}
@@ -142,7 +142,7 @@ export default function RegisterModal({ isOpen, onClose, onLogin, onSubmit }: Re
             </div>
 
             <div>
-              <label className="block text-sm text-gray-500 mb-2 tracking-widest">EMAIL</label>
+              <label className="block text-sm mb-2 tracking-widest" style={{ color: '#151515' }}>EMAIL</label>
               <input
                 type="email"
                 value={formData.email}
@@ -154,7 +154,7 @@ export default function RegisterModal({ isOpen, onClose, onLogin, onSubmit }: Re
             </div>
 
             <div>
-              <label className="block text-sm text-gray-500 mb-2 tracking-widest">ПАРОЛЬ</label>
+              <label className="block text-sm mb-2 tracking-widest" style={{ color: '#151515' }}>ПАРОЛЬ</label>
               <input
                 type="password"
                 value={formData.password}
@@ -163,12 +163,12 @@ export default function RegisterModal({ isOpen, onClose, onLogin, onSubmit }: Re
                 placeholder="••••••••"
                 required
               />
-              <p className="text-sm text-gray-500 mt-2">Минимум 8 символов</p>
+              <p className="text-sm mt-2" style={{ color: '#151515' }}>Минимум 8 символов</p>
             </div>
 
             <div className="flex items-start gap-2">
               <input type="checkbox" id="terms" className="mt-1 w-4 h-4" required />
-              <label htmlFor="terms" className="text-sm text-gray-600">
+              <label htmlFor="terms" className="text-sm" style={{ color: '#151515' }}>
                 Я согласен с условиями использования и политикой конфиденциальности
               </label>
             </div>
