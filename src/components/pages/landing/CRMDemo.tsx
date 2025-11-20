@@ -1,28 +1,23 @@
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../../../lib/supabase/config';
+import { useAuthStore } from '../../../lib/stores/authStore';
 import { toast } from '../../../lib/toast';
 
 export default function CRMDemo() {
   const navigate = useNavigate();
+  const authStore = useAuthStore();
 
   const handleDemoLogin = async () => {
     try {
-      // Вход в демо-аккаунт
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Вход в демо-аккаунт через authStore
+      await authStore.login({
         email: 'demo@burocrm.ru',
         password: 'demo123456',
       });
 
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (data.user) {
-        // Редирект в систему
-        navigate('/app/dashboard');
-        toast.success('Добро пожаловать в демо-версию!');
-      }
+      // Редирект в систему
+      navigate('/app/dashboard', { replace: true });
+      toast.success('Добро пожаловать в демо-версию!');
     } catch (error: any) {
       console.error('Demo login error:', error);
       toast.error(error?.message || 'Ошибка входа в демо-версию');
