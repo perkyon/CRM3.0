@@ -170,6 +170,13 @@ export class SupabaseAuthService {
       });
 
     if (error) {
+      // Более понятное сообщение об ошибке
+      if (error.message.includes('Bucket not found') || error.message.includes('not found')) {
+        throw new Error(
+          'Bucket "avatars" не найден в Supabase Storage. ' +
+          'Пожалуйста, выполните SQL скрипт supabase/create-storage-buckets.sql в Supabase SQL Editor.'
+        );
+      }
       throw new Error(`Failed to upload avatar: ${error.message}`);
     }
 
