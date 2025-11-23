@@ -9,6 +9,7 @@ DECLARE
     demo_org_id UUID;
     demo_user_id UUID;
     demo_user_exists BOOLEAN;
+    demo_board_id UUID;
 BEGIN
     -- 1. Создать демо-пользователя в auth.users (если еще не создан)
     -- ВАЖНО: Сначала создайте пользователя через Supabase Auth UI:
@@ -294,6 +295,25 @@ BEGIN
     WHERE c.organization_id = demo_org_id
       AND c.name NOT LIKE '%Сидоров%'
     ON CONFLICT DO NOTHING;
+
+    -- 10. Создать демо-доску для канбана (если еще нет)
+    IF NOT EXISTS (SELECT 1 FROM kanban_boards WHERE organization_id = demo_org_id) THEN
+        INSERT INTO kanban_boards (organization_id, title, created_at, updated_at)
+        VALUES (demo_org_id, 'Общая производственная доска', NOW(), NOW())
+        RETURNING id INTO demo_board_id;
+
+        -- Создаем дефолтные колонки
+        INSERT INTO kanban_columns (board_id, title, stage, position, is_default, created_at)
+        VALUES
+            (demo_board_id, 'К выполнению', 'todo', 0, true, NOW()),
+            (demo_board_id, 'В работе', 'in_progress', 1, false, NOW()),
+            (demo_board_id, 'На проверке', 'review', 2, false, NOW()),
+            (demo_board_id, 'Завершено', 'done', 3, false, NOW());
+
+        RAISE NOTICE '✅ Создана демо-доска для канбана';
+    ELSE
+        RAISE NOTICE 'ℹ️  Демо-доска уже существует';
+    END IF;
 
     RAISE NOTICE '✅ Демо-данные созданы успешно!';
     RAISE NOTICE '📧 Email для входа: demo@burocrm.ru';
