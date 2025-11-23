@@ -49,6 +49,11 @@ export function useCurrentOrganization() {
         }
 
         setCurrentOrganization(selectedOrg);
+        
+        // Устанавливаем organizationId в localStorage для использования в сервисах
+        if (selectedOrg?.id) {
+          localStorage.setItem('currentOrganizationId', selectedOrg.id);
+        }
       } catch (err: any) {
         console.error('Error fetching current organization:', err);
         setError(err.message || 'Ошибка загрузки организации');

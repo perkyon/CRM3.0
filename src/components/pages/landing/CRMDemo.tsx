@@ -15,6 +15,13 @@ export default function CRMDemo() {
         password: 'demo123456',
       });
 
+      // Получаем демо-организацию и устанавливаем в localStorage
+      const { organizationService } = await import('../../../lib/supabase/services/OrganizationService');
+      const demoOrg = await organizationService.getOrganizationBySlug('demo');
+      if (demoOrg?.id) {
+        localStorage.setItem('currentOrganizationId', demoOrg.id);
+      }
+
       // Редирект в систему
       navigate('/app/dashboard', { replace: true });
       toast.success('Добро пожаловать в демо-версию!');
