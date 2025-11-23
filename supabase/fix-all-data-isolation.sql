@@ -180,7 +180,7 @@ BEGIN
     ELSE
         RAISE NOTICE 'Все доски имеют organization_id';
     END IF;
+    
+    RAISE NOTICE 'Скрипт изоляции данных выполнен успешно!';
 END $$;
-
-RAISE NOTICE 'Скрипт изоляции данных выполнен успешно!';
 
