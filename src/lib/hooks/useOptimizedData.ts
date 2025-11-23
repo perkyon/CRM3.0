@@ -185,7 +185,12 @@ export function useOptimizedProjects() {
   return useOptimizedData({
     fetchFn: async () => {
       const { supabaseProjectService } = await import('../supabase/services/ProjectService');
-      return supabaseProjectService.getProjects();
+      // Получаем organizationId из localStorage (устанавливается при входе)
+      const orgId = localStorage.getItem('currentOrganizationId');
+      const response = await supabaseProjectService.getProjects({
+        organizationId: orgId || undefined
+      });
+      return response.data; // Возвращаем только данные, так как useOptimizedData ожидает массив
     },
     staleTime: 2 * 60 * 1000, // 2 минуты
     cacheTime: 15 * 60 * 1000, // 15 минут

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
 import { useProjectStore } from '../lib/stores/projectStore';
 import { useAuthStore } from '../lib/stores/authStore';
+import { useCurrentOrganization } from '../lib/hooks/useCurrentOrganization';
 import { Project, CreateProjectRequest, UpdateProjectRequest } from '../types';
 
 interface ProjectContextType {
@@ -50,24 +51,25 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   } = useProjectStore();
 
   const { isAuthenticated } = useAuthStore();
+  const { currentOrganization } = useCurrentOrganization();
 
-  // Auto-fetch projects when user is authenticated
+  // Auto-fetch projects when user is authenticated and organization is loaded
   useEffect(() => {
-    if (isAuthenticated && projects.length === 0) {
-      fetchProjects().catch(console.error);
+    if (isAuthenticated && currentOrganization?.id && projects.length === 0) {
+      fetchProjects({ organizationId: currentOrganization.id }).catch(console.error);
     }
-  }, [isAuthenticated, projects.length, fetchProjects]);
+  }, [isAuthenticated, currentOrganization?.id, projects.length, fetchProjects]);
 
   // Fallback: периодическое обновление если realtime не работает
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !currentOrganization?.id) return;
     
     const interval = setInterval(() => {
-      fetchProjects().catch(console.error);
+      fetchProjects({ organizationId: currentOrganization.id }).catch(console.error);
     }, 60000); // Обновляем каждую минуту как fallback
 
     return () => clearInterval(interval);
-  }, [isAuthenticated, fetchProjects]);
+  }, [isAuthenticated, currentOrganization?.id, fetchProjects]);
 
   // Подключаемся к realtime обновлениям проектов
   useEffect(() => {

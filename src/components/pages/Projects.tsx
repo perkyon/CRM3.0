@@ -116,6 +116,11 @@ export function Projects() {
         createdAt: new Date().toISOString()
       };
 
+      if (!currentOrganization?.id) {
+        toast('Ошибка: организация не найдена', { type: 'error' });
+        return;
+      }
+
       await createProject({
         title: newProject.title,
         clientId: newProject.clientId,
@@ -128,6 +133,7 @@ export function Projects() {
         priority: newProject.priority as Project['priority'],
         stage: 'brief' as Project['stage'],
         briefComplete: false,
+        organizationId: currentOrganization.id, // Добавляем organizationId
       });
       
       toast('Проект успешно создан', { type: 'success' });
