@@ -3,8 +3,14 @@
   "outputDirectory": "dist",
   "redirects": [
     {
-      "source": "https://burodigital.ru/(.*)",
-      "destination": "https://www.burodigital.ru/$1",
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "burodigital.ru"
+        }
+      ],
+      "destination": "https://www.burodigital.ru/:path*",
       "permanent": true
     }
   ],
