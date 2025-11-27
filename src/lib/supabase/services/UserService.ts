@@ -28,16 +28,16 @@ export class SupabaseUserService {
     } else {
       // Если организация не указана, возвращаем всех пользователей
       // (но RLS политики все равно ограничат доступ)
-      const { data, error } = await supabase
-        .from(TABLES.USERS)
-        .select('*')
-        .order('name', { ascending: true });
+    const { data, error } = await supabase
+      .from(TABLES.USERS)
+      .select('*')
+      .order('name', { ascending: true });
 
-      if (error) {
-        throw handleApiError(error, 'SupabaseUserService.getUsers');
-      }
+    if (error) {
+      throw handleApiError(error, 'SupabaseUserService.getUsers');
+    }
 
-      return (data || []).map(this.mapSupabaseUserToUser);
+    return (data || []).map(this.mapSupabaseUserToUser);
     }
   }
 

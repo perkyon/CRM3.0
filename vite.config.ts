@@ -5,7 +5,8 @@ import path from 'path';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 
-  export default defineConfig({
+export default defineConfig({
+  envDir: path.resolve(__dirname, 'env'),
     plugins: [
       react(),
       visualizer({
