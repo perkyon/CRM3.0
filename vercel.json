@@ -1,6 +1,13 @@
 {
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "dist",
+  "redirects": [
+    {
+      "source": "https://burodigital.ru/(.*)",
+      "destination": "https://www.burodigital.ru/$1",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
