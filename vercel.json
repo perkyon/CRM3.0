@@ -29,10 +29,6 @@
           "value": "public, max-age=31536000, immutable"
         },
         {
-          "key": "Connection",
-          "value": "keep-alive"
-        },
-        {
           "key": "Accept-Ranges",
           "value": "bytes"
         }
