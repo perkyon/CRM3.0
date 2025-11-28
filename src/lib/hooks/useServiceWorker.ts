@@ -9,6 +9,18 @@ interface ServiceWorkerState {
 }
 
 export function useServiceWorker() {
+  if (typeof window !== 'undefined' && /burodigital\.ru$/.test(window.location.hostname)) {
+    return {
+      isSupported: false,
+      isRegistered: false,
+      isOnline: navigator.onLine,
+      registration: null,
+      updateAvailable: false,
+      updateServiceWorker: () => {},
+      unregisterServiceWorker: async () => {},
+    };
+  }
+
   const [state, setState] = useState<ServiceWorkerState>({
     isSupported: 'serviceWorker' in navigator,
     isRegistered: false,
