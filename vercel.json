@@ -16,7 +16,7 @@
   ],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!assets/|sw\\.js|favicon\\.ico).*)",
       "destination": "/index.html"
     }
   ],
