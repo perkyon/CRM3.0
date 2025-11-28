@@ -52,178 +52,178 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
   const { users } = useUsers();
 
   const loadBoard = useCallback(async () => {
-    if (!currentOrganization?.id) {
+      if (!currentOrganization?.id) {
       setBoards([]);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      setIsLoading(true);
+        setIsLoading(false);
+        return;
+      }
 
       try {
-        console.log('[Kanban] Loading general boards for organization:', currentOrganization.id);
-        const generalBoards = await supabaseKanbanService.getGeneralBoards(currentOrganization.id);
-        console.log('[Kanban] Loaded general boards:', generalBoards);
-
-        const transformedBoards = generalBoards.map(board => {
-          const allTasks: any[] = [];
-          const columns = (board.columns || []).map((col: any) => {
-            const colTasks = (col.tasks || []).map((task: any) => ({
-              id: task.id,
+        setIsLoading(true);
+        
+        try {
+          console.log('[Kanban] Loading general boards for organization:', currentOrganization.id);
+          const generalBoards = await supabaseKanbanService.getGeneralBoards(currentOrganization.id);
+          console.log('[Kanban] Loaded general boards:', generalBoards);
+          
+          const transformedBoards = generalBoards.map(board => {
+            const allTasks: any[] = [];
+            const columns = (board.columns || []).map((col: any) => {
+              const colTasks = (col.tasks || []).map((task: any) => ({
+                id: task.id,
               projectId: null,
-              columnId: task.column_id || col.id,
-              title: task.title,
-              description: task.description || '',
-              assigneeId: task.assignee_id,
-              assignee: task.assignee ? {
-                id: task.assignee.id,
-                name: task.assignee.name || '',
-                email: task.assignee.email || ''
-              } : undefined,
-              dueDate: task.due_date,
-              priority: task.priority || 'medium',
-              tags: task.tags || [],
-              checklist: (task.checklist || []).map((item: any) => ({
-                id: item.id,
-                text: item.text,
-                completed: item.completed || false,
-                assigneeId: item.assignee_id,
-                dueDate: item.due_date
-              })),
-              comments: (task.comments || []).map((comment: any) => ({
-                id: comment.id,
-                text: comment.content || comment.text,
-                authorId: comment.author_id || comment.author?.id,
-                createdAt: comment.created_at,
-                updatedAt: comment.updated_at
-              })),
-              attachments: task.attachments || [],
-              createdAt: task.created_at,
-              updatedAt: task.updated_at,
-              order: task.position || 0
-            }));
-            allTasks.push(...colTasks);
-
-            return {
-              id: col.id,
-              title: col.title,
-              stage: col.stage || col.title.toLowerCase().replace(/\s+/g, '_'),
-              order: col.position || col.order || 0,
-              isDefault: false,
-              color: col.color
-            };
-          });
-
-          return {
-            ...board,
+                columnId: task.column_id || col.id,
+                title: task.title,
+                description: task.description || '',
+                assigneeId: task.assignee_id,
+                assignee: task.assignee ? {
+                  id: task.assignee.id,
+                  name: task.assignee.name || '',
+                  email: task.assignee.email || ''
+                } : undefined,
+                dueDate: task.due_date,
+                priority: task.priority || 'medium',
+                tags: task.tags || [],
+                checklist: (task.checklist || []).map((item: any) => ({
+                  id: item.id,
+                  text: item.text,
+                  completed: item.completed || false,
+                  assigneeId: item.assignee_id,
+                  dueDate: item.due_date
+                })),
+                comments: (task.comments || []).map((comment: any) => ({
+                  id: comment.id,
+                  text: comment.content || comment.text,
+                  authorId: comment.author_id || comment.author?.id,
+                  createdAt: comment.created_at,
+                  updatedAt: comment.updated_at
+                })),
+                  attachments: task.attachments || [],
+                  createdAt: task.created_at,
+                  updatedAt: task.updated_at,
+                  order: task.position || 0
+                }));
+                allTasks.push(...colTasks);
+                
+                return {
+                  id: col.id,
+                  title: col.title,
+                  stage: col.stage || col.title.toLowerCase().replace(/\s+/g, '_'),
+                  order: col.position || col.order || 0,
+                  isDefault: false,
+                  color: col.color
+                };
+              });
+              
+              return {
+                ...board,
             projectId: null,
-            columns,
-            tasks: allTasks
-          };
-        });
-
-        if (transformedBoards.length > 0) {
-          setBoards([transformedBoards[0]]);
-        } else {
-          console.log('[Kanban] No board found, creating single board in DB...');
-          const newBoard = await supabaseKanbanService.createBoard({
+                columns,
+                tasks: allTasks
+              };
+            });
+            
+          if (transformedBoards.length > 0) {
+            setBoards([transformedBoards[0]]);
+          } else {
+            console.log('[Kanban] No board found, creating single board in DB...');
+            const newBoard = await supabaseKanbanService.createBoard({
+              projectId: null,
+              title: 'Общая производственная доска',
+              description: 'Главная канбан-доска CRM',
+              organizationId: currentOrganization.id
+            });
+            
+            for (let i = 0; i < defaultKanbanColumns.length; i++) {
+              const col = defaultKanbanColumns[i];
+              await supabaseKanbanService.createColumn({
+                boardId: newBoard.id,
+                title: col.title,
+                position: col.position
+              });
+            }
+            
+            const loadedBoard = await supabaseKanbanService.getBoard(newBoard.id);
+            const allTasks: any[] = [];
+            const columns = ((loadedBoard?.columns || []) as any[]).map((col: any) => {
+              const colTasks = (col.tasks || []).map((task: any) => ({
+                id: task.id,
+                projectId: null,
+                columnId: task.column_id || col.id,
+                title: task.title,
+                description: task.description || '',
+                assigneeId: task.assignee_id,
+                assignee: task.assignee ? {
+                  id: task.assignee.id,
+                  name: task.assignee.name || '',
+                  email: task.assignee.email || ''
+                } : undefined,
+                dueDate: task.due_date,
+                priority: task.priority || 'medium',
+                tags: task.tags || [],
+                checklist: (task.checklist || []).map((item: any) => ({
+                  id: item.id,
+                  text: item.text || '',
+                  completed: item.completed || false,
+                  assigneeId: item.assignee_id,
+                  dueDate: item.due_date
+                })),
+                comments: (task.comments || []).map((comment: any) => ({
+                  id: comment.id,
+                  text: comment.content || comment.text || '',
+                  authorId: comment.author_id || comment.author?.id,
+                  createdAt: comment.created_at,
+                  updatedAt: comment.updated_at
+                })),
+                attachments: task.attachments || [],
+                createdAt: task.created_at,
+                updatedAt: task.updated_at,
+                order: task.position || 0
+              }));
+              allTasks.push(...colTasks);
+              
+              return {
+                id: col.id,
+                title: col.title,
+                stage: col.stage || col.title.toLowerCase().replace(/\s+/g, '_'),
+                order: col.position || col.order || 0,
+                isDefault: false,
+                color: col.color
+              };
+            });
+            
+            const transformedBoard: KanbanBoard = {
+              ...loadedBoard!,
+              projectId: null,
+              columns,
+              tasks: allTasks
+            };
+            
+            setBoards([transformedBoard]);
+          }
+        } catch (error) {
+          console.error('[Kanban] Failed to load board:', error);
+          const defaultBoard: KanbanBoard = {
+            id: 'default-board',
             projectId: null,
             title: 'Общая производственная доска',
-            description: 'Главная канбан-доска CRM',
-            organizationId: currentOrganization.id
-          });
-
-          for (let i = 0; i < defaultKanbanColumns.length; i++) {
-            const col = defaultKanbanColumns[i];
-            await supabaseKanbanService.createColumn({
-              boardId: newBoard.id,
+            columns: defaultKanbanColumns.map((col, index) => ({
+              id: `COL-default-${index}`,
               title: col.title,
-              position: col.position
-            });
-          }
-
-          const loadedBoard = await supabaseKanbanService.getBoard(newBoard.id);
-          const allTasks: any[] = [];
-          const columns = ((loadedBoard?.columns || []) as any[]).map((col: any) => {
-            const colTasks = (col.tasks || []).map((task: any) => ({
-              id: task.id,
-              projectId: null,
-              columnId: task.column_id || col.id,
-              title: task.title,
-              description: task.description || '',
-              assigneeId: task.assignee_id,
-              assignee: task.assignee ? {
-                id: task.assignee.id,
-                name: task.assignee.name || '',
-                email: task.assignee.email || ''
-              } : undefined,
-              dueDate: task.due_date,
-              priority: task.priority || 'medium',
-              tags: task.tags || [],
-              checklist: (task.checklist || []).map((item: any) => ({
-                id: item.id,
-                text: item.text || '',
-                completed: item.completed || false,
-                assigneeId: item.assignee_id,
-                dueDate: item.due_date
-              })),
-              comments: (task.comments || []).map((comment: any) => ({
-                id: comment.id,
-                text: comment.content || comment.text || '',
-                authorId: comment.author_id || comment.author?.id,
-                createdAt: comment.created_at,
-                updatedAt: comment.updated_at
-              })),
-              attachments: task.attachments || [],
-              createdAt: task.created_at,
-              updatedAt: task.updated_at,
-              order: task.position || 0
-            }));
-            allTasks.push(...colTasks);
-
-            return {
-              id: col.id,
-              title: col.title,
-              stage: col.stage || col.title.toLowerCase().replace(/\s+/g, '_'),
-              order: col.position || col.order || 0,
-              isDefault: false,
+              stage: col.title.toLowerCase().replace(/\s+/g, '_'),
+              order: col.position,
+              isDefault: true,
               color: col.color
-            };
-          });
-
-          const transformedBoard: KanbanBoard = {
-            ...loadedBoard!,
-            projectId: null,
-            columns,
-            tasks: allTasks
+            })),
+            tasks: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
           };
-
-          setBoards([transformedBoard]);
+          setBoards([defaultBoard]);
         }
-      } catch (error) {
-        console.error('[Kanban] Failed to load board:', error);
-        const defaultBoard: KanbanBoard = {
-          id: 'default-board',
-          projectId: null,
-          title: 'Общая производственная доска',
-          columns: defaultKanbanColumns.map((col, index) => ({
-            id: `COL-default-${index}`,
-            title: col.title,
-            stage: col.title.toLowerCase().replace(/\s+/g, '_'),
-            order: col.position,
-            isDefault: true,
-            color: col.color
-          })),
-          tasks: [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-        setBoards([defaultBoard]);
+      } finally {
+        setIsLoading(false);
       }
-    } finally {
-      setIsLoading(false);
-    }
   }, [currentOrganization?.id]);
 
   useEffect(() => {
