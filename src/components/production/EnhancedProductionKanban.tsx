@@ -51,199 +51,184 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
   const [isLoading, setIsLoading] = useState(true);
   const { users } = useUsers();
 
-  // Load single board from Supabase
-  useEffect(() => {
-    const loadBoard = async () => {
-      if (!currentOrganization?.id) {
-        setIsLoading(false);
-        return;
-      }
+  const loadBoard = useCallback(async () => {
+    if (!currentOrganization?.id) {
+      setBoards([]);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
 
       try {
-        setIsLoading(true);
-        
-        // КАНБАН НЕЗАВИСИМ ОТ ПРОЕКТОВ - всегда загружаем только общие доски
-        try {
-          console.log('[Kanban] Loading general boards for organization:', currentOrganization.id);
-          
-          // Загружаем общие доски (project_id = NULL) для текущей организации
-          const generalBoards = await supabaseKanbanService.getGeneralBoards(currentOrganization.id);
-          console.log('[Kanban] Loaded general boards:', generalBoards);
-          
-          // Трансформируем данные из БД в формат фронтенда
-          const transformedBoards = generalBoards.map(board => {
-            // Извлекаем задачи из всех колонок
-            const allTasks: any[] = [];
-            const columns = (board.columns || []).map((col: any) => {
-              const colTasks = (col.tasks || []).map((task: any) => ({
-                id: task.id,
-                projectId: null, // Канбан не зависит от проектов
-                columnId: task.column_id || col.id,
-                title: task.title,
-                description: task.description || '',
-                assigneeId: task.assignee_id,
-                assignee: task.assignee ? {
-                  id: task.assignee.id,
-                  name: task.assignee.name || '',
-                  email: task.assignee.email || ''
-                } : undefined,
-                dueDate: task.due_date,
-                priority: task.priority || 'medium',
-                tags: task.tags || [],
-                checklist: (task.checklist || []).map((item: any) => ({
-                  id: item.id,
-                  text: item.text,
-                  completed: item.completed || false,
-                  assigneeId: item.assignee_id,
-                  dueDate: item.due_date
-                })),
-                comments: (task.comments || []).map((comment: any) => ({
-                  id: comment.id,
-                  text: comment.content || comment.text,
-                  authorId: comment.author_id || comment.author?.id,
-                  createdAt: comment.created_at,
-                  updatedAt: comment.updated_at
-                })),
-                  attachments: task.attachments || [],
-                  createdAt: task.created_at,
-                  updatedAt: task.updated_at,
-                  order: task.position || 0
-                }));
-                allTasks.push(...colTasks);
-                
-                return {
-                  id: col.id,
-                  title: col.title,
-                  stage: col.stage || col.title.toLowerCase().replace(/\s+/g, '_'),
-                  order: col.position || col.order || 0,
-                  isDefault: false,
-                  color: col.color
-                };
-              });
-              
-              return {
-                ...board,
-                projectId: null, // Канбан не зависит от проектов
-                columns,
-                tasks: allTasks
-              };
-            });
-            
-          if (transformedBoards.length > 0) {
-            // Всегда берем только ПЕРВУЮ доску
-            setBoards([transformedBoards[0]]);
-          } else {
-            // Если нет досок в БД - создаем одну в БД
-            console.log('[Kanban] No board found, creating single board in DB...');
-            if (!currentOrganization?.id) {
-              throw new Error('Organization ID is required');
-            }
-            const newBoard = await supabaseKanbanService.createBoard({
+        console.log('[Kanban] Loading general boards for organization:', currentOrganization.id);
+        const generalBoards = await supabaseKanbanService.getGeneralBoards(currentOrganization.id);
+        console.log('[Kanban] Loaded general boards:', generalBoards);
+
+        const transformedBoards = generalBoards.map(board => {
+          const allTasks: any[] = [];
+          const columns = (board.columns || []).map((col: any) => {
+            const colTasks = (col.tasks || []).map((task: any) => ({
+              id: task.id,
               projectId: null,
-              title: 'Общая производственная доска',
-              description: 'Главная канбан-доска CRM',
-              organizationId: currentOrganization.id
-            });
-            
-            // Создаем дефолтные колонки
-            for (let i = 0; i < defaultKanbanColumns.length; i++) {
-              const col = defaultKanbanColumns[i];
-              await supabaseKanbanService.createColumn({
-                boardId: newBoard.id,
-                title: col.title,
-                position: col.position
-              });
-            }
-            
-            // Загружаем созданную доску
-            const loadedBoard = await supabaseKanbanService.getBoard(newBoard.id);
-            
-            // Трансформируем
-            const allTasks: any[] = [];
-            const columns = ((loadedBoard?.columns || []) as any[]).map((col: any) => {
-              const colTasks = (col.tasks || []).map((task: any) => ({
-                id: task.id,
-                projectId: null,
-                columnId: task.column_id || col.id,
-                title: task.title,
-                description: task.description || '',
-                assigneeId: task.assignee_id,
-                assignee: task.assignee ? {
-                  id: task.assignee.id,
-                  name: task.assignee.name || '',
-                  email: task.assignee.email || ''
-                } : undefined,
-                dueDate: task.due_date,
-                priority: task.priority || 'medium',
-                tags: task.tags || [],
-                checklist: (task.checklist || []).map((item: any) => ({
-                  id: item.id,
-                  text: item.text || '',
-                  completed: item.completed || false,
-                  assigneeId: item.assignee_id,
-                  dueDate: item.due_date
-                })),
-                comments: (task.comments || []).map((comment: any) => ({
-                  id: comment.id,
-                  text: comment.content || comment.text || '',
-                  authorId: comment.author_id || comment.author?.id,
-                  createdAt: comment.created_at,
-                  updatedAt: comment.updated_at
-                })),
-                attachments: task.attachments || [],
-                createdAt: task.created_at,
-                updatedAt: task.updated_at,
-                order: task.position || 0
-              }));
-              allTasks.push(...colTasks);
-              
-              return {
-                id: col.id,
-                title: col.title,
-                stage: col.stage || col.title.toLowerCase().replace(/\s+/g, '_'),
-                order: col.position || col.order || 0,
-                isDefault: false,
-                color: col.color
-              };
-            });
-            
-            const transformedBoard: KanbanBoard = {
-              ...loadedBoard!,
-              projectId: null,
-              columns,
-              tasks: allTasks
+              columnId: task.column_id || col.id,
+              title: task.title,
+              description: task.description || '',
+              assigneeId: task.assignee_id,
+              assignee: task.assignee ? {
+                id: task.assignee.id,
+                name: task.assignee.name || '',
+                email: task.assignee.email || ''
+              } : undefined,
+              dueDate: task.due_date,
+              priority: task.priority || 'medium',
+              tags: task.tags || [],
+              checklist: (task.checklist || []).map((item: any) => ({
+                id: item.id,
+                text: item.text,
+                completed: item.completed || false,
+                assigneeId: item.assignee_id,
+                dueDate: item.due_date
+              })),
+              comments: (task.comments || []).map((comment: any) => ({
+                id: comment.id,
+                text: comment.content || comment.text,
+                authorId: comment.author_id || comment.author?.id,
+                createdAt: comment.created_at,
+                updatedAt: comment.updated_at
+              })),
+              attachments: task.attachments || [],
+              createdAt: task.created_at,
+              updatedAt: task.updated_at,
+              order: task.position || 0
+            }));
+            allTasks.push(...colTasks);
+
+            return {
+              id: col.id,
+              title: col.title,
+              stage: col.stage || col.title.toLowerCase().replace(/\s+/g, '_'),
+              order: col.position || col.order || 0,
+              isDefault: false,
+              color: col.color
             };
-            
-            setBoards([transformedBoard]);
-          }
-        } catch (error) {
-          console.error('[Kanban] Failed to load board:', error);
-          // Fallback to default board
-          const defaultBoard: KanbanBoard = {
-            id: 'default-board',
+          });
+
+          return {
+            ...board,
+            projectId: null,
+            columns,
+            tasks: allTasks
+          };
+        });
+
+        if (transformedBoards.length > 0) {
+          setBoards([transformedBoards[0]]);
+        } else {
+          console.log('[Kanban] No board found, creating single board in DB...');
+          const newBoard = await supabaseKanbanService.createBoard({
             projectId: null,
             title: 'Общая производственная доска',
-            columns: defaultKanbanColumns.map((col, index) => ({
-              id: `COL-default-${index}`,
-              title: col.title,
-              stage: col.title.toLowerCase().replace(/\s+/g, '_'),
-              order: col.position,
-              isDefault: true,
-              color: col.color
-            })),
-            tasks: [],
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          };
-          setBoards([defaultBoard]);
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
+            description: 'Главная канбан-доска CRM',
+            organizationId: currentOrganization.id
+          });
 
+          for (let i = 0; i < defaultKanbanColumns.length; i++) {
+            const col = defaultKanbanColumns[i];
+            await supabaseKanbanService.createColumn({
+              boardId: newBoard.id,
+              title: col.title,
+              position: col.position
+            });
+          }
+
+          const loadedBoard = await supabaseKanbanService.getBoard(newBoard.id);
+          const allTasks: any[] = [];
+          const columns = ((loadedBoard?.columns || []) as any[]).map((col: any) => {
+            const colTasks = (col.tasks || []).map((task: any) => ({
+              id: task.id,
+              projectId: null,
+              columnId: task.column_id || col.id,
+              title: task.title,
+              description: task.description || '',
+              assigneeId: task.assignee_id,
+              assignee: task.assignee ? {
+                id: task.assignee.id,
+                name: task.assignee.name || '',
+                email: task.assignee.email || ''
+              } : undefined,
+              dueDate: task.due_date,
+              priority: task.priority || 'medium',
+              tags: task.tags || [],
+              checklist: (task.checklist || []).map((item: any) => ({
+                id: item.id,
+                text: item.text || '',
+                completed: item.completed || false,
+                assigneeId: item.assignee_id,
+                dueDate: item.due_date
+              })),
+              comments: (task.comments || []).map((comment: any) => ({
+                id: comment.id,
+                text: comment.content || comment.text || '',
+                authorId: comment.author_id || comment.author?.id,
+                createdAt: comment.created_at,
+                updatedAt: comment.updated_at
+              })),
+              attachments: task.attachments || [],
+              createdAt: task.created_at,
+              updatedAt: task.updated_at,
+              order: task.position || 0
+            }));
+            allTasks.push(...colTasks);
+
+            return {
+              id: col.id,
+              title: col.title,
+              stage: col.stage || col.title.toLowerCase().replace(/\s+/g, '_'),
+              order: col.position || col.order || 0,
+              isDefault: false,
+              color: col.color
+            };
+          });
+
+          const transformedBoard: KanbanBoard = {
+            ...loadedBoard!,
+            projectId: null,
+            columns,
+            tasks: allTasks
+          };
+
+          setBoards([transformedBoard]);
+        }
+      } catch (error) {
+        console.error('[Kanban] Failed to load board:', error);
+        const defaultBoard: KanbanBoard = {
+          id: 'default-board',
+          projectId: null,
+          title: 'Общая производственная доска',
+          columns: defaultKanbanColumns.map((col, index) => ({
+            id: `COL-default-${index}`,
+            title: col.title,
+            stage: col.title.toLowerCase().replace(/\s+/g, '_'),
+            order: col.position,
+            isDefault: true,
+            color: col.color
+          })),
+          tasks: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        setBoards([defaultBoard]);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentOrganization?.id]);
+
+  useEffect(() => {
     loadBoard();
-  }, []); // Убрали зависимость от projectId - доска всегда одна
+  }, [loadBoard]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
@@ -764,7 +749,7 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
           />
         ) : (
           <EmptyKanbanState 
-            onCreateBoard={undefined}
+            onCreateBoard={loadBoard}
           />
         )}
       </div>
