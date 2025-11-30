@@ -20,15 +20,20 @@ import {
   FileArchive,
   AlertCircle
 } from 'lucide-react';
-import { ClientDocument, ClientDocumentCategory, ProjectDocumentCategory, Project } from '../../types';
+import { ClientDocument, ClientDocumentCategory, ProjectDocumentCategory, Project, Document as ProjectDocument } from '../../types';
 import { toast } from '../../lib/toast';
 import { useProjects } from '../../contexts/ProjectContextNew';
+import { formatDateTime } from '../../lib/utils';
+
+type ManagedDocument = (ClientDocument | ProjectDocument) & {
+  category: ClientDocumentCategory | ProjectDocumentCategory;
+};
 
 interface DocumentManagerProps {
   entityType: 'client' | 'project';
   entityId: string;
-  documents: ClientDocument[];
-  onDocumentAdd: (document: ClientDocument) => void;
+  documents: ManagedDocument[];
+  onDocumentAdd: (document: ManagedDocument) => void;
   onDocumentDelete: (documentId: string) => void;
 }
 
@@ -50,6 +55,7 @@ const projectCategoryLabels: Record<ProjectDocumentCategory, string> = {
   contract: 'Договоры',
   photo: 'Фотографии',
   video: 'Видео',
+  paint_form: 'Блан малярка',
   other: 'Прочее'
 };
 
@@ -137,13 +143,14 @@ export function DocumentManager({
       
       const newDocument: ClientDocument = {
         id: uploadedDocument.id,
-        clientId: entityType === 'client' ? entityId : (uploadedDocument.project_id || ''),
+        clientId: entityType === 'client' ? entityId : '',
         name: uploadedDocument.name || uploadedDocument.original_name || file.name,
         originalName: uploadedDocument.original_name || file.name,
         type: uploadedDocument.type as any,
         category: uploadedDocument.category as any,
         size: uploadedDocument.size,
         uploadedBy: uploadedDocument.uploaded_by || 'unknown',
+        uploadedByName: uploadedDocument.uploadedByName,
         uploadedAt: uploadedDocument.created_at || new Date().toISOString(),
         version: 1,
         description: uploadedDocument.description || description,
@@ -297,9 +304,16 @@ export function DocumentManager({
                           {categoryLabels[document.category]}
                         </Badge>
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {formatFileSize(document.size)} • {new Date(document.uploadedAt).toLocaleDateString('ru-RU')}
+                      <div className="text-sm text-muted-foreground flex flex-wrap items-center gap-1">
+                        <span>{formatFileSize(document.size)}</span>
+                        <span>•</span>
+                        <span>{formatDateTime(document.uploadedAt)}</span>
                       </div>
+                      {document.uploadedByName || document.uploadedBy ? (
+                        <div className="text-xs text-muted-foreground">
+                          Добавил: {document.uploadedByName || document.uploadedBy || 'Неизвестно'}
+                        </div>
+                      ) : null}
                       {document.description && (
                         <div className="text-sm text-muted-foreground mt-1 line-clamp-1">
                           {document.description}

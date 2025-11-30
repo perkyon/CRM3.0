@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -7,6 +7,7 @@ import { Textarea } from '../ui/textarea';
 import { DatePicker } from '../ui/date-picker';
 import { toast } from '../../lib/toast';
 import { Project } from '../../types';
+import { useProjects } from '../../contexts/ProjectContextNew';
 
 interface SimpleEditDialogProps {
   project: Project;
@@ -16,6 +17,7 @@ interface SimpleEditDialogProps {
 }
 
 export function SimpleEditDialog({ project, open, onOpenChange, onProjectUpdate }: SimpleEditDialogProps) {
+  const { updateProject } = useProjects();
   const [formData, setFormData] = useState({
     title: project.title,
     description: project.description || '',
@@ -25,6 +27,16 @@ export function SimpleEditDialog({ project, open, onOpenChange, onProjectUpdate 
   });
 
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    setFormData({
+      title: project.title,
+      description: project.description || '',
+      budget: project.budget.toString(),
+      dueDate: project.dueDate || '',
+      siteAddress: project.siteAddress || ''
+    });
+  }, [project]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,22 +49,19 @@ export function SimpleEditDialog({ project, open, onOpenChange, onProjectUpdate 
         return;
       }
 
-      // Симуляция сохранения
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      const updatedProject: Project = {
-        ...project,
+      const updatedProject = await updateProject(project.id, {
         title: formData.title.trim(),
         description: formData.description.trim(),
         budget: parseFloat(formData.budget) || 0,
         dueDate: formData.dueDate || null,
         siteAddress: formData.siteAddress.trim()
-      };
+      });
 
       onProjectUpdate(updatedProject);
       onOpenChange(false);
       toast.success('Проект успешно обновлен');
     } catch (error) {
+      console.error(error);
       toast.error('Ошибка при сохранении проекта');
     } finally {
       setIsLoading(false);

@@ -9,7 +9,7 @@ export class SupabaseUserService {
       // Если указана организация, получаем пользователей через organization_members
       const { data: members, error: membersError } = await supabase
         .from('organization_members')
-        .select('user_id, users(*)')
+        .select('user_id, profile:users!organization_members_user_id_fkey(*)')
         .eq('organization_id', organizationId)
         .eq('active', true);
 
@@ -19,7 +19,7 @@ export class SupabaseUserService {
 
       // Извлекаем пользователей из результатов
       const users = (members || [])
-        .map((member: any) => member.users)
+        .map((member: any) => member.profile)
         .filter(Boolean)
         .map(this.mapSupabaseUserToUser)
         .sort((a, b) => a.name.localeCompare(b.name));

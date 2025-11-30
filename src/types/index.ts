@@ -57,6 +57,7 @@ export interface ClientDocument {
   category: ClientDocumentCategory;
   size: number;
   uploadedBy: string;
+  uploadedByName?: string;
   uploadedAt: string;
   url?: string;
   version: number;
@@ -80,6 +81,7 @@ export type ProjectDocumentCategory =
   | 'contract' // Договоры
   | 'photo' // Фотографии
   | 'video' // Видео
+  | 'paint_form' // Блан малярка
   | 'other'; // Прочее
 
 export interface Contact {
@@ -119,7 +121,10 @@ export interface Project {
   briefComplete: boolean;
   organizationId?: string; // Добавлено для SaaS
   createdAt: string;
-  documents?: ClientDocument[];
+  updatedAt?: string;
+  description?: string;
+  cancelReason?: string | null;
+  documents?: Document[];
 }
 
 export type ProjectStage = 
@@ -357,6 +362,7 @@ export interface Document {
   category: DocumentCategory;
   size: number; // bytes
   uploadedBy: string;
+  uploadedByName?: string;
   uploadedAt: string;
   url?: string; // URL для скачивания
   version: number;
@@ -383,6 +389,7 @@ export type DocumentCategory =
   | 'contract' // Договоры
   | 'photo' // Фотографии
   | 'video' // Видео
+  | 'paint_form' // Блан малярка
   | 'other'; // Прочее
 
 // API Request/Response Types
@@ -448,6 +455,8 @@ export interface CreateProjectRequest {
   briefComplete?: boolean;
   productionSubStage?: Project['productionSubStage'];
   organizationId?: string; // ID организации (автоматически устанавливается если не указан)
+  description?: string;
+  cancelReason?: string | null;
 }
 
 export interface UpdateProjectRequest {
@@ -464,6 +473,8 @@ export interface UpdateProjectRequest {
   productionSubStage?: Project['productionSubStage'];
   riskNotes?: string;
   briefComplete?: boolean;
+  description?: string;
+  cancelReason?: string | null;
 }
 
 // Auth Types

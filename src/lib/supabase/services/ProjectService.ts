@@ -1,7 +1,26 @@
 import { supabase, TABLES } from '../config';
-import { Project, CreateProjectRequest, UpdateProjectRequest, ProjectSearchParams } from '../../../types';
+import { Project, CreateProjectRequest, UpdateProjectRequest, ProjectSearchParams, Document } from '../../../types';
 import { PaginatedResponse } from '../../api/config';
 import { handleApiError } from '../../error/ErrorHandler';
+import { calculatePriorityFromDueDate } from '../../utils';
+
+const mapProjectRecord = (project: any): Project => ({
+  ...project,
+  clientId: project.client_id,
+  siteAddress: project.site_address,
+  managerId: project.manager_id,
+  foremanId: project.foreman_id,
+  startDate: project.start_date,
+  dueDate: project.due_date,
+  productionSubStage: project.production_sub_stage,
+  riskNotes: project.risk_notes,
+  briefComplete: project.brief_complete,
+  createdAt: project.created_at,
+  updatedAt: project.updated_at,
+  description: project.description || '',
+  cancelReason: project.cancel_reason,
+  organizationId: project.organization_id,
+});
 
 export class SupabaseProjectService {
   // Get all projects with pagination and filters
@@ -56,21 +75,7 @@ export class SupabaseProjectService {
       throw handleApiError(error, 'SupabaseProjectService.getProjects');
     }
 
-    // Transform snake_case to camelCase
-    const transformedData = (data || []).map(project => ({
-      ...project,
-      clientId: project.client_id,
-      siteAddress: project.site_address,
-      managerId: project.manager_id,
-      foremanId: project.foreman_id,
-      startDate: project.start_date,
-      dueDate: project.due_date,
-      productionSubStage: project.production_sub_stage,
-      riskNotes: project.risk_notes,
-      briefComplete: project.brief_complete,
-      createdAt: project.created_at,
-      updatedAt: project.updated_at,
-    }));
+    const transformedData = (data || []).map(mapProjectRecord);
 
     return {
       data: transformedData,
@@ -112,21 +117,7 @@ export class SupabaseProjectService {
       throw new Error(`Project not found: ${idOrCode}`);
     }
 
-    // Transform snake_case to camelCase
-    return {
-      ...project,
-      clientId: project.client_id,
-      siteAddress: project.site_address,
-      managerId: project.manager_id,
-      foremanId: project.foreman_id,
-      startDate: project.start_date,
-      dueDate: project.due_date,
-      productionSubStage: project.production_sub_stage,
-      riskNotes: project.risk_notes,
-      briefComplete: project.brief_complete,
-      createdAt: project.created_at,
-      updatedAt: project.updated_at,
-    };
+    return mapProjectRecord(project);
   }
 
   // Create new project
@@ -134,6 +125,7 @@ export class SupabaseProjectService {
     const { documents, ...projectInfo } = projectData;
 
     // Create project with simplified data
+    const autoPriority = calculatePriorityFromDueDate(projectInfo.dueDate ?? null);
     const projectToInsert = {
       title: projectInfo.title,
       client_id: projectInfo.clientId,
@@ -143,7 +135,7 @@ export class SupabaseProjectService {
       start_date: projectInfo.startDate || null,
       due_date: projectInfo.dueDate || null,
       budget: projectInfo.budget || 0,
-      priority: projectInfo.priority || 'medium',
+      priority: autoPriority,
       stage: projectInfo.stage || 'brief',
       production_sub_stage: projectInfo.productionSubStage || null,
       risk_notes: projectInfo.riskNotes || null,
@@ -151,6 +143,8 @@ export class SupabaseProjectService {
       organization_id: projectInfo.organizationId || null, // Добавляем organization_id
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      description: projectInfo.description || null,
+      cancel_reason: projectInfo.cancelReason || null,
     };
 
 
@@ -218,18 +212,7 @@ export class SupabaseProjectService {
 
     // Return simplified project data for now
     return {
-      ...project,
-      clientId: project.client_id,
-      siteAddress: project.site_address,
-      managerId: project.manager_id,
-      foremanId: project.foreman_id,
-      startDate: project.start_date,
-      dueDate: project.due_date,
-      productionSubStage: project.production_sub_stage,
-      riskNotes: project.risk_notes,
-      briefComplete: project.brief_complete,
-      createdAt: project.created_at,
-      updatedAt: project.updated_at,
+      ...mapProjectRecord(project),
       // Add mock related data
       client: { id: project.client_id, name: 'Mock Client', company: 'Mock Company', type: 'ООО' as const },
       manager: { id: project.manager_id, name: 'Mock Manager', email: 'manager@example.com' },
@@ -254,13 +237,19 @@ export class SupabaseProjectService {
     if (projectInfo.managerId !== undefined) updateData.manager_id = projectInfo.managerId;
     if (projectInfo.foremanId !== undefined) updateData.foreman_id = projectInfo.foremanId;
     if (projectInfo.startDate !== undefined) updateData.start_date = projectInfo.startDate;
-    if (projectInfo.dueDate !== undefined) updateData.due_date = projectInfo.dueDate;
+    if (projectInfo.dueDate !== undefined) {
+      updateData.due_date = projectInfo.dueDate;
+      updateData.priority = calculatePriorityFromDueDate(projectInfo.dueDate);
+    } else if (projectInfo.priority !== undefined) {
+      updateData.priority = projectInfo.priority;
+    }
     if (projectInfo.budget !== undefined) updateData.budget = projectInfo.budget;
-    if (projectInfo.priority !== undefined) updateData.priority = projectInfo.priority;
     if (projectInfo.stage !== undefined) updateData.stage = projectInfo.stage;
     if (projectInfo.productionSubStage !== undefined) updateData.production_sub_stage = projectInfo.productionSubStage;
     if (projectInfo.riskNotes !== undefined) updateData.risk_notes = projectInfo.riskNotes;
     if (projectInfo.briefComplete !== undefined) updateData.brief_complete = projectInfo.briefComplete;
+    if (projectInfo.description !== undefined) updateData.description = projectInfo.description;
+    if (projectInfo.cancelReason !== undefined) updateData.cancel_reason = projectInfo.cancelReason;
 
     // Update project basic info (code is read-only, managed by DB trigger)
     const { error: projectError } = await supabase
@@ -333,11 +322,24 @@ export class SupabaseProjectService {
   }
 
   // Update project stage
-  async updateProjectStage(id: string, stage: Project['stage'], subStage?: Project['productionSubStage']): Promise<Project> {
+  async updateProjectStage(
+    id: string,
+    stage?: Project['stage'],
+    subStage?: Project['productionSubStage'],
+    cancelReason?: string | null
+  ): Promise<Project> {
     const updateData: any = {
-      stage,
       updated_at: new Date().toISOString(),
     };
+
+    if (stage !== undefined) {
+      updateData.stage = stage;
+      if (stage === 'cancelled') {
+        updateData.cancel_reason = cancelReason ?? null;
+      } else {
+        updateData.cancel_reason = null;
+      }
+    }
 
     if (subStage !== undefined) {
       updateData.production_sub_stage = subStage;
@@ -356,7 +358,7 @@ export class SupabaseProjectService {
   }
 
   // Get project documents
-  async getProjectDocuments(projectId: string): Promise<Project['documents']> {
+  async getProjectDocuments(projectId: string): Promise<Document[]> {
     // Проверяем и обновляем сессию перед запросом
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
@@ -366,7 +368,10 @@ export class SupabaseProjectService {
 
     const { data, error } = await supabase
       .from(TABLES.PROJECT_DOCUMENTS)
-      .select('*')
+      .select(`
+        *,
+        uploader:users!project_documents_uploaded_by_fkey(id, name)
+      `)
       .eq('project_id', projectId)
       .order('created_at', { ascending: false });
 
@@ -378,12 +383,15 @@ export class SupabaseProjectService {
           // Повторяем запрос после обновления сессии
           const { data: retryData, error: retryError } = await supabase
             .from(TABLES.PROJECT_DOCUMENTS)
-            .select('*')
+            .select(`
+              *,
+              uploader:users!project_documents_uploaded_by_fkey(id, name)
+            `)
             .eq('project_id', projectId)
             .order('created_at', { ascending: false });
           
           if (retryError) throw retryError;
-          return retryData || [];
+          return (retryData || []).map(this.mapDocumentRecord);
         } catch (refreshError) {
           console.error('Failed to refresh session and retry:', refreshError);
         }
@@ -391,7 +399,7 @@ export class SupabaseProjectService {
       throw new Error(`Failed to fetch project documents: ${error.message}`);
     }
 
-    return data || [];
+    return (data || []).map(this.mapDocumentRecord);
   }
 
   // Upload project document
@@ -468,14 +476,17 @@ export class SupabaseProjectService {
     const { data: document, error: documentError } = await supabase
       .from(TABLES.PROJECT_DOCUMENTS)
       .insert(documentData)
-      .select()
+      .select(`
+        *,
+        uploader:users!project_documents_uploaded_by_fkey(id, name)
+      `)
       .single();
 
     if (documentError) {
       throw new Error(`Failed to save document record: ${documentError.message}`);
     }
 
-    return document;
+    return this.mapDocumentRecord(document);
   }
 
   // Delete project document
@@ -510,6 +521,24 @@ export class SupabaseProjectService {
     if (error) {
       throw new Error(`Failed to delete document: ${error.message}`);
     }
+  }
+
+  private mapDocumentRecord(document: any): Document {
+    return {
+      id: document.id,
+      projectId: document.project_id,
+      name: document.name,
+      originalName: document.original_name,
+      type: document.type,
+      category: document.category,
+      size: document.size,
+      uploadedBy: document.uploaded_by,
+      uploadedByName: document.uploader?.name,
+      uploadedAt: document.created_at,
+      url: document.url,
+      version: document.version || 1,
+      description: document.description || undefined,
+    };
   }
 
   // Private helper: Update client projects count

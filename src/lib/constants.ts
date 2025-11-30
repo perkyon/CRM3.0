@@ -139,6 +139,7 @@ export const documentCategories = {
   contract: 'Договор',
   photo: 'Фотографии',
   video: 'Видео',
+  paint_form: 'Блан малярка',
   other: 'Другое'
 };
 

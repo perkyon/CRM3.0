@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
 import { Progress } from '../ui/progress';
 import { 
   TrendingUp, 
@@ -24,6 +23,7 @@ import { supabaseDashboardService, DashboardStats } from '../../lib/supabase/ser
 import { toast } from '../../lib/toast';
 import { DashboardKPIs } from '../../types';
 import { realtimeService } from '../../lib/supabase/realtime';
+import { projectStageNames } from '../../lib/constants';
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -107,6 +107,27 @@ export function Dashboard() {
   const overdueProjects = dashboardStats?.upcomingDeadlines.filter(d => d.daysLeft < 0) || [];
   const recentClients = clients.slice(0, 3);
 
+  const handleActivityNavigation = (activity: DashboardStats['recentActivities'][number]) => {
+    if (activity.entityType === 'project') {
+      navigate(`/app/projects/${activity.entityId}`);
+      return;
+    }
+    navigate(`/app/clients?clientId=${activity.entityId}`);
+  };
+
+  const getActivityLabel = (activity: DashboardStats['recentActivities'][number]) => {
+    switch (activity.type) {
+      case 'project_created':
+        return 'Проект';
+      case 'project_updated':
+        return 'Обновление';
+      case 'client_updated':
+        return 'Клиент';
+      default:
+        return 'Клиент';
+    }
+  };
+
   // Отслеживание просмотра страницы
   useEffect(() => {
     if (kpis) {
@@ -181,7 +202,7 @@ export function Dashboard() {
         <div className="flex gap-2">
           <Button onClick={() => {
             trackUserAction('create_project_clicked', { source: 'dashboard_header' });
-            navigate('/projects');
+            navigate('/app/projects');
           }}>
             <Plus className="size-4 mr-2" />
             Создать проект
@@ -242,7 +263,7 @@ export function Dashboard() {
               className="mt-2"
               onClick={() => {
                 trackUserAction('inventory_clicked', { source: 'dashboard_kpi' });
-                navigate('/inventory');
+                navigate('/app/inventory');
               }}
             >
               Открыть дефицит
@@ -268,7 +289,7 @@ export function Dashboard() {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => navigate('/projects')}
+                onClick={() => navigate('/app/projects')}
               >
                 Просмотреть
               </Button>
@@ -286,7 +307,7 @@ export function Dashboard() {
               <Button 
                 variant="ghost" 
                 size="sm"
-                onClick={() => navigate('/projects')}
+                onClick={() => navigate('/app/projects')}
               >
                 Все проекты
                 <ArrowRight className="size-4 ml-1" />
@@ -330,7 +351,7 @@ export function Dashboard() {
               <Button 
                 variant="ghost" 
                 size="sm"
-                onClick={() => navigate('/clients')}
+                onClick={() => navigate('/app/clients')}
               >
                 Все клиенты
                 <ArrowRight className="size-4 ml-1" />
@@ -338,31 +359,58 @@ export function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {dashboardStats.recentActivities.slice(0, 5).map((activity) => (
-                <div key={activity.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="size-10 bg-primary/10 rounded-full flex items-center justify-center">
-                      {activity.type === 'project_created' || activity.type === 'project_updated' ? (
-                        <Package className="size-5 text-primary" />
-                      ) : (
-                        <Users className="size-5 text-primary" />
-                      )}
+            <div className="space-y-3">
+              {dashboardStats.recentActivities.slice(0, 5).map((activity) => {
+                const isProjectActivity = activity.entityType === 'project';
+                const stageLabel = activity.stage ? (projectStageNames[activity.stage] || activity.stage) : null;
+
+                return (
+                  <button
+                    key={activity.id}
+                    type="button"
+                    className="w-full flex items-center justify-between gap-4 p-3 border rounded-lg hover:bg-muted/50 transition-colors text-left"
+                    onClick={() => handleActivityNavigation(activity)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="size-10 bg-primary/10 rounded-full flex items-center justify-center">
+                        {isProjectActivity ? (
+                          <Package className="size-5 text-primary" />
+                        ) : (
+                          <Users className="size-5 text-primary" />
+                        )}
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-sm">{activity.description}</h4>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDate(activity.timestamp)}
+                        </p>
+                        <div className="mt-1 text-xs text-muted-foreground space-y-0.5">
+                          {isProjectActivity && stageLabel && (
+                            <p>Этап: {stageLabel}</p>
+                          )}
+                          {isProjectActivity && activity.managerName && (
+                            <p>Менеджер: {activity.managerName}</p>
+                          )}
+                          {!isProjectActivity && activity.clientStatus && (
+                            <p>Статус: {activity.clientStatus}</p>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-medium text-sm">{activity.description}</h4>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDate(activity.timestamp)}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge variant="secondary" className="text-xs">
-                    {activity.type === 'project_created' ? 'Проект' : 
-                     activity.type === 'project_updated' ? 'Обновление' : 
-                     'Клиент'}
-                  </Badge>
-                </div>
-              ))}
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="shrink-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleActivityNavigation(activity);
+                      }}
+                    >
+                      {getActivityLabel(activity)}
+                    </Button>
+                  </button>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

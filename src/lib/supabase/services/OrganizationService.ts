@@ -241,7 +241,7 @@ export class OrganizationService {
       .from('organization_members')
       .select(`
         organization_id,
-        organizations (*)
+        organization:organizations!organization_members_organization_id_fkey(*)
       `)
       .eq('user_id', userId)
       .eq('active', true);
@@ -251,7 +251,7 @@ export class OrganizationService {
     }
 
     return data
-      .map((item: any) => item.organizations)
+      .map((item: any) => item.organization)
       .filter(Boolean)
       .map((org: any) => this.mapOrganization(org));
   }

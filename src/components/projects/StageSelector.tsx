@@ -1,15 +1,27 @@
-import React from 'react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import React, { useState } from 'react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Check, ChevronDown } from 'lucide-react';
 import { ProjectStage } from '../../types';
 import { projectStageNames } from '../../lib/constants';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '../ui/alert-dialog';
+import { Textarea } from '../ui/textarea';
 
 interface StageSelectorProps {
   currentStage: ProjectStage;
   onStageChange: (stage: ProjectStage) => void;
   disabled?: boolean;
+  onCancelProject?: (reason: string) => Promise<void> | void;
 }
 
 const stages: ProjectStage[] = [
@@ -41,29 +53,95 @@ const stageColors: Record<string, string> = {
   cancelled: 'bg-red-100 text-red-700'
 };
 
-export function StageSelector({ currentStage, onStageChange, disabled }: StageSelectorProps) {
+export function StageSelector({ currentStage, onStageChange, disabled, onCancelProject }: StageSelectorProps) {
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleCancel = async () => {
+    if (!onCancelProject || !cancelReason.trim()) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await onCancelProject(cancelReason.trim());
+      setCancelReason('');
+      setIsCancelDialogOpen(false);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="justify-between w-full gap-2 py-2.5" disabled={disabled}>
-          <div className={`${stageColors[currentStage]} rounded-full px-3 py-1 text-xs font-semibold truncate min-w-0`}>
-            {projectStageNames[currentStage]}
-          </div>
-          <ChevronDown className="size-4 opacity-50 flex-shrink-0" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-[280px]">
-        {stages.map((stage) => (
-          <DropdownMenuItem
-            key={stage}
-            onClick={() => onStageChange(stage)}
-            className="flex items-center justify-between"
-          >
-            <span className="flex-1">{projectStageNames[stage]}</span>
-            {currentStage === stage && <Check className="size-4 text-primary flex-shrink-0 ml-2" />}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="justify-between w-full gap-2 py-2.5" disabled={disabled}>
+            <div className={`${stageColors[currentStage]} rounded-full px-3 py-1 text-xs font-semibold truncate min-w-0`}>
+              {projectStageNames[currentStage]}
+            </div>
+            <ChevronDown className="size-4 opacity-50 flex-shrink-0" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-[280px]">
+          {stages.map((stage) => (
+            <DropdownMenuItem
+              key={stage}
+              onClick={() => onStageChange(stage)}
+              className="flex items-center justify-between"
+            >
+              <span className="flex-1">{projectStageNames[stage]}</span>
+              {currentStage === stage && <Check className="size-4 text-primary flex-shrink-0 ml-2" />}
+            </DropdownMenuItem>
+          ))}
+          {onCancelProject && (
+            <>
+              <DropdownMenuSeparator className="h-px bg-border my-2" />
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={() => setIsCancelDialogOpen(true)}
+              >
+                Отменить проект
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {onCancelProject && (
+        <AlertDialog open={isCancelDialogOpen} onOpenChange={(open) => {
+          setIsCancelDialogOpen(open);
+          if (!open) {
+            setCancelReason('');
+          }
+        }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Отменить проект?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Укажите причину отмены. Она будет показана в карточке проекта.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <Textarea
+              placeholder="Причина отмены"
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              rows={3}
+            />
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isSubmitting}>Отмена</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={cancelReason.trim().length === 0 || isSubmitting}
+                onClick={handleCancel}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Подтвердить
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+    </>
   );
 }

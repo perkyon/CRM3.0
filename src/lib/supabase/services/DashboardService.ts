@@ -21,11 +21,16 @@ export interface DashboardStats {
   }[];
   recentActivities: {
     id: string;
-    type: 'project_created' | 'project_updated' | 'client_created' | 'task_completed';
+    type: 'project_created' | 'project_updated' | 'client_created' | 'client_updated';
     description: string;
     timestamp: string;
     userId?: string;
     userName?: string;
+    entityId: string;
+    entityType: 'project' | 'client';
+    stage?: string;
+    clientStatus?: string;
+    managerName?: string;
   }[];
   upcomingDeadlines: {
     projectId: string;
@@ -174,7 +179,16 @@ export class SupabaseDashboardService {
       // Get recent project activities
       const { data: projectActivities, error: projectError } = await supabase
         .from(TABLES.PROJECTS)
-        .select('id, title, created_at, updated_at, stage')
+        .select(`
+          id,
+          title,
+          created_at,
+          updated_at,
+          stage,
+          code,
+          manager_id,
+          manager:users!projects_manager_id_fkey(id, name)
+        `)
         .order('updated_at', { ascending: false })
         .limit(10);
 
@@ -185,7 +199,7 @@ export class SupabaseDashboardService {
       // Get recent client activities
       const { data: clientActivities, error: clientError } = await supabase
         .from(TABLES.CLIENTS)
-        .select('id, name, created_at, updated_at')
+        .select('id, name, created_at, updated_at, status')
         .order('updated_at', { ascending: false })
         .limit(10);
 
@@ -205,9 +219,13 @@ export class SupabaseDashboardService {
             id: `project_${project.id}`,
             type: isNew ? 'project_created' as const : 'project_updated' as const,
             description: isNew 
-              ? `Создан новый проект "${project.title}"`
-              : `Обновлен проект "${project.title}"`,
+              ? `Создан проект "${project.title}"`
+              : `Обновлен проект "${project.title}" (этап: ${project.stage})`,
             timestamp: project.updated_at,
+            entityId: project.id,
+            entityType: 'project' as const,
+            stage: project.stage,
+            managerName: project.manager?.name,
           });
         }
       }
@@ -219,9 +237,14 @@ export class SupabaseDashboardService {
           
           activities.push({
             id: `client_${client.id}`,
-            type: 'client_created' as const,
-            description: `Добавлен новый клиент "${client.name}"`,
-            timestamp: client.created_at,
+            type: isNew ? 'client_created' as const : 'client_updated' as const,
+            description: isNew
+              ? `Добавлен клиент "${client.name}"`
+              : `Обновлен клиент "${client.name}"`,
+            timestamp: client.updated_at,
+            entityId: client.id,
+            entityType: 'client' as const,
+            clientStatus: client.status,
           });
         }
       }

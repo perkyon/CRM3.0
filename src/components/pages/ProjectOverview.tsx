@@ -37,6 +37,7 @@ import { formatCurrency, formatDate, getDaysUntilDue } from '../../lib/utils';
 import { StatusBadge } from '../ui/status-badge';
 import { Project, ProjectStage } from '../../types';
 import { toast } from '../../lib/toast';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
 export function ProjectOverview() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -178,11 +179,26 @@ export function ProjectOverview() {
     if (!project) return;
     
     try {
-      await updateProject(project.id, { stage: newStage });
-      setProject({ ...project, stage: newStage });
+      const updatedProject = await updateProject(project.id, { 
+        stage: newStage,
+        cancelReason: newStage === 'cancelled' ? project.cancelReason : null
+      });
+      setProject(updatedProject);
       toast.success('Этап проекта обновлен');
     } catch (error) {
       toast.error('Ошибка обновления этапа');
+    }
+  };
+
+  const handleCancelProject = async (reason: string) => {
+    if (!project) return;
+
+    try {
+      const updatedProject = await updateProject(project.id, { stage: 'cancelled', cancelReason: reason });
+      setProject(updatedProject);
+      toast.success('Проект помечен как отмененный');
+    } catch (error) {
+      toast.error('Не удалось отменить проект');
     }
   };
 
@@ -201,12 +217,14 @@ export function ProjectOverview() {
     // В реальном приложении здесь был бы API вызов для обновления проекта
   };
 
+  const isProjectCancelled = project.stage === 'cancelled';
+
   return (
     <div className="p-6 lg:p-8 space-y-8">
       {/* Header with Back Button */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/projects')}>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/app/projects')}>
             <ArrowLeft className="size-4 mr-2" />
             Назад к проектам
           </Button>
@@ -214,6 +232,11 @@ export function ProjectOverview() {
           <div>
             <h1 className="text-2xl font-medium">{project.title}</h1>
             <p className="text-muted-foreground">ID: {project.code || project.id}</p>
+            {isProjectCancelled && (
+              <Badge variant="destructive" className="mt-2">
+                Проект отменен
+              </Badge>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -232,6 +255,16 @@ export function ProjectOverview() {
         </div>
       </div>
 
+      {isProjectCancelled && (
+        <Alert variant="destructive">
+          <AlertTriangle className="size-4" />
+          <AlertTitle>Проект отменен</AlertTitle>
+          <AlertDescription>
+            {project.cancelReason || 'Причина отмены не указана'}
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
@@ -243,6 +276,7 @@ export function ProjectOverview() {
                   <StageSelector 
                     currentStage={project.stage}
                     onStageChange={handleStageChange}
+                    onCancelProject={handleCancelProject}
                   />
                 </div>
               </div>
@@ -368,6 +402,14 @@ export function ProjectOverview() {
                     </div>
                   </div>
                 </div>
+              </div>
+              <div className="pt-4 border-t border-border">
+                <p className="text-sm text-muted-foreground mb-1">Описание проекта</p>
+                {project.description ? (
+                  <p className="text-sm whitespace-pre-wrap">{project.description}</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Описание не заполнено</p>
+                )}
               </div>
             </CardContent>
           </Card>

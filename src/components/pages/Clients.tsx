@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -58,6 +58,7 @@ const typeLabels: Record<string, string> = {
 
 export function Clients() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { projects } = useProjects();
   const { currentOrganization } = useCurrentOrganization();
   const {
@@ -77,6 +78,34 @@ export function Clients() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isClientDetailOpen, setIsClientDetailOpen] = useState(false);
+  const clientIdFromQuery = searchParams.get('clientId');
+
+  const openClientDetails = (client: Client) => {
+    setSelectedClient(client);
+    setIsClientDetailOpen(true);
+    const next = new URLSearchParams(searchParams);
+    next.set('clientId', client.id);
+    setSearchParams(next, { replace: true });
+  };
+
+  const handleClientDetailDialogToggle = (open: boolean) => {
+    setIsClientDetailOpen(open);
+    if (!open) {
+      const next = new URLSearchParams(searchParams);
+      next.delete('clientId');
+      setSearchParams(next, { replace: true });
+    }
+  };
+
+  useEffect(() => {
+    if (!clientIdFromQuery || clients.length === 0) return;
+    const foundClient = clients.find(client => client.id === clientIdFromQuery);
+    if (foundClient) {
+      setSelectedClient(foundClient);
+      setIsClientDetailOpen(true);
+    }
+  }, [clientIdFromQuery, clients]);
+
   const [isNewClientOpen, setIsNewClientOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
@@ -336,10 +365,7 @@ export function Clients() {
                   <TableRow 
                     key={client.id}
                     className="cursor-pointer hover:bg-accent/50 transition-colors"
-                    onClick={() => {
-                      setSelectedClient(client);
-                      setIsClientDetailOpen(true);
-                    }}
+                    onClick={() => openClientDetails(client)}
                   >
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -389,8 +415,7 @@ export function Clients() {
                         <DropdownMenuContent align="end" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                           <DropdownMenuItem onClick={(e: React.MouseEvent) => {
                             e.stopPropagation();
-                            setSelectedClient(client);
-                            setIsClientDetailOpen(true);
+                            openClientDetails(client);
                           }}>
                             <Eye className="size-4 mr-2" />
                             Открыть
@@ -423,9 +448,8 @@ export function Clients() {
         client={selectedClient}
         open={isClientDetailOpen}
         onOpenChange={(open) => {
-          setIsClientDetailOpen(open);
+          handleClientDetailDialogToggle(open);
           if (!open) {
-            // Refresh when closing to get latest data
             fetchClients();
           }
         }}

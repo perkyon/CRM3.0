@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { projectStageNames, stageOrder } from '../../lib/constants';
 import { useUsers } from '../../lib/hooks/useUsers';
-import { formatCurrency, formatDate, getDaysUntilDue } from '../../lib/utils';
+import { calculatePriorityFromDueDate, formatCurrency, formatDate, getDaysUntilDue } from '../../lib/utils';
 import { StatusBadge } from '../ui/status-badge';
 import { useAnalytics, CRM_EVENTS } from '../../lib/hooks/useAnalytics';
 import { Project, ProjectStage } from '../../types';
@@ -101,6 +101,8 @@ export function Projects() {
       // Симуляция API запроса
       await new Promise(resolve => setTimeout(resolve, 1000));
 
+      const autoPriority = calculatePriorityFromDueDate(newProject.dueDate || null);
+
       const project: Omit<Project, 'id'> = {
         clientId: newProject.clientId,
         title: newProject.title,
@@ -110,7 +112,7 @@ export function Projects() {
         startDate: newProject.startDate || new Date().toISOString().split('T')[0],
         dueDate: newProject.dueDate,
         budget: parseFloat(newProject.budget) || 0,
-        priority: newProject.priority,
+        priority: autoPriority,
         stage: 'brief',
         briefComplete: false,
         createdAt: new Date().toISOString()
@@ -130,7 +132,7 @@ export function Projects() {
         startDate: newProject.startDate || undefined,
         dueDate: newProject.dueDate || undefined,
         budget: parseFloat(newProject.budget) || 0,
-        priority: newProject.priority as Project['priority'],
+        priority: autoPriority,
         stage: 'brief' as Project['stage'],
         briefComplete: false,
         organizationId: currentOrganization.id, // Добавляем organizationId
@@ -177,6 +179,8 @@ export function Projects() {
 
     setIsLoading(true);
     try {
+      const autoPriority = calculatePriorityFromDueDate(newProject.dueDate || null);
+
       const updateData = {
         clientId: newProject.clientId,
         title: newProject.title,
@@ -186,7 +190,7 @@ export function Projects() {
         startDate: newProject.startDate,
         dueDate: newProject.dueDate,
         budget: parseFloat(newProject.budget) || 0,
-        priority: newProject.priority
+        priority: autoPriority
       };
       
       console.log('📤 Sending update data:', updateData);
@@ -396,7 +400,14 @@ export function Projects() {
                   id="due-date"
                   type="date" 
                   value={newProject.dueDate}
-                  onChange={(e) => setNewProject({...newProject, dueDate: e.target.value})}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setNewProject(prev => ({
+                      ...prev,
+                      dueDate: value,
+                      priority: calculatePriorityFromDueDate(value || null)
+                    }));
+                  }}
                 />
               </div>
               <div className="space-y-2">
@@ -413,7 +424,7 @@ export function Projects() {
                 <Label htmlFor="priority">Приоритет</Label>
                 <Select 
                   value={newProject.priority} 
-                  onValueChange={(value: Project['priority']) => setNewProject({...newProject, priority: value})}
+                  disabled
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -425,6 +436,9 @@ export function Projects() {
                     <SelectItem value="urgent">Срочный</SelectItem>
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground">
+                  Приоритет рассчитывается автоматически от даты сдачи.
+                </p>
               </div>
             </div>
             <div className="flex justify-end gap-2">
@@ -767,12 +781,19 @@ export function Projects() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-due-date">Дедлайн</Label>
-              <Input 
-                id="edit-due-date"
-                type="date" 
-                value={newProject.dueDate}
-                onChange={(e) => setNewProject({...newProject, dueDate: e.target.value})}
-              />
+                <Input 
+                  id="edit-due-date"
+                  type="date" 
+                  value={newProject.dueDate}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setNewProject(prev => ({
+                      ...prev,
+                      dueDate: value,
+                      priority: calculatePriorityFromDueDate(value || null)
+                    }));
+                  }}
+                />
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-budget">Бюджет (₽)</Label>
@@ -785,10 +806,10 @@ export function Projects() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-priority">Приоритет</Label>
+                <Label htmlFor="edit-priority">Приоритет</Label>
               <Select 
                 value={newProject.priority} 
-                onValueChange={(value: Project['priority']) => setNewProject({...newProject, priority: value})}
+                  disabled
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Выберите приоритет" />
@@ -800,6 +821,9 @@ export function Projects() {
                   <SelectItem value="urgent">Срочный</SelectItem>
                 </SelectContent>
               </Select>
+                <p className="text-xs text-muted-foreground">
+                  Приоритет определяется автоматически в зависимости от дедлайна.
+                </p>
             </div>
           </div>
           <div className="flex justify-end gap-2">

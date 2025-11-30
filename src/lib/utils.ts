@@ -123,3 +123,28 @@ export function getInitials(name: string): string {
     .toUpperCase()
     .slice(0, 2);
 }
+
+export function calculatePriorityFromDueDate(dueDate?: string | null): 'low' | 'medium' | 'high' | 'urgent' {
+  if (!dueDate) {
+    return 'medium';
+  }
+
+  const daysLeft = getDaysUntilDue(dueDate);
+  if (isNaN(daysLeft)) {
+    return 'medium';
+  }
+
+  if (daysLeft <= 5) {
+    return 'urgent';
+  }
+  if (daysLeft <= 15) {
+    return 'high';
+  }
+  if (daysLeft <= 30) {
+    return 'medium';
+  }
+  if (daysLeft <= 60) {
+    return 'low';
+  }
+  return 'medium';
+}
