@@ -52,7 +52,11 @@ export const supabaseProductionItemService = {
           progressPercent: item.progress_percent || 0,
           position: item.position || 0,
           status: item.status || 'planned',
-          notes: item.notes,
+        notes: item.notes,
+        materials: item.materials,
+        technicalNotes: item.technical_notes,
+        managerComment: item.manager_comment,
+        dueDate: item.due_date,
           createdAt: item.created_at,
           updatedAt: item.updated_at,
           children: [],
@@ -131,7 +135,11 @@ export const supabaseProductionItemService = {
           progress_percent: item.progressPercent || 0,
           position: item.position || 0,
           status: item.status || 'planned',
-          notes: item.notes
+          notes: item.notes,
+          materials: item.materials || null,
+          technical_notes: item.technicalNotes || null,
+          manager_comment: item.managerComment || null,
+          due_date: item.dueDate || null,
         })
         .select()
         .single();
@@ -153,6 +161,10 @@ export const supabaseProductionItemService = {
         position: data.position || 0,
         status: data.status,
         notes: data.notes,
+        materials: data.materials,
+        technicalNotes: data.technical_notes,
+        managerComment: data.manager_comment,
+        dueDate: data.due_date,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
         children: [],
@@ -181,6 +193,10 @@ export const supabaseProductionItemService = {
       if (updates.position !== undefined) updateData.position = updates.position;
       if (updates.status !== undefined) updateData.status = updates.status;
       if (updates.notes !== undefined) updateData.notes = updates.notes;
+      if (updates.materials !== undefined) updateData.materials = updates.materials;
+      if (updates.technicalNotes !== undefined) updateData.technical_notes = updates.technicalNotes;
+      if (updates.managerComment !== undefined) updateData.manager_comment = updates.managerComment;
+      if (updates.dueDate !== undefined) updateData.due_date = updates.dueDate;
 
       const { data, error } = await supabase
         .from('production_items')
@@ -206,6 +222,10 @@ export const supabaseProductionItemService = {
         position: data.position || 0,
         status: data.status,
         notes: data.notes,
+        materials: data.materials,
+        technicalNotes: data.technical_notes,
+        managerComment: data.manager_comment,
+        dueDate: data.due_date,
         createdAt: data.created_at,
         updatedAt: data.updated_at
       };

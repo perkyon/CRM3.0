@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import { Textarea } from '../ui/textarea';
 import { Label } from '../ui/label';
 
 interface ItemDialogProps {
@@ -17,23 +18,39 @@ export interface ItemFormData {
   name: string;
   quantity?: number;
   currentStage?: string;
+  materials?: string;
+  technicalNotes?: string;
+  comment?: string;
+  dueDate?: string;
 }
 
 export function ItemDialog({ open, onOpenChange, onSave, initialData, mode }: ItemDialogProps) {
-  const [formData, setFormData] = useState<ItemFormData>({
+  const emptyForm: ItemFormData = {
     code: '',
     name: '',
-  });
+    materials: '',
+    technicalNotes: '',
+    comment: '',
+    dueDate: '',
+  };
+
+  const [formData, setFormData] = useState<ItemFormData>(emptyForm);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
-    } else {
       setFormData({
-        code: '',
-        name: '',
+        code: initialData.code || '',
+        name: initialData.name || '',
+        quantity: initialData.quantity,
+        currentStage: initialData.currentStage,
+        materials: initialData.materials || '',
+        technicalNotes: initialData.technicalNotes || '',
+        comment: initialData.comment || '',
+        dueDate: initialData.dueDate || '',
       });
+    } else {
+      setFormData(emptyForm);
     }
   }, [initialData, open]);
 
@@ -44,10 +61,7 @@ export function ItemDialog({ open, onOpenChange, onSave, initialData, mode }: It
       setIsSaving(true);
       await onSave(formData);
       onOpenChange(false);
-      setFormData({
-        code: '',
-        name: '',
-      });
+      setFormData(emptyForm);
     } catch (error) {
       console.error('Error saving item:', error);
     } finally {
@@ -89,6 +103,51 @@ export function ItemDialog({ open, onOpenChange, onSave, initialData, mode }: It
               placeholder="Кухня нижние модули"
             />
           </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="item-materials">Материалы</Label>
+            <Textarea
+              id="item-materials"
+              value={formData.materials || ''}
+              onChange={(e) => setFormData({ ...formData, materials: e.target.value })}
+              placeholder="Например: МДФ, эмаль, фурнитура Blum..."
+              rows={3}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="item-technical">
+              Техничка
+            </Label>
+            <Textarea
+              id="item-technical"
+              value={formData.technicalNotes || ''}
+              onChange={(e) => setFormData({ ...formData, technicalNotes: e.target.value })}
+              placeholder="Ссылка на чертеж, особенности конструкции..."
+              rows={3}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="item-comment">Комментарий</Label>
+            <Textarea
+              id="item-comment"
+              value={formData.comment || ''}
+              onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
+              placeholder="Что важно учесть при производстве"
+              rows={3}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="item-due-date">Срок изделия</Label>
+            <Input
+              id="item-due-date"
+              type="date"
+              value={formData.dueDate || ''}
+              onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+            />
+          </div>
         </div>
 
         <DialogFooter className="gap-2">
@@ -96,10 +155,7 @@ export function ItemDialog({ open, onOpenChange, onSave, initialData, mode }: It
             variant="outline"
             onClick={() => {
               onOpenChange(false);
-              setFormData({
-                code: '',
-                name: '',
-              });
+              setFormData(emptyForm);
             }}
             disabled={isSaving}
             className="flex-1"

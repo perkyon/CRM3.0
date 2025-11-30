@@ -38,6 +38,7 @@ import { StatusBadge } from '../ui/status-badge';
 import { Project, ProjectStage } from '../../types';
 import { toast } from '../../lib/toast';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { ProjectProductionItems } from '../projects/ProjectProductionItems';
 
 export function ProjectOverview() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -416,9 +417,10 @@ export function ProjectOverview() {
 
           {/* Project Tabs */}
           <Tabs defaultValue="timeline" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="timeline">Этапы</TabsTrigger>
               <TabsTrigger value="documents">Документы</TabsTrigger>
+              <TabsTrigger value="items">Изделия</TabsTrigger>
             </TabsList>
             
             <TabsContent value="timeline" className="space-y-4">
@@ -551,6 +553,13 @@ export function ProjectOverview() {
                     toast.error('Ошибка при удалении документа');
                   }
                 }}
+              />
+            </TabsContent>
+
+            <TabsContent value="items" className="space-y-4">
+              <ProjectProductionItems
+                projectId={project.id}
+                onOpenProduction={() => navigate(`/production/${project.id}`)}
               />
             </TabsContent>
             

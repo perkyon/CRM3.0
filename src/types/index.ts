@@ -322,6 +322,10 @@ export interface ProductionItem {
   position: number;
   status: 'planned' | 'in_progress' | 'completed' | 'on_hold';
   notes?: string;
+  materials?: string | null;
+  technicalNotes?: string | null;
+  managerComment?: string | null;
+  dueDate?: string | null;
   createdAt: string;
   updatedAt: string;
   // Computed fields

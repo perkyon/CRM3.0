@@ -29,6 +29,10 @@ export interface ProductionItem {
   current_stage: string | null;
   position: number;
   notes?: string | null;
+  materials?: string | null;
+  technical_notes?: string | null;
+  manager_comment?: string | null;
+  due_date?: string | null;
   created_at: string;
   updated_at: string;
   components?: ProductionComponent[];
@@ -109,6 +113,31 @@ export interface ProductionProject {
   due_date: string;
   zones: ProductionZone[];
   items: ProductionItem[];
+}
+
+interface CreateItemInput {
+  projectId: string;
+  zoneId: string;
+  code: string;
+  name: string;
+  quantity: number;
+  currentStage?: string;
+  type?: 'furniture' | 'component' | 'part';
+  materials?: string;
+  technicalNotes?: string;
+  comment?: string;
+  dueDate?: string;
+}
+
+interface UpdateItemInput {
+  code?: string;
+  name?: string;
+  quantity?: number;
+  currentStage?: string;
+  materials?: string;
+  technicalNotes?: string;
+  comment?: string;
+  dueDate?: string;
 }
 
 class ProductionManagementService {
@@ -384,16 +413,22 @@ class ProductionManagementService {
   }
 
   // Create item
-  async createItem(
-    projectId: string,
-    zoneId: string,
-    code: string,
-    name: string,
-    quantity: number,
-    currentStage?: string,
-    type: 'furniture' | 'component' | 'part' = 'furniture'
-  ): Promise<ProductionItem> {
+  async createItem(input: CreateItemInput): Promise<ProductionItem> {
     try {
+      const {
+        projectId,
+        zoneId,
+        code,
+        name,
+        quantity,
+        currentStage,
+        type = 'furniture',
+        materials,
+        technicalNotes,
+        comment,
+        dueDate,
+      } = input;
+
       const { data, error } = await supabase
         .from('production_items')
         .insert({
@@ -407,7 +442,12 @@ class ProductionManagementService {
           current_stage: currentStage || 'not_started',
           status: 'planned',
           progress_percent: 0,
-          position: 0
+          position: 0,
+          materials: materials?.trim() || null,
+          technical_notes: technicalNotes?.trim() || null,
+          manager_comment: comment?.trim() || null,
+          notes: comment?.trim() || null,
+          due_date: dueDate || null,
         })
         .select()
         .single();
@@ -467,19 +507,22 @@ class ProductionManagementService {
   // Update item
   async updateItem(
     itemId: string,
-    code: string,
-    name: string,
-    quantity: number,
-    currentStage?: string
+    updates: UpdateItemInput
   ): Promise<void> {
     try {
+      const { code, name, quantity, currentStage, materials, technicalNotes, comment, dueDate } = updates;
+
       const { error } = await supabase
         .from('production_items')
         .update({
-          code,
-          name,
-          quantity,
-          current_stage: currentStage
+          ...(code !== undefined ? { code } : {}),
+          ...(name !== undefined ? { name } : {}),
+          ...(quantity !== undefined ? { quantity } : {}),
+          ...(currentStage !== undefined ? { current_stage: currentStage } : {}),
+          ...(materials !== undefined ? { materials: materials?.trim() || null } : {}),
+          ...(technicalNotes !== undefined ? { technical_notes: technicalNotes?.trim() || null } : {}),
+          ...(comment !== undefined ? { manager_comment: comment?.trim() || null, notes: comment?.trim() || null } : {}),
+          ...(dueDate !== undefined ? { due_date: dueDate || null } : {}),
         })
         .eq('id', itemId);
 

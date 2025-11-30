@@ -428,6 +428,10 @@ CREATE TABLE production_items (
     position INTEGER NOT NULL DEFAULT 0,
     status production_item_status DEFAULT 'planned',
     notes TEXT,
+    materials TEXT,
+    technical_notes TEXT,
+    manager_comment TEXT,
+    due_date DATE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

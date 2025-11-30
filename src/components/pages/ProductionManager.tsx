@@ -222,14 +222,18 @@ export function ProductionManager() {
     if (!projectId || !selectedZone) return;
     
     try {
-      const newItem = await productionManagementService.createItem(
+      const newItem = await productionManagementService.createItem({
         projectId,
-        selectedZone,
-        itemData.code,
-        itemData.name,
-        itemData.quantity || 1,
-        itemData.currentStage
-      );
+        zoneId: selectedZone,
+        code: itemData.code,
+        name: itemData.name,
+        quantity: itemData.quantity || 1,
+        currentStage: itemData.currentStage,
+        materials: itemData.materials,
+        technicalNotes: itemData.technicalNotes,
+        comment: itemData.comment,
+        dueDate: itemData.dueDate,
+      });
       
       // Оптимистичное обновление - сразу добавляем в состояние
       setItems(prev => [...prev, newItem].sort((a, b) => a.position - b.position));
@@ -249,16 +253,32 @@ export function ProductionManager() {
     try {
       await productionManagementService.updateItem(
         editingItem.id,
-        itemData.code,
-        itemData.name,
-        itemData.quantity || 1,
-        itemData.currentStage
+        {
+          code: itemData.code,
+          name: itemData.name,
+          quantity: itemData.quantity || 1,
+          currentStage: itemData.currentStage,
+          materials: itemData.materials,
+          technicalNotes: itemData.technicalNotes,
+          comment: itemData.comment,
+          dueDate: itemData.dueDate,
+        }
       );
       
       // Оптимистичное обновление - сразу обновляем в состоянии
       setItems(prev => prev.map(i => 
         i.id === editingItem.id 
-          ? { ...i, code: itemData.code, name: itemData.name, quantity: itemData.quantity || 1, current_stage: itemData.currentStage }
+          ? { 
+              ...i, 
+              code: itemData.code, 
+              name: itemData.name, 
+              quantity: itemData.quantity || 1, 
+              current_stage: itemData.currentStage,
+              materials: itemData.materials,
+              technical_notes: itemData.technicalNotes,
+              manager_comment: itemData.comment,
+              due_date: itemData.dueDate,
+            }
           : i
       ));
       
@@ -269,7 +289,11 @@ export function ProductionManager() {
           code: itemData.code,
           name: itemData.name,
           quantity: itemData.quantity || 1,
-          current_stage: itemData.currentStage
+          current_stage: itemData.currentStage,
+          materials: itemData.materials,
+          technical_notes: itemData.technicalNotes,
+          manager_comment: itemData.comment,
+          due_date: itemData.dueDate,
         } : null);
       }
       
@@ -801,6 +825,10 @@ export function ProductionManager() {
           name: editingItem.name,
           quantity: editingItem.quantity,
           currentStage: editingItem.current_stage || 'plan',
+          materials: editingItem.materials || '',
+          technicalNotes: editingItem.technical_notes || '',
+          comment: editingItem.manager_comment || editingItem.notes || '',
+          dueDate: editingItem.due_date || '',
         } : undefined}
         mode={itemDialogMode}
       />
