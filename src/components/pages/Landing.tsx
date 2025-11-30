@@ -8,27 +8,20 @@ import Technologies from './landing/Technologies';
 import CRMDemo from './landing/CRMDemo';
 import Pricing from './landing/Pricing';
 import Contact from './landing/Contact';
-import LoginModal from './landing/LoginModal';
 import RegisterModal from './landing/RegisterModal';
 
 export function Landing() {
   const navigate = useNavigate();
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false); // Отключен preloader для отладки
 
   const handleLogin = () => {
-    setIsLoginOpen(true);
+    navigate('/login');
   };
 
   const handleRegister = () => {
     setIsRegisterOpen(true);
-  };
-
-  const handleLoginSubmit = () => {
-    setIsLoginOpen(false);
-    navigate('/login');
   };
 
   const handleRegisterSubmit = () => {
@@ -59,23 +52,13 @@ export function Landing() {
         <CRMDemo />
         <Pricing onSelectPlan={handleRegister} />
         <Contact />
-        
-        <LoginModal 
-          isOpen={isLoginOpen} 
-          onClose={() => setIsLoginOpen(false)}
-          onRegister={() => {
-            setIsLoginOpen(false);
-            setIsRegisterOpen(true);
-          }}
-          onSubmit={handleLoginSubmit}
-        />
-        
+
         <RegisterModal 
           isOpen={isRegisterOpen} 
           onClose={() => setIsRegisterOpen(false)}
           onLogin={() => {
             setIsRegisterOpen(false);
-            setIsLoginOpen(true);
+            navigate('/login');
           }}
           onSubmit={handleRegisterSubmit}
         />
