@@ -3,7 +3,18 @@ import { supabase } from '../supabase/config';
 import { Organization } from '../../types';
 import { organizationService } from '../supabase/services/OrganizationService';
 
-export function useCurrentOrganization() {
+interface CurrentOrganizationState {
+  currentOrganization: Organization | null;
+  isLoading: boolean;
+  error: string | null;
+  isTrial: boolean;
+  isTrialActive: boolean;
+  isTrialExpired: boolean;
+  trialDaysLeft: number;
+  trialEndsAt: string | null;
+}
+
+export function useCurrentOrganization(): CurrentOrganizationState {
   const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -74,6 +85,24 @@ export function useCurrentOrganization() {
     };
   }, []);
 
-  return { currentOrganization, isLoading, error };
+  const isTrial = currentOrganization?.plan === 'trial';
+  const trialEndsAtDate = currentOrganization?.trialEndsAt ? new Date(currentOrganization.trialEndsAt) : null;
+  const now = new Date();
+  const trialDaysLeft = isTrial && trialEndsAtDate
+    ? Math.max(0, Math.ceil((trialEndsAtDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+    : 0;
+  const isTrialExpired = Boolean(isTrial && trialEndsAtDate && now > trialEndsAtDate);
+  const isTrialActive = Boolean(isTrial && !isTrialExpired && currentOrganization?.trialActive);
+
+  return {
+    currentOrganization,
+    isLoading,
+    error,
+    isTrial: Boolean(isTrial),
+    isTrialActive,
+    isTrialExpired,
+    trialDaysLeft,
+    trialEndsAt: trialEndsAtDate ? trialEndsAtDate.toISOString() : null,
+  };
 }
 

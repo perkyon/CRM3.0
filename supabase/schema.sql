@@ -732,6 +732,12 @@ CREATE TABLE IF NOT EXISTS organizations (
     -- Настройки организации
     settings JSONB DEFAULT '{}', -- Кастомные настройки
     
+    -- План и триал
+    plan subscription_plan DEFAULT 'free',
+    trial_starts_at TIMESTAMP WITH TIME ZONE,
+    trial_ends_at TIMESTAMP WITH TIME ZONE,
+    trial_active BOOLEAN DEFAULT false,
+    
     -- Лимиты (зависят от плана)
     max_users INTEGER DEFAULT 5,
     max_projects INTEGER DEFAULT 10,

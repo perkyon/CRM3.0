@@ -3,6 +3,7 @@ import { useProjectStore } from '../lib/stores/projectStore';
 import { useAuthStore } from '../lib/stores/authStore';
 import { useCurrentOrganization } from '../lib/hooks/useCurrentOrganization';
 import { Project, CreateProjectRequest, UpdateProjectRequest } from '../types';
+import { supabaseProjectService } from '../lib/supabase/services/ProjectService';
 
 interface ProjectContextType {
   projects: Project[];
@@ -39,7 +40,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     pagination,
     fetchProjects,
     fetchProject,
-    createProject,
+    createProject: storeCreateProject,
     updateProject,
     deleteProject,
     updateProjectStage,
@@ -51,7 +52,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   } = useProjectStore();
 
   const { isAuthenticated } = useAuthStore();
-  const { currentOrganization } = useCurrentOrganization();
+  const { currentOrganization, isTrialExpired } = useCurrentOrganization();
 
   // Auto-fetch projects when user is authenticated and organization is loaded
   useEffect(() => {
@@ -90,6 +91,30 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     };
   }, [isAuthenticated, subscribeToRealtime, unsubscribeFromRealtime]);
 
+  const guardedCreateProject = async (projectData: CreateProjectRequest) => {
+    if (!currentOrganization?.id) {
+      throw new Error('Организация не выбрана');
+    }
+
+    if (isTrialExpired) {
+      throw new Error('Срок пробного периода истёк. Обновите тариф, чтобы продолжить работу.');
+    }
+
+    if (currentOrganization.maxProjects > 0) {
+      try {
+        const totalProjects = await supabaseProjectService.countProjectsByOrganization(currentOrganization.id);
+        if (totalProjects >= currentOrganization.maxProjects) {
+          throw new Error('Достигнут лимит проектов для текущего плана. Обновите тариф, чтобы продолжить.');
+        }
+      } catch (error: any) {
+        console.error('Error checking project limits:', error);
+        throw error;
+      }
+    }
+
+    return storeCreateProject(projectData);
+  };
+
   const contextValue: ProjectContextType = {
     projects,
     selectedProject,
@@ -98,7 +123,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     pagination,
     fetchProjects,
     fetchProject,
-    createProject,
+    createProject: guardedCreateProject,
     updateProject,
     deleteProject,
     updateProjectStage,

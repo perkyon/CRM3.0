@@ -565,6 +565,10 @@ export interface Organization {
   website?: string;
   status: OrganizationStatus;
   settings: Record<string, any>;
+  plan?: SubscriptionPlan;
+  trialStartsAt?: string;
+  trialEndsAt?: string;
+  trialActive?: boolean;
   maxUsers: number;
   maxProjects: number;
   maxStorageGb: number;
