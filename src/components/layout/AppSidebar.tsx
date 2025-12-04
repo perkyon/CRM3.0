@@ -59,16 +59,26 @@ export function AppSidebar({ currentPage, onNavigate, collapsed, className }: Ap
                 key={item.id}
                 variant={isActive ? "secondary" : "ghost"}
                 className={cn(
-                  "w-full justify-start gap-3",
-                  collapsed && "px-2",
+                  "w-full justify-start gap-3 transition-all duration-200",
+                  collapsed && "px-0 justify-center gap-0",
                   !hasAccess && "opacity-50 cursor-not-allowed",
-                  isActive && "border-2 border-primary/30 shadow-lg"
+                  isActive && "bg-primary/5"
                 )}
                 onClick={() => hasAccess && onNavigate(item.id)}
                 disabled={!hasAccess}
                 title={!hasAccess ? "Недостаточно прав" : item.label}
               >
-                <Icon className="size-5 shrink-0" />
+                <span
+                  className={cn(
+                    "flex size-9 items-center justify-center rounded-xl transition-all duration-200",
+                    collapsed && "size-11",
+                    isActive
+                      ? "bg-primary/15 text-primary ring-2 ring-primary/50 ring-offset-2 ring-offset-background shadow-sm"
+                      : "text-sidebar-foreground"
+                  )}
+                >
+                  <Icon className="size-5 shrink-0" />
+                </span>
                 {!collapsed && <span>{item.label}</span>}
               </Button>
             );

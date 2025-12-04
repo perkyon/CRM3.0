@@ -188,9 +188,9 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
               </TabsList>
             </div>
 
-            <div className="flex-1 min-h-0 overflow-y-auto">
+            <div className="flex-1 min-h-0 overflow-y-auto px-6">
               <TabsContent value="overview" className="mt-0 m-0">
-                <div className="px-6 py-6 space-y-6">
+                <div className="py-6 space-y-6">
                   {/* Основная информация */}
                   <Card>
                     <CardHeader className="pb-4">
@@ -388,7 +388,7 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
               </TabsContent>
 
               <TabsContent value="projects" className="mt-0 m-0">
-                <div className="px-6 py-6 overflow-y-auto">
+                <div className="py-6">
                   {clientProjects.length === 0 ? (
                     <div className="text-center py-16">
                       <Star className="size-12 mx-auto text-muted-foreground mb-4" />
@@ -445,7 +445,7 @@ export function ClientDetailDialog({ client, open, onOpenChange, onNavigate, onC
               </TabsContent>
 
               <TabsContent value="documents" className="mt-0 m-0">
-                <div className="px-6 py-6">
+                <div className="py-6">
                   <DocumentManager 
                     entityType="client"
                     entityId={currentClient.id}

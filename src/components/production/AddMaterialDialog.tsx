@@ -41,7 +41,7 @@ interface AddMaterialDialogProps {
   isLoading?: boolean;
 }
 
-const MATERIAL_TYPE_NAMES: Record<MaterialType, string> = {
+export const MATERIAL_TYPE_NAMES: Record<MaterialType, string> = {
   ldsp: 'ЛДСП',
   mdf: 'МДФ',
   plywood: 'Фанера',
@@ -53,7 +53,7 @@ const MATERIAL_TYPE_NAMES: Record<MaterialType, string> = {
   other: 'Прочее',
 };
 
-const UNIT_NAMES: Record<MaterialUnit, string> = {
+export const UNIT_NAMES: Record<MaterialUnit, string> = {
   sheet: 'Лист',
   sqm: 'м²',
   lm: 'п.м',

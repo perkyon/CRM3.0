@@ -31,7 +31,7 @@ import {
 } from '../../lib/supabase/services/ProductionManagementService';
 import { useProjects } from '../../contexts/ProjectContextNew';
 import { toast } from '../../lib/toast';
-import { cn } from '../../lib/utils';
+import { cn, formatDate } from '../../lib/utils';
 import { ZoneDialog } from '../production/ZoneDialog';
 import { DeleteZoneDialog } from '../production/DeleteZoneDialog';
 import { ItemDialog, ItemFormData } from '../production/ItemDialog';
@@ -687,55 +687,74 @@ export function ProductionManager() {
                         <button
                           onClick={() => setSelectedItem(item)}
                           className={cn(
-                            "flex-1 p-4 rounded-lg transition-all duration-200 border text-left",
+                            "flex-1 rounded-2xl transition-all duration-300 text-left overflow-hidden border bg-card/90 shadow-sm",
                             selectedItem?.id === item.id 
-                              ? "bg-primary/5 border-primary shadow-sm" 
-                              : "hover:bg-accent/50 border-transparent hover:border-border"
+                              ? "border-primary/60 shadow-lg ring-2 ring-primary/20 bg-gradient-to-br from-primary/5 via-background to-background"
+                              : "border-transparent hover:border-border hover:shadow-md"
                           )}
                         >
-                          {/* Header with name and badge */}
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-3 min-w-0 flex-1">
-                              <div className={cn(
-                                "w-2.5 h-2.5 rounded-full flex-shrink-0",
-                                isCompleted ? "bg-green-500" :
-                                isInProgress ? "bg-blue-500" :
-                                "bg-gray-300"
-                              )} />
-                              <div className="min-w-0 flex-1">
-                                <div className="font-semibold text-foreground truncate">{item.name}</div>
-                                <div className="text-xs text-muted-foreground mt-0.5">
-                                  {item.code || 'Изделие'} • {zoneName}
+                          <div className="p-4 space-y-4">
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                              <div className="flex items-start gap-3 min-w-0 flex-1">
+                                <div className={cn(
+                                  "w-2.5 h-2.5 mt-1 rounded-full flex-shrink-0",
+                                  isCompleted ? "bg-emerald-500" :
+                                  isInProgress ? "bg-blue-500" :
+                                  "bg-gray-300"
+                                )} />
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-semibold text-base text-foreground break-words leading-tight">
+                                    {item.name}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground mt-1 flex flex-wrap items-center gap-1">
+                                    <span className="truncate">{item.code || 'Изделие'}</span>
+                                    <span className="text-muted-foreground/50">•</span>
+                                    <span className="truncate">{zoneName}</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <Badge 
+                                variant={isCompleted ? 'default' : isInProgress ? 'secondary' : 'outline'}
+                                className={cn(
+                                  "font-medium flex-shrink-0 whitespace-nowrap px-3 py-1 rounded-full",
+                                  isCompleted && "bg-emerald-100 text-emerald-900 hover:bg-emerald-100",
+                                  isInProgress && "bg-blue-100 text-blue-900 hover:bg-blue-100"
+                                )}
+                              >
+                                {item.current_stage === 'completed' ? '✓ Готово' :
+                                 item.current_stage === 'cutting' ? 'Раскрой' :
+                                 item.current_stage === 'edging' ? 'Кромка' :
+                                 item.current_stage === 'drilling' ? 'Присадка' :
+                                 item.current_stage === 'assembly' ? 'Сборка' :
+                                 item.current_stage === 'finishing' ? 'Отделка' :
+                                 item.current_stage === 'packaging' ? 'Упаковка' :
+                                 'План'}
+                              </Badge>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
+                              <div>
+                                <div className="uppercase tracking-wide text-[10px] text-muted-foreground/70 mb-1">
+                                  Срок
+                                </div>
+                                <div className="text-sm font-semibold text-foreground">
+                                  {item.due_date ? formatDate(item.due_date) : 'Не задан'}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="uppercase tracking-wide text-[10px] text-muted-foreground/70 mb-1">
+                                  Прогресс
+                                </div>
+                                <div className="text-sm font-semibold text-foreground">
+                                  {item.progress}%
                                 </div>
                               </div>
                             </div>
-                            
-                            <Badge 
-                              variant={isCompleted ? 'default' : isInProgress ? 'secondary' : 'outline'}
-                              className={cn(
-                                "font-medium flex-shrink-0",
-                                isCompleted && "bg-green-100 text-green-800 hover:bg-green-100",
-                                isInProgress && "bg-blue-100 text-blue-800 hover:bg-blue-100"
-                              )}
-                            >
-                              {item.current_stage === 'completed' ? '✓ Готово' :
-                               item.current_stage === 'cutting' ? '🪚 Раскрой' :
-                               item.current_stage === 'edging' ? '📏 Кромка' :
-                               item.current_stage === 'drilling' ? '🔩 Присадка' :
-                               item.current_stage === 'assembly' ? '🔨 Сборка' :
-                               item.current_stage === 'finishing' ? '🎨 Отделка' :
-                               item.current_stage === 'packaging' ? '📦 Упаковка' :
-                               '📋 План'}
-                            </Badge>
-                          </div>
-                          
-                          {/* Progress Bar */}
-                          <div className="space-y-1">
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-muted-foreground">Прогресс</span>
-                              <span className="font-semibold">{item.progress}%</span>
+
+                            <div className="space-y-1">
+                              <Progress value={item.progress} className="h-2 rounded-full bg-muted" />
                             </div>
-                            <Progress value={item.progress} className="h-1.5" />
                           </div>
                         </button>
                         
@@ -831,6 +850,7 @@ export function ProductionManager() {
           dueDate: editingItem.due_date || '',
         } : undefined}
         mode={itemDialogMode}
+        projectId={projectId}
       />
 
       {/* Delete Item Dialog */}

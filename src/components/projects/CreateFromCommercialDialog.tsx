@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { DatePicker } from '../ui/date-picker';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Badge } from '../ui/badge';
 import { 
@@ -226,21 +227,23 @@ export function CreateFromCommercialDialog({
 
             <div className="space-y-2">
               <Label htmlFor="project-start">Дата старта</Label>
-              <Input 
-                id="project-start"
-                type="date" 
-                value={formData.startDate}
-                onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+              <DatePicker
+                date={formData.startDate ? new Date(formData.startDate) : undefined}
+                onDateChange={(date) => {
+                  setFormData({...formData, startDate: date ? date.toISOString().split('T')[0] : ''});
+                }}
+                placeholder="Выберите дату"
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="project-due">Плановая дата завершения</Label>
-              <Input 
-                id="project-due"
-                type="date" 
-                value={formData.dueDate}
-                onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
+              <DatePicker
+                date={formData.dueDate ? new Date(formData.dueDate) : undefined}
+                onDateChange={(date) => {
+                  setFormData({...formData, dueDate: date ? date.toISOString().split('T')[0] : ''});
+                }}
+                placeholder="Выберите дату"
               />
             </div>
           </div>

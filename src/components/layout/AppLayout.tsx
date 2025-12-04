@@ -15,6 +15,7 @@ import { Building2 } from 'lucide-react';
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser, fetchCurrentUser, fetchUsers } = useUserStore();
@@ -76,11 +77,6 @@ export function AppLayout() {
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-muted/50 border border-border">
               <Building2 className="size-4 text-muted-foreground" />
               <span className="text-sm font-medium">{currentOrganization.name}</span>
-              {currentOrganization.slug === 'buro' && (
-                <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium">
-                  Enterprise
-                </span>
-              )}
             </div>
           )}
         </div>
@@ -130,7 +126,7 @@ export function AppLayout() {
       {/* Mobile Header */}
       <header className="lg:hidden flex items-center justify-between px-4 py-3 border-b bg-card">
         <div className="flex items-center gap-2">
-          <Sheet>
+          <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="sm">
                 <Menu className="size-5" />
@@ -145,7 +141,10 @@ export function AppLayout() {
             </SheetHeader>
             <AppSidebar
               currentPage={currentPage}
-              onNavigate={handleNavigate}
+              onNavigate={(page) => {
+                handleNavigate(page);
+                setMobileNavOpen(false);
+              }}
               className="border-0"
             />
           </SheetContent>
@@ -155,11 +154,6 @@ export function AppLayout() {
           <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 border border-border">
             <Building2 className="size-3 text-muted-foreground" />
             <span className="text-xs font-medium">{currentOrganization.name}</span>
-            {currentOrganization.slug === 'buro' && (
-              <span className="text-[10px] px-1 py-0.5 rounded bg-primary/10 text-primary font-medium">
-                Enterprise
-              </span>
-            )}
           </div>
         )}
 

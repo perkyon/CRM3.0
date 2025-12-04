@@ -372,18 +372,18 @@ export function Dashboard() {
                     onClick={() => handleActivityNavigation(activity)}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="size-10 bg-primary/10 rounded-full flex items-center justify-center">
+                    <div className="size-10 bg-primary/10 rounded-full flex items-center justify-center">
                         {isProjectActivity ? (
-                          <Package className="size-5 text-primary" />
-                        ) : (
-                          <Users className="size-5 text-primary" />
-                        )}
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-sm">{activity.description}</h4>
-                        <p className="text-xs text-muted-foreground">
-                          {formatDate(activity.timestamp)}
-                        </p>
+                        <Package className="size-5 text-primary" />
+                      ) : (
+                        <Users className="size-5 text-primary" />
+                      )}
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm">{activity.description}</h4>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDate(activity.timestamp)}
+                      </p>
                         <div className="mt-1 text-xs text-muted-foreground space-y-0.5">
                           {isProjectActivity && stageLabel && (
                             <p>Этап: {stageLabel}</p>

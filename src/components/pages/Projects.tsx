@@ -387,27 +387,27 @@ export function Projects() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="start-date">Дата старта</Label>
-                <Input 
-                  id="start-date"
-                  type="date" 
-                  value={newProject.startDate}
-                  onChange={(e) => setNewProject({...newProject, startDate: e.target.value})}
+                <DatePicker
+                  date={newProject.startDate ? new Date(newProject.startDate) : undefined}
+                  onDateChange={(date) => {
+                    setNewProject({...newProject, startDate: date ? date.toISOString().split('T')[0] : ''});
+                  }}
+                  placeholder="Выберите дату"
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="due-date">Дедлайн</Label>
-                <Input 
-                  id="due-date"
-                  type="date" 
-                  value={newProject.dueDate}
-                  onChange={(e) => {
-                    const value = e.target.value;
+                <DatePicker
+                  date={newProject.dueDate ? new Date(newProject.dueDate) : undefined}
+                  onDateChange={(date) => {
+                    const value = date ? date.toISOString().split('T')[0] : '';
                     setNewProject(prev => ({
                       ...prev,
                       dueDate: value,
                       priority: calculatePriorityFromDueDate(value || null)
                     }));
                   }}
+                  placeholder="Выберите дату"
                 />
               </div>
               <div className="space-y-2">
@@ -772,28 +772,28 @@ export function Projects() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-start-date">Дата старта</Label>
-              <Input 
-                id="edit-start-date"
-                type="date" 
-                value={newProject.startDate}
-                onChange={(e) => setNewProject({...newProject, startDate: e.target.value})}
+              <DatePicker
+                date={newProject.startDate ? new Date(newProject.startDate) : undefined}
+                onDateChange={(date) => {
+                  setNewProject({...newProject, startDate: date ? date.toISOString().split('T')[0] : ''});
+                }}
+                placeholder="Выберите дату"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-due-date">Дедлайн</Label>
-                <Input 
-                  id="edit-due-date"
-                  type="date" 
-                  value={newProject.dueDate}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setNewProject(prev => ({
-                      ...prev,
-                      dueDate: value,
-                      priority: calculatePriorityFromDueDate(value || null)
-                    }));
-                  }}
-                />
+              <DatePicker
+                date={newProject.dueDate ? new Date(newProject.dueDate) : undefined}
+                onDateChange={(date) => {
+                  const value = date ? date.toISOString().split('T')[0] : '';
+                  setNewProject(prev => ({
+                    ...prev,
+                    dueDate: value,
+                    priority: calculatePriorityFromDueDate(value || null)
+                  }));
+                }}
+                placeholder="Выберите дату"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-budget">Бюджет (₽)</Label>
@@ -806,7 +806,7 @@ export function Projects() {
               />
             </div>
             <div className="space-y-2">
-                <Label htmlFor="edit-priority">Приоритет</Label>
+              <Label htmlFor="edit-priority">Приоритет</Label>
               <Select 
                 value={newProject.priority} 
                   disabled

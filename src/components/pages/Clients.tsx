@@ -453,7 +453,21 @@ export function Clients() {
             fetchClients();
           }
         }}
-        onNavigate={(page: string) => navigate(`/${page}`)}
+        onNavigate={(page: string, params) => {
+          if (page === 'project-overview' && params?.projectId) {
+            navigate(`/app/projects/${params.projectId}`);
+            return;
+          }
+          if (page === 'projects') {
+            navigate('/app/projects');
+            return;
+          }
+          if (page.startsWith('/')) {
+            navigate(page);
+            return;
+          }
+          navigate(`/app/${page}`);
+        }}
         onClientUpdate={async (updatedClient) => {
           try {
             console.log('Updating client:', updatedClient.id);

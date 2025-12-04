@@ -52,7 +52,7 @@ export function Landing() {
         <CRMDemo />
         <Pricing onSelectPlan={handleRegister} />
         <Contact />
-
+        
         <RegisterModal 
           isOpen={isRegisterOpen} 
           onClose={() => setIsRegisterOpen(false)}

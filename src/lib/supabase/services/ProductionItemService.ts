@@ -52,7 +52,7 @@ export const supabaseProductionItemService = {
           progressPercent: item.progress_percent || 0,
           position: item.position || 0,
           status: item.status || 'planned',
-        notes: item.notes,
+          notes: item.notes,
         materials: item.materials,
         technicalNotes: item.technical_notes,
         managerComment: item.manager_comment,

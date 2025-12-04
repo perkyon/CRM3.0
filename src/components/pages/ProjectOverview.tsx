@@ -557,10 +557,7 @@ export function ProjectOverview() {
             </TabsContent>
 
             <TabsContent value="items" className="space-y-4">
-              <ProjectProductionItems
-                projectId={project.id}
-                onOpenProduction={() => navigate(`/production/${project.id}`)}
-              />
+              <ProjectProductionItems projectId={project.id} />
             </TabsContent>
             
 
@@ -678,7 +675,21 @@ export function ProjectOverview() {
         client={client || null}
         open={isClientDialogOpen}
         onOpenChange={setIsClientDialogOpen}
-        onNavigate={(page: string) => navigate(`/${page}`)}
+        onNavigate={(page: string, params) => {
+          if (page === 'project-overview' && params?.projectId) {
+            navigate(`/app/projects/${params.projectId}`);
+            return;
+          }
+          if (page === 'projects') {
+            navigate('/app/projects');
+            return;
+          }
+          if (page.startsWith('/')) {
+            navigate(page);
+            return;
+          }
+          navigate(`/app/${page}`);
+        }}
         onClientUpdate={(updatedClient) => {
           // В реальном приложении здесь будет обновление клиента через API
           console.log('Client updated:', updatedClient);

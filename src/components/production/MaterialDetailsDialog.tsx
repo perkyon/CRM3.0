@@ -11,7 +11,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Textarea } from '../ui/textarea';
-import { Loader2, Edit } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import type { MaterialType, MaterialUnit, MaterialFinish, MaterialGrade } from './AddMaterialDialog';
 
 interface MaterialDetailsDialogProps {
@@ -19,6 +19,7 @@ interface MaterialDetailsDialogProps {
   onOpenChange: (open: boolean) => void;
   material: any;
   onSave?: (materialId: string, data: any) => Promise<void>;
+  mode?: 'view' | 'edit';
 }
 
 const MATERIAL_TYPE_NAMES: Record<MaterialType, string> = {
@@ -63,17 +64,17 @@ const GRADE_NAMES: Record<MaterialGrade, string> = {
   grade_b_bb: 'B/BB',
 };
 
-export function MaterialDetailsDialog({ open, onOpenChange, material, onSave }: MaterialDetailsDialogProps) {
-  const [isEditing, setIsEditing] = useState(false);
+export function MaterialDetailsDialog({ open, onOpenChange, material, onSave, mode = 'view' }: MaterialDetailsDialogProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState(material || {});
+
+  const isReadOnly = mode !== 'edit' || !onSave;
 
   useEffect(() => {
     if (material) {
       setFormData(material);
     }
-    setIsEditing(false);
-  }, [material, open]);
+  }, [material, open, mode]);
 
   const handleSave = async () => {
     if (!onSave) return;
@@ -98,36 +99,30 @@ export function MaterialDetailsDialog({ open, onOpenChange, material, onSave }: 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between pr-6">
             <div>
               <DialogTitle className="text-2xl font-bold mb-1">{material.name}</DialogTitle>
-              {!isEditing && (
-                <p className="text-sm text-muted-foreground">Информация о материале</p>
-              )}
+              <p className="text-sm text-muted-foreground">
+                Информация о материале
+              </p>
             </div>
-            {!isEditing && onSave && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsEditing(true)}
-                className="-mr-2"
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
+            {mode === 'edit' && onSave && (
+              <div className="text-xs uppercase tracking-wide text-muted-foreground pr-6">
+                Редактирование
+              </div>
             )}
           </div>
         </DialogHeader>
 
-        {isEditing ? (
-          // Edit mode
-          <div className="px-6 py-4 space-y-4">
+        <div className="px-6 py-4 space-y-4">
             <div>
               <Label className="text-xs text-muted-foreground">Название</Label>
               <Input
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="mt-1.5"
-              />
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="mt-1.5"
+              readOnly={isReadOnly}
+            />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -135,9 +130,10 @@ export function MaterialDetailsDialog({ open, onOpenChange, material, onSave }: 
                 <Label className="text-xs text-muted-foreground">Производитель</Label>
                 <Input
                   value={formData.brand || ''}
-                  onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                  className="mt-1.5"
-                />
+                onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                className="mt-1.5"
+                readOnly={isReadOnly}
+              />
               </div>
 
               <div>
@@ -146,9 +142,10 @@ export function MaterialDetailsDialog({ open, onOpenChange, material, onSave }: 
                   type="number"
                   step="0.1"
                   value={formData.thickness || ''}
-                  onChange={(e) => setFormData({ ...formData, thickness: parseFloat(e.target.value) || undefined })}
-                  className="mt-1.5"
-                />
+                onChange={(e) => setFormData({ ...formData, thickness: parseFloat(e.target.value) || undefined })}
+                className="mt-1.5"
+                readOnly={isReadOnly}
+              />
               </div>
             </div>
 
@@ -157,9 +154,10 @@ export function MaterialDetailsDialog({ open, onOpenChange, material, onSave }: 
                 <Label className="text-xs text-muted-foreground">Цвет</Label>
                 <Input
                   value={formData.color || ''}
-                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                  className="mt-1.5"
-                />
+                onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                className="mt-1.5"
+                readOnly={isReadOnly}
+              />
               </div>
             )}
 
@@ -168,9 +166,10 @@ export function MaterialDetailsDialog({ open, onOpenChange, material, onSave }: 
                 <Label className="text-xs text-muted-foreground">Порода</Label>
                 <Input
                   value={formData.wood_species || ''}
-                  onChange={(e) => setFormData({ ...formData, wood_species: e.target.value })}
-                  className="mt-1.5"
-                />
+                onChange={(e) => setFormData({ ...formData, wood_species: e.target.value })}
+                className="mt-1.5"
+                readOnly={isReadOnly}
+              />
               </div>
             )}
 
@@ -179,42 +178,54 @@ export function MaterialDetailsDialog({ open, onOpenChange, material, onSave }: 
                 {showFinishField && (
                   <div>
                     <Label className="text-xs text-muted-foreground">Обработка</Label>
-                    <Select
-                      value={formData.finish || 'raw'}
-                      onValueChange={(value) => setFormData({ ...formData, finish: value })}
-                    >
-                      <SelectTrigger className="mt-1.5">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(FINISH_NAMES).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {isReadOnly ? (
+                      <div className="mt-1.5 rounded-xl border border-border bg-muted px-3 py-2 text-sm font-medium text-foreground/90">
+                        {FINISH_NAMES[formData.finish as keyof typeof FINISH_NAMES] || '—'}
+                      </div>
+                    ) : (
+                      <Select
+                        value={formData.finish || 'raw'}
+                        onValueChange={(value) => setFormData({ ...formData, finish: value })}
+                      >
+                        <SelectTrigger className="mt-1.5">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(FINISH_NAMES).map(([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                 )}
 
                 {showGradeField && (
                   <div>
                     <Label className="text-xs text-muted-foreground">Сорт</Label>
-                    <Select
-                      value={formData.grade || 'grade_2_2'}
-                      onValueChange={(value) => setFormData({ ...formData, grade: value })}
-                    >
-                      <SelectTrigger className="mt-1.5">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(GRADE_NAMES).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {isReadOnly ? (
+                      <div className="mt-1.5 rounded-xl border border-border bg-muted px-3 py-2 text-sm font-medium text-foreground/90">
+                        {GRADE_NAMES[formData.grade as keyof typeof GRADE_NAMES] || '—'}
+                      </div>
+                    ) : (
+                      <Select
+                        value={formData.grade || 'grade_2_2'}
+                        onValueChange={(value) => setFormData({ ...formData, grade: value })}
+                      >
+                        <SelectTrigger className="mt-1.5">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(GRADE_NAMES).map(([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                 )}
               </div>
@@ -230,22 +241,29 @@ export function MaterialDetailsDialog({ open, onOpenChange, material, onSave }: 
                     value={formData.quantity}
                     onChange={(e) => setFormData({ ...formData, quantity: parseFloat(e.target.value) || 0 })}
                     className="flex-1"
+                  readOnly={isReadOnly}
                   />
-                  <Select
-                    value={formData.unit}
-                    onValueChange={(value) => setFormData({ ...formData, unit: value })}
-                  >
-                    <SelectTrigger className="w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(UNIT_NAMES).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {isReadOnly ? (
+                    <div className="w-24 rounded-xl border border-border bg-muted px-3 py-2 text-sm text-center font-medium text-foreground/90">
+                      {UNIT_NAMES[formData.unit as keyof typeof UNIT_NAMES] || formData.unit}
+                    </div>
+                  ) : (
+                    <Select
+                      value={formData.unit}
+                      onValueChange={(value) => setFormData({ ...formData, unit: value })}
+                    >
+                      <SelectTrigger className="w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(UNIT_NAMES).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               </div>
 
@@ -255,6 +273,7 @@ export function MaterialDetailsDialog({ open, onOpenChange, material, onSave }: 
                   value={formData.article || ''}
                   onChange={(e) => setFormData({ ...formData, article: e.target.value })}
                   className="mt-1.5"
+                readOnly={isReadOnly}
                 />
               </div>
             </div>
@@ -267,101 +286,36 @@ export function MaterialDetailsDialog({ open, onOpenChange, material, onSave }: 
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   rows={2}
                   className="mt-1.5 resize-none"
+                readOnly={isReadOnly}
                 />
               </div>
             )}
-          </div>
-        ) : (
-          // View mode - Clean rows
-          <div className="space-y-6 py-4">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Количество</span>
-              <span className="text-lg font-semibold">{material.quantity} {UNIT_NAMES[material.unit as MaterialUnit] || material.unit}</span>
-            </div>
+        </div>
 
-            {material.thickness && (
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Толщина</span>
-                <span className="text-lg font-semibold">{material.thickness} мм</span>
-              </div>
-            )}
-
-            {material.brand && (
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Производитель</span>
-                <span className="text-lg">{material.brand}</span>
-              </div>
-            )}
-
-            {material.wood_species && (
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Порода</span>
-                <span className="text-lg">{material.wood_species}</span>
-              </div>
-            )}
-
-            {material.finish && (
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Обработка</span>
-                <span className="text-lg">{FINISH_NAMES[material.finish as MaterialFinish] || material.finish}</span>
-              </div>
-            )}
-
-            {material.grade && (
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Класс</span>
-                <span className="text-lg">{GRADE_NAMES[material.grade as MaterialGrade] || material.grade}</span>
-              </div>
-            )}
-
-            {material.color && (
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Цвет</span>
-                <span className="text-lg">{material.color}</span>
-              </div>
-            )}
-
-            {material.article && (
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Артикул</span>
-                <span className="text-lg font-mono">{material.article}</span>
-              </div>
-            )}
-
-            {material.notes && (
-              <div className="flex items-start justify-between gap-4">
-                <span className="text-muted-foreground">Примечание</span>
-                <span className="text-lg text-right">{material.notes}</span>
-              </div>
-            )}
-
-            <Button 
-              onClick={() => onOpenChange(false)} 
-              className="w-full h-12 mt-8"
-            >
+        <DialogFooter className="gap-2 px-6 py-4 border-t">
+          {isReadOnly ? (
+            <Button className="w-full h-11" onClick={() => onOpenChange(false)}>
               Закрыть
             </Button>
-          </div>
-        )}
-
-        {isEditing && (
-          <DialogFooter className="gap-2 px-6 py-4 border-t">
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setFormData(material);
-                setIsEditing(false);
-              }}
-              disabled={isSaving}
-            >
-              Отмена
-            </Button>
-            <Button onClick={handleSave} disabled={isSaving}>
-              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Сохранить
-            </Button>
-          </DialogFooter>
-        )}
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setFormData(material);
+                  onOpenChange(false);
+                }}
+                disabled={isSaving}
+              >
+                Отмена
+              </Button>
+              <Button onClick={handleSave} disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Сохранить
+              </Button>
+            </>
+          )}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

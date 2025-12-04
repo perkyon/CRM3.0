@@ -4,6 +4,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
+import { DatePicker } from '../ui/date-picker';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '../ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Badge } from '../ui/badge';
@@ -277,11 +278,12 @@ export function CommercialDocuments({ clientId, onDocumentCreate, onCreateProjec
               
               <div className="space-y-2">
                 <Label htmlFor="doc-valid">Действителен до</Label>
-                <Input 
-                  id="doc-valid"
-                  type="date"
-                  value={newDocument.validUntil}
-                  onChange={(e) => setNewDocument({...newDocument, validUntil: e.target.value})}
+                <DatePicker
+                  date={newDocument.validUntil ? new Date(newDocument.validUntil) : undefined}
+                  onDateChange={(date) => {
+                    setNewDocument({...newDocument, validUntil: date ? date.toISOString().split('T')[0] : ''});
+                  }}
+                  placeholder="Выберите дату"
                 />
               </div>
               

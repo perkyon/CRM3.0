@@ -8,7 +8,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '../ui/collapsible';
-import { Plus, ChevronDown, ChevronRight, Image as ImageIcon, Loader2, MoreVertical, Edit, Trash2, Upload } from 'lucide-react';
+import { Plus, ChevronDown, ChevronRight, Image as ImageIcon, Loader2, MoreVertical, Edit, Trash2, Upload, Eye } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { 
   ProductionItem,
@@ -57,6 +57,7 @@ export function ItemDetailsPanel({ item, onEdit, onDelete, onComponentAdd, onCom
   const [componentMaterials, setComponentMaterials] = useState<Record<string, any[]>>({});
   const [selectedMaterial, setSelectedMaterial] = useState<any | null>(null);
   const [isMaterialDetailsOpen, setIsMaterialDetailsOpen] = useState(false);
+  const [materialDialogMode, setMaterialDialogMode] = useState<'view' | 'edit'>('view');
   
   // Stage dialog state
   const [isStageDialogOpen, setIsStageDialogOpen] = useState(false);
@@ -289,6 +290,12 @@ export function ItemDetailsPanel({ item, onEdit, onDelete, onComponentAdd, onCom
     }
   };
 
+  const openMaterialDetails = (material: any, mode: 'view' | 'edit' = 'view') => {
+    setSelectedMaterial(material);
+    setMaterialDialogMode(mode);
+    setIsMaterialDetailsOpen(true);
+  };
+
   // Handle load documents from client
   const handleLoadClientDocuments = async (componentId: string) => {
     try {
@@ -354,8 +361,8 @@ export function ItemDetailsPanel({ item, onEdit, onDelete, onComponentAdd, onCom
               )}
             >
               <Collapsible open={isOpen} onOpenChange={() => toggleComponent(component.id)}>
-                  {/* Component Dropdown Menu - positioned absolutely, outside trigger */}
-                  <div className="absolute top-2 right-2 z-10">
+                  {/* Action buttons + toggle */}
+                  <div className="absolute top-2 right-2 z-10 flex flex-col items-center gap-2">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -393,6 +400,18 @@ export function ItemDetailsPanel({ item, onEdit, onDelete, onComponentAdd, onCom
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleComponent(component.id);
+                      }}
+                    >
+                      {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    </Button>
                   </div>
 
                   <CollapsibleTrigger asChild>
@@ -436,12 +455,6 @@ export function ItemDetailsPanel({ item, onEdit, onDelete, onComponentAdd, onCom
                           )}
                         </div>
                         
-                        {/* Expand Icon */}
-                        {isOpen ? (
-                          <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                        ) : (
-                          <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                        )}
                       </div>
                     </div>
 
@@ -593,52 +606,57 @@ export function ItemDetailsPanel({ item, onEdit, onDelete, onComponentAdd, onCom
                                     </div>
                                   )}
                                 </div>
-                                <div className="flex items-center gap-1 flex-shrink-0">
+                                <div className="flex items-center gap-2 flex-shrink-0">
                                   <Badge variant="outline" className="text-xs">
                                     {material.quantity} {UNIT_NAMES[material.unit] || material.unit}
                                   </Badge>
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button 
-                                        variant="ghost" 
-                                        size="sm" 
-                                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        onClick={(e) => e.stopPropagation()}
-                                      >
-                                        <MoreVertical className="h-3 w-3" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                      <DropdownMenuItem
-                                        onClick={() => {
-                                          setSelectedMaterial(material);
-                                          setIsMaterialDetailsOpen(true);
-                                        }}
-                                      >
-                                        <Edit className="mr-2 h-3 w-3" />
-                                        Редактировать
-                                      </DropdownMenuItem>
-                                      <DropdownMenuSeparator />
-                                      <DropdownMenuItem
-                                        onClick={async () => {
-                                          if (confirm(`Удалить материал "${material.name}"?`)) {
-                                            try {
-                                              await productionManagementService.deleteComponentMaterial(material.id);
-                                              toast.success('Материал удален');
-                                              await loadComponents();
-                                            } catch (error) {
-                                              console.error('Error deleting material:', error);
-                                              toast.error('Ошибка удаления материала');
-                                            }
+                                  <div className="flex items-center gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openMaterialDetails(material, 'view');
+                                      }}
+                                      title="Просмотр"
+                                    >
+                                      <Eye className="h-3.5 w-3.5" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openMaterialDetails(material, 'edit');
+                                      }}
+                                      title="Редактировать"
+                                    >
+                                      <Edit className="h-3.5 w-3.5" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        if (confirm(`Удалить материал "${material.name}"?`)) {
+                                          try {
+                                            await productionManagementService.deleteComponentMaterial(material.id);
+                                            toast.success('Материал удален');
+                                            await loadComponents();
+                                          } catch (error) {
+                                            console.error('Error deleting material:', error);
+                                            toast.error('Ошибка удаления материала');
                                           }
-                                        }}
-                                        className="text-destructive focus:text-destructive"
-                                      >
-                                        <Trash2 className="mr-2 h-3 w-3" />
-                                        Удалить
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
+                                        }
+                                      }}
+                                      title="Удалить"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </div>
                                 </div>
                               </div>
                             ))}
@@ -959,6 +977,7 @@ export function ItemDetailsPanel({ item, onEdit, onDelete, onComponentAdd, onCom
         onOpenChange={setIsMaterialDetailsOpen}
         material={selectedMaterial}
         onSave={handleUpdateMaterial}
+        mode={materialDialogMode}
       />
 
       {/* Production Stage Dialog */}

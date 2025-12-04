@@ -652,6 +652,52 @@ class ProductionManagementService {
     }
   }
 
+  async updateComponent(
+    componentId: string,
+    data: {
+      name?: string;
+      material?: string | null;
+      quantity?: number;
+      unit?: string;
+    },
+  ): Promise<void> {
+    try {
+      const { data: component, error: fetchError } = await supabase
+        .from('production_components')
+        .select('item_id')
+        .eq('id', componentId)
+        .single();
+
+      if (fetchError) throw fetchError;
+      if (!component) throw new Error('Component not found');
+
+      const { error } = await supabase
+        .from('production_components')
+        .update({
+          ...(data.name !== undefined ? { name: data.name } : {}),
+          ...(data.material !== undefined ? { material: data.material } : {}),
+          ...(data.quantity !== undefined ? { quantity: data.quantity } : {}),
+          ...(data.unit !== undefined ? { unit: data.unit } : {}),
+        })
+        .eq('id', componentId);
+
+      if (error) throw error;
+
+      await this.recalculateItemProgress(component.item_id);
+      const { data: item } = await supabase
+        .from('production_items')
+        .select('zone_id')
+        .eq('id', component.item_id)
+        .single();
+
+      if (item) {
+        await this.recalculateZoneProgress(item.zone_id);
+      }
+    } catch (error) {
+      throw handleApiError(error, 'ProductionManagementService.updateComponent');
+    }
+  }
+
   // Create default stages based on template
   private async createDefaultStages(
     componentId: string, 

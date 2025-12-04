@@ -75,26 +75,32 @@ export function StageSelector({ currentStage, onStageChange, disabled, onCancelP
 
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="justify-between w-full gap-2 py-2.5" disabled={disabled}>
-            <div className={`${stageColors[currentStage]} rounded-full px-3 py-1 text-xs font-semibold truncate min-w-0`}>
-              {projectStageNames[currentStage]}
-            </div>
-            <ChevronDown className="size-4 opacity-50 flex-shrink-0" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-[280px]">
-          {stages.map((stage) => (
-            <DropdownMenuItem
-              key={stage}
-              onClick={() => onStageChange(stage)}
-              className="flex items-center justify-between"
-            >
-              <span className="flex-1">{projectStageNames[stage]}</span>
-              {currentStage === stage && <Check className="size-4 text-primary flex-shrink-0 ml-2" />}
-            </DropdownMenuItem>
-          ))}
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          className="justify-between w-full gap-2 py-2.5 min-w-0 max-w-full overflow-hidden"
+          disabled={disabled}
+        >
+          <div
+            className={`${stageColors[currentStage]} flex-1 min-w-0 max-w-full rounded-full px-3 py-1 text-xs font-semibold flex items-center gap-2`}
+          >
+            <span className="truncate block">{projectStageNames[currentStage]}</span>
+          </div>
+          <ChevronDown className="size-4 opacity-50 flex-shrink-0 ml-1" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-[280px]">
+        {stages.map((stage) => (
+          <DropdownMenuItem
+            key={stage}
+            onClick={() => onStageChange(stage)}
+            className="flex items-center justify-between"
+          >
+            <span className="flex-1">{projectStageNames[stage]}</span>
+            {currentStage === stage && <Check className="size-4 text-primary flex-shrink-0 ml-2" />}
+          </DropdownMenuItem>
+        ))}
           {onCancelProject && (
             <>
               <DropdownMenuSeparator className="h-px bg-border my-2" />
@@ -106,8 +112,8 @@ export function StageSelector({ currentStage, onStageChange, disabled, onCancelP
               </DropdownMenuItem>
             </>
           )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      </DropdownMenuContent>
+    </DropdownMenu>
 
       {onCancelProject && (
         <AlertDialog open={isCancelDialogOpen} onOpenChange={(open) => {
