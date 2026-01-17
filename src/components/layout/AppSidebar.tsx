@@ -2,6 +2,7 @@ import React from 'react';
 import {
   LayoutDashboard,
   Users,
+  MessageSquare,
   FolderOpen,
   Package,
   Warehouse,
@@ -26,6 +27,7 @@ interface AppSidebarProps {
 const navigationItems = [
   { id: 'dashboard', label: 'Панель управления', icon: LayoutDashboard, permission: '' },
   { id: 'clients', label: 'Клиенты', icon: Users, permission: 'clients' },
+  { id: 'communications', label: 'Сообщения', icon: MessageSquare, permission: 'clients' },
   { id: 'projects', label: 'Проекты', icon: FolderOpen, permission: 'projects' },
   { id: 'production', label: 'Производство', icon: Package, permission: 'production' },
   { id: 'inventory', label: 'Склад', icon: Warehouse, permission: 'inventory' },

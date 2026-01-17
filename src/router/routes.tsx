@@ -50,12 +50,15 @@ const lazyWithErrorHandling = (importFn: () => Promise<any>) => {
 };
 
 // Ленивая загрузка компонентов для code splitting
-const Dashboard = lazyWithErrorHandling(() => import('../components/pages/Dashboard').then(module => ({ default: module.Dashboard })));
+const DashboardWrapper = lazyWithErrorHandling(() => import('../components/pages/DashboardWrapper').then(module => ({ default: module.DashboardWrapper })));
 const Clients = lazyWithErrorHandling(() => import('../components/pages/Clients').then(module => ({ default: module.Clients })));
+const Communications = lazyWithErrorHandling(() => import('../components/pages/Communications').then(module => ({ default: module.Communications })));
+const TelegramDirect = lazyWithErrorHandling(() => import('../components/pages/TelegramDirect').then(module => ({ default: module.TelegramDirect })));
+const TelegramComparison = lazyWithErrorHandling(() => import('../components/pages/TelegramComparison').then(module => ({ default: module.TelegramComparison })));
 const Projects = lazyWithErrorHandling(() => import('../components/pages/Projects').then(module => ({ default: module.Projects })));
 const ProjectOverview = lazyWithErrorHandling(() => import('../components/pages/ProjectOverview').then(module => ({ default: module.ProjectOverview })));
 const ProductionManager = lazyWithErrorHandling(() => import('../components/pages/ProductionManager').then(module => ({ default: module.ProductionManager })));
-const EnhancedProductionKanban = lazyWithErrorHandling(() => import('../components/production/EnhancedProductionKanban').then(module => ({ default: module.EnhancedProductionKanban })));
+const KanbanShowcase = lazyWithErrorHandling(() => import('../components/production/SimpleKanbanBoard').then(module => ({ default: module.KanbanShowcase })));
 const RolesAndPermissions = lazyWithErrorHandling(() => import('../components/pages/RolesAndPermissions').then(module => ({ default: module.RolesAndPermissions })));
 const Settings = lazyWithErrorHandling(() => import('../components/pages/Settings').then(module => ({ default: module.Settings })));
 const Pricing = lazyWithErrorHandling(() => import('../components/pages/Pricing').then(module => ({ default: module.Pricing })));
@@ -131,15 +134,27 @@ export const routes: RouteObject[] = [
     children: [
       {
         index: true,
-        element: <Dashboard />
+        element: <DashboardWrapper />
       },
       {
         path: 'dashboard',
-        element: <Dashboard />
+        element: <DashboardWrapper />
       },
       {
         path: 'clients',
         element: <Clients />
+      },
+      {
+        path: 'communications',
+        element: <Communications />
+      },
+      {
+        path: 'telegram-direct',
+        element: <TelegramDirect />
+      },
+      {
+        path: 'telegram-comparison',
+        element: <TelegramComparison />
       },
       {
         path: 'projects',
@@ -151,7 +166,7 @@ export const routes: RouteObject[] = [
       },
       {
         path: 'production',
-        element: <EnhancedProductionKanban />
+        element: <KanbanShowcase />
       },
       {
         path: 'production/:projectId',
@@ -159,7 +174,7 @@ export const routes: RouteObject[] = [
       },
       {
         path: 'production/:projectId/kanban',
-        element: <EnhancedProductionKanban />
+        element: <KanbanShowcase />
       },
       {
         path: 'inventory',

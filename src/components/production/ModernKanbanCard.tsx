@@ -1,23 +1,16 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Progress } from '../ui/progress';
 import { 
-  Eye, 
   Calendar, 
   CheckSquare, 
-  Clock,
   User,
   Paperclip,
   MessageSquare,
   AlertTriangle,
-  Wrench,
-  Package,
-  Paintbrush,
-  Scissors,
-  Settings
+  MoreVertical
 } from 'lucide-react';
 import { KanbanTask } from '../../types';
 import { useUsers } from '../../lib/hooks/useUsers';
@@ -39,25 +32,6 @@ export function ModernKanbanCard({ task, onClick, onDragStart }: ModernKanbanCar
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date();
   const assignee = task.assigneeId ? users.find(u => u.id === task.assigneeId) : null;
 
-  const getPriorityColor = () => {
-    switch (task.priority) {
-      case 'urgent': return 'bg-red-500';
-      case 'high': return 'bg-orange-500';
-      case 'medium': return 'bg-blue-500';
-      case 'low': return 'bg-green-500';
-      default: return 'bg-gray-400';
-    }
-  };
-
-  const getStageIcon = () => {
-    const columnStage = task.columnId;
-    if (columnStage.includes('cutting')) return <Scissors className="size-3" />;
-    if (columnStage.includes('painting')) return <Paintbrush className="size-3" />;
-    if (columnStage.includes('assembly')) return <Wrench className="size-3" />;
-    if (columnStage.includes('packaging')) return <Package className="size-3" />;
-    return <Settings className="size-3" />;
-  };
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('ru-RU', { 
@@ -68,8 +42,10 @@ export function ModernKanbanCard({ task, onClick, onDragStart }: ModernKanbanCar
 
   return (
     <Card 
-      className={`group cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 border-0 bg-white ${
-        isHovered ? 'shadow-lg' : 'shadow-sm'
+      className={`group cursor-pointer transition-all duration-150 hover:-translate-y-0.5 border border-slate-200 bg-white rounded-[12px] ${
+        isHovered 
+          ? 'shadow-[0_6px_16px_rgba(16,24,40,0.12)]' 
+          : 'shadow-[0_4px_10px_rgba(16,24,40,0.08)]'
       }`}
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
@@ -77,105 +53,95 @@ export function ModernKanbanCard({ task, onClick, onDragStart }: ModernKanbanCar
       draggable
       onDragStart={onDragStart}
     >
-      {/* Priority Indicator */}
-      <div className={`h-1 rounded-t-lg ${getPriorityColor()}`} />
-      
-      <CardContent className="p-4 space-y-3">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-2">
-          <h4 className="font-medium text-base text-gray-900 line-clamp-2 flex-1">
-            {task.title}
-          </h4>
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity p-1">
-            <Eye className="size-3 text-gray-400" />
+      <CardContent className="p-3.5 space-y-3">
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 bg-white text-[12px] text-slate-600 shrink-0">
+            <CheckSquare className="size-3" />
+          </span>
+          <div className="flex-1 space-y-2 min-w-0">
+            <div className="flex items-start gap-2">
+              <h4 className="font-semibold text-[15px] leading-[18px] text-slate-900 line-clamp-3 break-words flex-1">
+                {task.title}
+              </h4>
+              <MoreVertical className="size-4 text-slate-400 shrink-0" />
+            </div>
+
+            {task.dueDate && (
+              <span 
+                className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold border ${
+                  isOverdue 
+                    ? 'bg-[#fff1f0] text-[#d83a52] border-[#f7d0d5]' 
+                    : 'bg-[#eef4ff] text-[#1d4ed8] border-[#c7d7ff]'
+                }`}
+              >
+                <Calendar className="size-3" />
+                {formatDate(task.dueDate)}
+                {isOverdue && <AlertTriangle className="size-3" />}
+              </span>
+            )}
+
+            {task.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {task.tags.slice(0, 3).map((tag, index) => (
+                  <span
+                    key={index}
+                    className="px-2 py-1 rounded-md text-[11px] font-semibold border border-[#f5c8c8] bg-[#ffe8e8] text-[#d83a52]"
+                  >
+                    {tag}
+                  </span>
+                ))}
+                {task.tags.length > 3 && (
+                  <span className="px-2 py-1 rounded-md text-[11px] font-semibold border border-[#dbe4f3] bg-[#f3f6fb] text-slate-700">
+                    +{task.tags.length - 3}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Tags */}
-        {task.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {task.tags.slice(0, 2).map((tag, index) => (
-              <Badge 
-                key={index} 
-                variant="secondary" 
-                className="text-xs px-2 py-0.5 bg-green-100 text-green-700 border-green-200"
-              >
-                {tag}
-              </Badge>
-            ))}
-            {task.tags.length > 2 && (
-              <Badge variant="secondary" className="text-xs px-2 py-0.5">
-                +{task.tags.length - 2}
-              </Badge>
-            )}
-          </div>
-        )}
-
-        {/* Due Date */}
-        {task.dueDate && (
-          <div className="flex items-center gap-2">
-            <Badge 
-              variant={isOverdue ? "destructive" : "secondary"}
-              className={`text-xs px-2 py-1 flex items-center gap-1 ${
-                isOverdue 
-                  ? 'bg-red-100 text-red-700 border-red-200' 
-                  : 'bg-gray-100 text-gray-700 border-gray-200'
-              }`}
-            >
-              <Calendar className="size-3" />
-              {formatDate(task.dueDate)}
-              {isOverdue && <AlertTriangle className="size-3" />}
-            </Badge>
-          </div>
-        )}
-
-        {/* Progress */}
         {totalTasks > 0 && (
           <div className="flex items-center gap-2">
-            <CheckSquare className="size-4 text-gray-500" />
-            <span className="text-sm text-gray-600 font-medium">
+            <CheckSquare className="size-4 text-slate-500" />
+            <span className="text-[12px] text-slate-600 font-semibold">
               {completedTasks}/{totalTasks}
             </span>
             <Progress 
               value={progress} 
-              className="flex-1 h-1.5"
+              className="flex-1 h-2 bg-transparent"
             />
           </div>
         )}
 
-        {/* Footer */}
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-2">
-            {/* Assignee */}
             {assignee ? (
-              <Avatar className="size-6">
+              <Avatar className="size-7 ring-2 ring-white shadow-sm">
                 <AvatarImage src={assignee.avatar} />
-                <AvatarFallback className="text-xs bg-blue-100 text-blue-700">
+                <AvatarFallback className="text-xs bg-sky-100 text-sky-700">
                   {assignee.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                 </AvatarFallback>
               </Avatar>
             ) : (
-              <div className="size-6 rounded-full bg-gray-100 flex items-center justify-center">
-                <User className="size-3 text-gray-400" />
+              <div className="size-7 rounded-full bg-slate-100 flex items-center justify-center">
+                <User className="size-3.5 text-slate-400" />
               </div>
             )}
           </div>
 
-          {/* Indicators */}
-          <div className="flex items-center gap-2 text-gray-400">
+          <div className="flex items-center gap-3 text-slate-400">
             {task.comments.length > 0 && (
               <div className="flex items-center gap-1">
                 <MessageSquare className="size-3" />
-                <span className="text-xs">{task.comments.length}</span>
+                <span className="text-[11px] font-semibold text-slate-600">{task.comments.length}</span>
               </div>
             )}
             {task.attachments.length > 0 && (
               <div className="flex items-center gap-1">
                 <Paperclip className="size-3" />
-                <span className="text-xs">{task.attachments.length}</span>
+                <span className="text-[11px] font-semibold text-slate-600">{task.attachments.length}</span>
               </div>
             )}
-            {getStageIcon()}
           </div>
         </div>
       </CardContent>
@@ -186,14 +152,14 @@ export function ModernKanbanCard({ task, onClick, onDragStart }: ModernKanbanCar
 // Карточка добавления новой задачи
 export function AddTaskCard({ onAddTask }: { onAddTask: () => void }) {
   return (
-    <Card className="border-2 border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors cursor-pointer">
+    <Card className="border border-dashed border-slate-300 hover:border-slate-400 bg-white/70 transition-colors cursor-pointer rounded-xl shadow-none">
       <CardContent 
-        className="p-4 flex items-center gap-2 text-gray-600 hover:text-gray-800"
+        className="p-3 flex items-center gap-2 text-slate-600 hover:text-slate-800"
         onClick={onAddTask}
       >
         <Button
           variant="ghost"
-          className="w-full justify-start text-left p-0 h-auto font-normal"
+          className="w-full justify-start text-left p-0 h-auto font-semibold text-[13px]"
         >
           <span className="text-xl mr-2">+</span>
           Добавить карточку

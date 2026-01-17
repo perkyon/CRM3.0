@@ -225,7 +225,7 @@ export class SupabaseDashboardService {
             entityId: project.id,
             entityType: 'project' as const,
             stage: project.stage,
-            managerName: project.manager?.name,
+            managerName: (project.manager as any)?.name,
           });
         }
       }
@@ -406,6 +406,478 @@ export class SupabaseDashboardService {
       onTimeCompletion: Math.round(onTimeCompletion),
       averageDelay: Math.round(averageDelay),
       budgetVariance: 0, // Would need actual vs planned budget data
+    };
+  }
+
+  // ==================== OWNER DASHBOARD METHODS ====================
+  
+  // Блок 1: Пульс производства
+  async getProductionPulse() {
+    try {
+      const { data: projects, error } = await supabase
+        .from(TABLES.PROJECTS)
+        .select('id, stage, priority, due_date')
+        .neq('stage', 'completed')
+        .neq('stage', 'cancelled');
+
+      if (error) throw error;
+
+      const projectsInWork = projects?.length || 0;
+      const urgentProjects = projects?.filter(p => p.priority === 'urgent' || p.priority === 'high').length || 0;
+      
+      const now = new Date();
+      const overdueCount = projects?.filter(p => {
+        if (!p.due_date) return false;
+        return new Date(p.due_date) < now;
+      }).length || 0;
+
+      // Calculate team load from active tasks
+      const teamLoad = await this.getTeamLoad();
+      
+      return {
+        projectsInWork,
+        urgentProjects,
+        teamLoadPercent: teamLoad.averageLoad,
+        overdueCount,
+      };
+    } catch (error) {
+      console.error('Error getting production pulse:', error);
+      return {
+        projectsInWork: 0,
+        urgentProjects: 0,
+        teamLoadPercent: 0,
+        overdueCount: 0,
+      };
+    }
+  }
+
+  // Блок 2: Загрузка людей
+  // Блок 2: Загрузка людей
+  async getTeamLoad() {
+    try {
+      // Get all active users in organization
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Get organization members
+      const { data: members, error: membersError } = await supabase
+        .from('organization_members')
+        .select(`
+          user_id,
+          profile:users!organization_members_user_id_fkey(id, name, role, active)
+        `)
+        .eq('active', true);
+
+      if (membersError) throw membersError;
+
+      const userIds = (members || [])
+        .map((m: any) => m.profile?.id)
+        .filter(Boolean);
+
+      if (userIds.length === 0) {
+        return { averageLoad: 0, users: [] };
+      }
+
+      // Get all active tasks for these users
+      const { data: tasks, error: tasksError } = await supabase
+        .from('kanban_tasks')
+        .select(`
+          id,
+          title,
+          assignee_id,
+          status,
+          project_id,
+          project:projects!kanban_tasks_project_id_fkey(title, code)
+        `)
+        .in('assignee_id', userIds)
+        .in('status', ['todo', 'in_progress', 'review']);
+
+      if (tasksError) throw tasksError;
+
+      // Calculate load for each user
+      const userLoads = userIds.map((userId: string) => {
+        const userTasks = tasks?.filter(t => t.assignee_id === userId) || [];
+        const userProfile = members?.find((m: any) => m.profile?.id === userId)?.profile;
+        
+        // Simple load calculation: 10% per active task (max 100%)
+        const loadPercent = Math.min(100, userTasks.length * 10);
+        
+        // Get current task (first in_progress or first todo)
+        const currentTask = userTasks.find(t => t.status === 'in_progress') || userTasks[0];
+        const taskDescription = currentTask 
+          ? `${currentTask.title}${currentTask.project ? ` (${(currentTask.project as any).code || (currentTask.project as any).title})` : ''}`
+          : 'Нет активных задач';
+
+        // Get comment from project risk_notes if available
+        let comment = '';
+        if (currentTask?.project_id) {
+          // We'll need to fetch project risk_notes separately or include in query
+        }
+
+        return {
+          id: userId,
+          name: (userProfile as any)?.name || 'Неизвестно',
+          currentTask: taskDescription,
+          loadPercent,
+          comment: loadPercent > 80 ? 'Перегруз' : loadPercent < 30 ? 'Можно добавить задачи' : '',
+        };
+      });
+
+      const averageLoad = userLoads.length > 0
+        ? Math.round(userLoads.reduce((sum, u) => sum + u.loadPercent, 0) / userLoads.length)
+        : 0;
+
+      return {
+        averageLoad,
+        users: userLoads.sort((a, b) => b.loadPercent - a.loadPercent),
+      };
+    } catch (error) {
+      console.error('Error getting team load:', error);
+      return { averageLoad: 0, users: [] };
+    }
+  }
+
+  // Блок 3: Топ-3 проблемных проекта
+  async getTopProblemProjects(limit: number = 3) {
+    try {
+      const { data: projects, error } = await supabase
+        .from(TABLES.PROJECTS)
+        .select(`
+          id,
+          title,
+          code,
+          risk_notes,
+          priority,
+          due_date,
+          stage
+        `)
+        .neq('stage', 'completed')
+        .neq('stage', 'cancelled')
+        .order('priority', { ascending: false })
+        .order('due_date', { ascending: true })
+        .limit(limit * 2); // Get more to filter
+
+      if (error) throw error;
+
+      // Get production progress for each project
+      const projectIds = projects?.map(p => p.id) || [];
+      const { data: items } = await supabase
+        .from('production_items')
+        .select('project_id, progress_percent')
+        .in('project_id', projectIds);
+
+      const now = new Date();
+      const projectsWithRisk = (projects || []).map(project => {
+        const projectItems = items?.filter(i => i.project_id === project.id) || [];
+        const readinessPercent = projectItems.length > 0
+          ? Math.round(projectItems.reduce((sum, i) => sum + (i.progress_percent || 0), 0) / projectItems.length)
+          : 0;
+
+        const daysLeft = project.due_date
+          ? Math.ceil((new Date(project.due_date).getTime() - now.getTime()) / (1000 * 3600 * 24))
+          : 999;
+
+        // Determine risk
+        let risk = 'Всё ок';
+        if (project.risk_notes) {
+          risk = project.risk_notes.substring(0, 50);
+        } else if (project.priority === 'urgent') {
+          risk = 'Срочный проект';
+        } else if (daysLeft < 0) {
+          risk = 'Просрочен';
+        } else if (daysLeft < 3) {
+          risk = 'Скоро дедлайн';
+        }
+
+        return {
+          id: project.id,
+          title: project.title,
+          code: project.code,
+          risk,
+          readinessPercent,
+          daysLeft,
+        };
+      });
+
+      // Sort by priority: overdue > urgent > high priority > low days left
+      return projectsWithRisk
+        .sort((a, b) => {
+          if (a.daysLeft < 0 && b.daysLeft >= 0) return -1;
+          if (a.daysLeft >= 0 && b.daysLeft < 0) return 1;
+          return a.daysLeft - b.daysLeft;
+        })
+        .slice(0, limit);
+    } catch (error) {
+      console.error('Error getting top problem projects:', error);
+      return [];
+    }
+  }
+
+  // Блок 4: Узкие места по цехам
+  async getProductionBottlenecks() {
+    try {
+      const { data: projects, error } = await supabase
+        .from(TABLES.PROJECTS)
+        .select('id, production_sub_stage')
+        .eq('stage', 'production');
+
+      if (error) throw error;
+
+      // Count projects per production_sub_stage
+      const stageCounts: Record<string, number> = {};
+      (projects || []).forEach(project => {
+        if (project.production_sub_stage) {
+          stageCounts[project.production_sub_stage] = (stageCounts[project.production_sub_stage] || 0) + 1;
+        }
+      });
+
+      const stageLabels: Record<string, string> = {
+        cutting: 'Раскрой',
+        drilling: 'Сверление',
+        sanding: 'Шлифовка',
+        painting: 'Покраска',
+        assembly: 'Сборка',
+        qa: 'Контроль качества',
+        finishing: 'Отделка',
+        quality_control: 'ОТК',
+        packaging: 'Упаковка',
+      };
+
+      const bottlenecks = Object.entries(stageCounts).map(([stage, count]) => {
+        let status: 'overload' | 'normal' | 'underload' | 'ok' = 'ok';
+        let description = '';
+
+        if (count >= 3) {
+          status = 'overload';
+          description = `Перегруз (${count} заказа одновременно)`;
+        } else if (count === 2) {
+          status = 'normal';
+          description = 'В норме';
+        } else if (count === 1) {
+          status = 'underload';
+          description = 'Чуть недогружена';
+        } else {
+          status = 'ok';
+          description = 'Ок';
+        }
+
+        return {
+          stage,
+          stageLabel: stageLabels[stage] || stage,
+          status,
+          load: count,
+          description,
+        };
+      });
+
+      // Add stages that might not have projects but are important
+      const allStages = ['cutting', 'drilling', 'painting', 'assembly'];
+      allStages.forEach(stage => {
+        if (!bottlenecks.find(b => b.stage === stage)) {
+          bottlenecks.push({
+            stage,
+            stageLabel: stageLabels[stage] || stage,
+            status: 'ok',
+            load: 0,
+            description: 'Ок',
+          });
+        }
+      });
+
+      return bottlenecks.sort((a, b) => {
+        const order = ['overload', 'normal', 'underload', 'ok'];
+        return order.indexOf(a.status) - order.indexOf(b.status);
+      });
+    } catch (error) {
+      console.error('Error getting production bottlenecks:', error);
+      return [];
+    }
+  }
+
+  // Блок 5: Деньги
+  async getFinancialOverview() {
+    try {
+      // Get projects with budgets
+      const { data: projects, error } = await supabase
+        .from(TABLES.PROJECTS)
+        .select(`
+          id,
+          budget,
+          created_at,
+          due_date,
+          client:clients!projects_client_id_fkey(id, name)
+        `)
+        .not('budget', 'is', null);
+
+      if (error) throw error;
+
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+
+      // Received this month (projects created this month)
+      const receivedThisMonth = (projects || []).reduce((sum, project) => {
+        const projectDate = new Date(project.created_at);
+        if (projectDate.getMonth() === currentMonth && projectDate.getFullYear() === currentYear) {
+          return sum + (project.budget || 0);
+        }
+        return sum;
+      }, 0);
+
+      // Expected in 7 days (projects due in next 7 days)
+      const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const expectedIn7Days = (projects || []).reduce((sum, project) => {
+        if (!project.due_date) return sum;
+        const dueDate = new Date(project.due_date);
+        if (dueDate >= now && dueDate <= sevenDaysFromNow) {
+          return sum + (project.budget || 0);
+        }
+        return sum;
+      }, 0);
+
+      // Payment problems (overdue projects)
+      const overdueProjects = (projects || []).filter(project => {
+        if (!project.due_date) return false;
+        return new Date(project.due_date) < now;
+      });
+
+      const paymentProblemsList = overdueProjects.map(project => {
+        const daysOverdue = Math.ceil((now.getTime() - new Date(project.due_date).getTime()) / (1000 * 3600 * 24));
+        return {
+          clientName: (project.client as any)?.name || 'Неизвестно',
+          amount: project.budget || 0,
+          daysOverdue,
+        };
+      });
+
+      return {
+        receivedThisMonth: Math.round(receivedThisMonth),
+        expectedIn7Days: Math.round(expectedIn7Days),
+        paymentProblems: paymentProblemsList.length,
+        paymentProblemsList: paymentProblemsList.slice(0, 5), // Top 5
+      };
+    } catch (error) {
+      console.error('Error getting financial overview:', error);
+      return {
+        receivedThisMonth: 0,
+        expectedIn7Days: 0,
+        paymentProblems: 0,
+        paymentProblemsList: [],
+      };
+    }
+  }
+
+  // Блок 6: Проблемы владельца
+  async getOwnerActionItems() {
+    try {
+      const actionItems: Array<{
+        id: string;
+        type: 'material' | 'approval' | 'blocker' | 'decision';
+        title: string;
+        description: string;
+        projectId?: string;
+        projectTitle?: string;
+      }> = [];
+
+      // Get projects with risk_notes that require owner action
+      const { data: projects, error } = await supabase
+        .from(TABLES.PROJECTS)
+        .select('id, title, risk_notes, priority')
+        .not('risk_notes', 'is', null)
+        .neq('stage', 'completed')
+        .neq('stage', 'cancelled');
+
+      if (error) throw error;
+
+      (projects || []).forEach(project => {
+        if (project.risk_notes) {
+          const riskLower = project.risk_notes.toLowerCase();
+          
+          // Check for material issues
+          if (riskLower.includes('материал') || riskLower.includes('бюджет') || riskLower.includes('закуп')) {
+            actionItems.push({
+              id: `material_${project.id}`,
+              type: 'material',
+              title: 'Не хватает материала',
+              description: project.risk_notes,
+              projectId: project.id,
+              projectTitle: project.title,
+            });
+          }
+
+          // Check for approval issues
+          if (riskLower.includes('согласование') || riskLower.includes('одобрени')) {
+            actionItems.push({
+              id: `approval_${project.id}`,
+              type: 'approval',
+              title: 'Нужно согласование с клиентом',
+              description: project.risk_notes,
+              projectId: project.id,
+              projectTitle: project.title,
+            });
+          }
+
+          // Check for blockers
+          if (riskLower.includes('блок') || riskLower.includes('застоп') || project.priority === 'urgent') {
+            actionItems.push({
+              id: `blocker_${project.id}`,
+              type: 'blocker',
+              title: 'Блокирующее решение по проекту',
+              description: project.risk_notes,
+              projectId: project.id,
+              projectTitle: project.title,
+            });
+          }
+        }
+      });
+
+      // Check for material deficits - get all materials and filter in JS
+      const { data: allMaterials } = await supabase
+        .from('materials')
+        .select('id, name, balance, min_level');
+      
+      const materials = allMaterials?.filter(m => 
+        m.balance !== null && 
+        m.min_level !== null && 
+        Number(m.balance) < Number(m.min_level)
+      ) || [];
+
+      if (materials && materials.length > 0) {
+        materials.forEach(material => {
+          actionItems.push({
+            id: `material_deficit_${material.id}`,
+            type: 'material',
+            title: `Дефицит материала: ${material.name}`,
+            description: `Остаток: ${material.balance}, минимум: ${material.min_level}`,
+          });
+        });
+      }
+
+      return actionItems.slice(0, 10); // Top 10
+    } catch (error) {
+      console.error('Error getting owner action items:', error);
+      return [];
+    }
+  }
+
+  // Get all owner dashboard data at once
+  async getOwnerDashboardData() {
+    const [pulse, teamLoad, problemProjects, bottlenecks, financial, actionItems] = await Promise.all([
+      this.getProductionPulse(),
+      this.getTeamLoad(),
+      this.getTopProblemProjects(3),
+      this.getProductionBottlenecks(),
+      this.getFinancialOverview(),
+      this.getOwnerActionItems(),
+    ]);
+
+    return {
+      pulse,
+      teamLoad,
+      problemProjects,
+      bottlenecks,
+      financial,
+      actionItems,
     };
   }
 }

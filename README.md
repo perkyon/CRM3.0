@@ -192,7 +192,9 @@ npm run test:e2e:debug   # Режим отладки
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
    - `VITE_NODE_ENV=production`
+   - `VITE_PUBLIC_APP_URL` (URL вашего домена после настройки)
 3. **Деплой происходит автоматически** при push в `main`
+4. **Настройка кастомного домена:** см. [docs/domain-setup-direct.md](./docs/domain-setup-direct.md)
 
 Или через CLI:
    ```bash

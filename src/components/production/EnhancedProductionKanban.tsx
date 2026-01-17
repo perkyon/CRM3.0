@@ -1,26 +1,32 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '../ui/sheet';
+import { Sheet, SheetContent, SheetDescription } from '../ui/sheet';
 import { toast } from '../../lib/toast';
 import { 
   ArrowLeft,
-  Filter,
-  Search,
-  X
+  LayoutDashboard,
+  ListOrdered,
+  Calendar,
+  User,
+  Clock,
+  BarChart3,
+  SlidersHorizontal,
+  Plus,
+  Bell,
+  MessageCircle,
+  MessageSquare
 } from 'lucide-react';
 import { useUsers } from '../../lib/hooks/useUsers';
 import { useCurrentOrganization } from '../../lib/hooks/useCurrentOrganization';
-import { KanbanBoard, KanbanColumn, KanbanTask, User as UserType } from '../../types';
+import { KanbanBoard, KanbanColumn, KanbanTask } from '../../types';
 import { supabaseKanbanService } from '../../lib/supabase/services/KanbanService';
 import { supabase, TABLES } from '../../lib/supabase/config';
 import { ModernKanbanColumn, AddColumnCard } from './ModernKanbanColumn';
 import { ModernTaskDetail } from './ModernTaskDetail';
-import { EmptyKanbanState, ErrorState, LoadingState } from '../ui/empty-state';
+import { EmptyKanbanState, LoadingState } from '../ui/empty-state';
+import { cn } from '../../lib/utils';
 
 // Default kanban columns
 const defaultKanbanColumns = [
@@ -234,7 +240,8 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
   const [filters, setFilters] = useState({
     assignee: '',
     priority: '',
-    tags: ''
+    tags: '',
+    deadline: ''
   });
   const [draggedItem, setDraggedItem] = useState<DraggedItem | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
@@ -710,6 +717,20 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
       tasks = tasks.filter(task => task.priority === filters.priority);
     }
 
+    if (filters.deadline && filters.deadline.trim()) {
+      const now = new Date();
+      tasks = tasks.filter(task => {
+        if (!task.dueDate) {
+          return filters.deadline === 'without';
+        }
+        const due = new Date(task.dueDate);
+        if (filters.deadline === 'with') return true;
+        if (filters.deadline === 'overdue') return due < now;
+        if (filters.deadline === 'upcoming') return due >= now;
+        return true;
+      });
+    }
+
     if (filters.tags && filters.tags.trim()) {
       tasks = tasks.filter(task => 
         task.tags.some(tag => tag.toLowerCase().includes(filters.tags.toLowerCase()))
@@ -723,10 +744,10 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
 
   const clearFilters = () => {
     setSearchQuery('');
-    setFilters({ assignee: '', priority: '', tags: '' });
+    setFilters({ assignee: '', priority: '', tags: '', deadline: '' });
   };
 
-  const hasActiveFilters = searchQuery || filters.assignee || filters.priority || filters.tags;
+  const hasActiveFilters = searchQuery || filters.assignee || filters.priority || filters.tags || filters.deadline;
 
   if (isLoading) {
     return (
@@ -757,123 +778,118 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
   }
 
   return (
-    <div className="p-6 lg:p-8 space-y-6 max-w-full h-full">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
-            <ArrowLeft className="size-4 mr-2" />
-            Назад
-          </Button>
-          <div className="border-l border-border h-6"></div>
-          <div>
-            <h1 className="text-2xl font-medium">{currentBoard.title}</h1>
-            <p className="text-muted-foreground">
-              {currentBoard.tasks.length} задач в {currentBoard.columns.length} колонках
-            </p>
+    <div className="flex flex-col h-full bg-gradient-to-br from-[#f3f6fb] via-white to-[#eef2f7] rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="px-6 lg:px-8 py-4 bg-white/95 backdrop-blur border-b border-slate-200 flex flex-col gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
+              <ArrowLeft className="size-4 mr-2" />
+              Назад
+            </Button>
+            <div className="h-6 border-l border-slate-200" />
+            <h1 className="text-xl font-semibold text-slate-900">{currentBoard.title}</h1>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-[#eef2f7] text-sm font-semibold text-slate-700">
+              {currentBoard.tasks.length} задач
+            </span>
+            <span className="px-3 py-1 rounded-full bg-[#eef2f7] text-sm font-semibold text-slate-700">
+              {currentBoard.columns.length} колонок
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1 max-w-sm">
-                <label className="text-sm">Поиск</label>
-                <div className="relative mt-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Поиск задач..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
+      <div className="px-6 lg:px-8 py-3 bg-[#f2f4f8] border-b border-slate-200/70">
+        <div className="flex flex-wrap items-center gap-2">
+          <NavPill icon={LayoutDashboard} label="Доска" active />
+          <NavPill icon={ListOrdered} label="Гант" />
+          <NavPill icon={Calendar} label="Календарь" />
+          <div className="flex-1" />
+          <Button variant="ghost" size="sm" className="text-slate-600">
+            <Plus className="size-4 mr-1" />
+            Добавить
+          </Button>
+        </div>
+        <div className="mt-3 grid grid-cols-1 md:grid-cols-5 gap-2">
+          <FilterPill
+            icon={User}
+            label="Все исполнители"
+            value={filters.assignee}
+            options={[
+              { value: 'all', label: 'Все исполнители' },
+              ...users.map(u => ({ value: u.id, label: u.name }))
+            ]}
+            onChange={(value) => setFilters(prev => ({ ...prev, assignee: value === 'all' ? '' : value }))}
+          />
+          <FilterPill
+            icon={Clock}
+            label="Все дедлайны"
+            value={filters.deadline}
+            options={[
+              { value: 'all', label: 'Все дедлайны' },
+              { value: 'with', label: 'Есть дата' },
+              { value: 'without', label: 'Без даты' },
+              { value: 'overdue', label: 'Просрочены' },
+              { value: 'upcoming', label: 'Будущие' }
+            ]}
+            onChange={(value) => setFilters(prev => ({ ...prev, deadline: value === 'all' ? '' : value }))}
+          />
+          <FilterPill
+            icon={BarChart3}
+            label="Все приоритеты"
+            value={filters.priority}
+            options={[
+              { value: 'all', label: 'Все приоритеты' },
+              { value: 'low', label: 'Низкий' },
+              { value: 'medium', label: 'Средний' },
+              { value: 'high', label: 'Высокий' },
+              { value: 'urgent', label: 'Срочный' }
+            ]}
+            onChange={(value) => setFilters(prev => ({ ...prev, priority: value === 'all' ? '' : value }))}
+          />
+          <Button variant="outline" size="sm" className="h-11 rounded-xl border-slate-200 bg-white text-slate-700">
+            <Plus className="size-4 mr-1" />
+            Добавить фильтр
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex-1 px-4 lg:px-6 pb-6 overflow-hidden">
+        <div
+          className="h-full rounded-2xl border border-slate-200 shadow-inner overflow-hidden"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1800&q=80')",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
+        >
+          <div className="h-full overflow-x-auto overflow-y-auto px-3">
+            <div className="flex py-4" style={{ minWidth: 'max-content', gap: '26px' }}>
+              {currentBoard.columns
+                .sort((a, b) => a.order - b.order)
+                .map((column, idx) => (
+                  <ModernKanbanColumn
+                    key={column.id}
+                    column={column}
+                    columnIndex={idx}
+                    tasks={getFilteredTasks(column.id)}
+                    onAddTask={(title, description) => addTask(column.id, title, description)}
+                    onUpdateColumn={(updates) => updateColumn(column.id, updates)}
+                    onDeleteColumn={() => deleteColumn(column.id)}
+                    onTaskClick={setSelectedTask}
+                    onDragStart={handleDragStart}
+                    onDragOver={(e) => handleDragOver(e, column.id)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, column.id)}
+                    isDragOver={dragOverColumn === column.id}
                   />
-                </div>
-              </div>
+                ))}
 
-              <div className="flex flex-wrap gap-3">
-                <div className="min-w-40">
-                  <label className="text-sm">Исполнитель</label>
-                  <Select value={filters.assignee || "all"} onValueChange={(value: string) => setFilters(prev => ({ ...prev, assignee: value === "all" ? "" : value }))}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Все" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Все исполнители</SelectItem>
-                      {users.map(user => (
-                        <SelectItem key={user.id} value={user.id}>{user.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="min-w-32">
-                  <label className="text-sm">Приоритет</label>
-                  <Select value={filters.priority || "all"} onValueChange={(value: string) => setFilters(prev => ({ ...prev, priority: value === "all" ? "" : value }))}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Все" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Все приоритеты</SelectItem>
-                      <SelectItem value="low">Низкий</SelectItem>
-                      <SelectItem value="medium">Средний</SelectItem>
-                      <SelectItem value="high">Высокий</SelectItem>
-                      <SelectItem value="urgent">Срочный</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="min-w-32">
-                  <label className="text-sm">Теги</label>
-                  <Input
-                    placeholder="Поиск по тегам"
-                    value={filters.tags}
-                    onChange={(e) => setFilters(prev => ({ ...prev, tags: e.target.value }))}
-                    className="mt-1"
-                  />
-                </div>
-
-                {hasActiveFilters && (
-                  <div className="flex items-end">
-                    <Button variant="outline" size="sm" onClick={clearFilters} className="h-10">
-                      <X className="size-4 mr-2" />
-                      Очистить
-                    </Button>
-                  </div>
-                )}
-              </div>
+              <AddColumnCard onAddColumn={addColumn} />
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Kanban Board */}
-      <div className="relative w-full overflow-hidden">
-        <div className="overflow-x-auto overflow-y-auto bg-blue-50 p-4 rounded-lg" style={{ maxHeight: 'calc(100vh - 280px)' }}>
-          <div className="flex gap-4 pb-4" style={{ minWidth: 'max-content' }}>
-          {currentBoard.columns
-            .sort((a, b) => a.order - b.order)
-            .map((column) => (
-              <ModernKanbanColumn
-                key={column.id}
-                column={column}
-                tasks={getFilteredTasks(column.id)}
-                onAddTask={(title, description) => addTask(column.id, title, description)}
-                onUpdateColumn={(updates) => updateColumn(column.id, updates)}
-                onDeleteColumn={() => deleteColumn(column.id)}
-                onTaskClick={setSelectedTask}
-                onDragStart={handleDragStart}
-                onDragOver={(e) => handleDragOver(e, column.id)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, column.id)}
-                isDragOver={dragOverColumn === column.id}
-              />
-            ))}
-
-          {/* Add Column Button */}
-          <AddColumnCard onAddColumn={addColumn} />
           </div>
         </div>
       </div>
@@ -933,11 +949,54 @@ export function EnhancedProductionKanban({ projectId: propProjectId, onNavigate 
   );
 }
 
+function NavPill({ icon: Icon, label, active = false }: { icon: React.ElementType; label: string; active?: boolean }) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        'flex items-center gap-2 h-11 px-4 rounded-2xl border text-base font-semibold transition-all',
+        active
+          ? 'bg-[#eef4ff] text-[#2f5fd4] border-[#d7e2ff] shadow-[0_6px_16px_rgba(47,95,212,0.18)]'
+          : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 shadow-sm'
+      )}
+    >
+      <Icon className="size-4" />
+      {label}
+    </button>
+  );
+}
 
-
-
-
-
-
-
-
+function FilterPill({
+  icon: Icon,
+  label,
+  value,
+  options,
+  onChange
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  options: { value: string; label: string }[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <Select value={value || 'all'} onValueChange={onChange}>
+      <SelectTrigger className="h-11 min-w-[180px] rounded-xl border-[#d9deeb] bg-[#f7f8fb] shadow-sm px-3">
+        <div className="flex items-center gap-2 w-full text-slate-700 font-semibold">
+          <Icon className="size-4" />
+          <span className="flex-1 text-left truncate">
+            <SelectValue placeholder={label} />
+          </span>
+          <SlidersHorizontal className="size-4 text-slate-400" />
+        </div>
+      </SelectTrigger>
+      <SelectContent>
+        {options.map(opt => (
+          <SelectItem key={opt.value} value={opt.value}>
+            {opt.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}

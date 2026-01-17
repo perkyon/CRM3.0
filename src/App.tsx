@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { ToastProvider } from './components/ui/custom-toaster';
 import { AppLayout } from './components/layout/AppLayout';
 import { Dashboard } from './components/pages/Dashboard';
+import { OwnerDashboard } from './components/pages/OwnerDashboard';
 import { Clients } from './components/pages/Clients';
 import { Projects } from './components/pages/Projects';
-import { EnhancedProductionKanban } from './components/production/EnhancedProductionKanban';
+import { KanbanShowcase } from './components/production/SimpleKanbanBoard';
 import { ProjectOverview } from './components/pages/ProjectOverview';
 import { RolesAndPermissions } from './components/pages/RolesAndPermissions';
 import { LoginPage } from './components/auth/LoginPage';
@@ -20,7 +21,7 @@ type PageParams = {
 } | null;
 
 export default function App() {
-  const { isAuthenticated, loading, login } = useAuth();
+  const { isAuthenticated, loading, login, user } = useAuth();
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [pageParams, setPageParams] = useState<PageParams>(null);
   
@@ -57,7 +58,8 @@ export default function App() {
     try {
       switch (currentPage) {
         case 'dashboard':
-          return <Dashboard />;
+          // Show OwnerDashboard for Admin, regular Dashboard for others
+          return user?.role === 'Admin' ? <OwnerDashboard /> : <Dashboard />;
         case 'clients':
           return <Clients />;
         case 'projects':
@@ -65,7 +67,7 @@ export default function App() {
         case 'project-overview':
           return <ProjectOverview />;
         case 'production':
-          return <EnhancedProductionKanban projectId={pageParams?.projectId} onNavigate={handleNavigate} />;
+          return <KanbanShowcase />;
         case 'inventory':
           return (
             <div className="p-6">

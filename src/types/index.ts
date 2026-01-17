@@ -235,6 +235,106 @@ export interface Integration {
   lastSyncAt?: string;
 }
 
+export type MessagingChannel = 'telegram' | 'whatsapp';
+export type MessagingIntegrationStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
+export type MessagingIntegrationType = 'bot' | 'user_account'; // bot = Bot API, user_account = личный аккаунт
+export type MessengerMessageDirection = 'incoming' | 'outgoing';
+export type MessengerMessageStatus = 'pending' | 'sent' | 'delivered' | 'read' | 'failed';
+
+export interface MessengerAttachment {
+  id?: string;
+  type: 'text' | 'image' | 'video' | 'audio' | 'document' | 'sticker' | 'location' | 'unknown';
+  url?: string;
+  name?: string;
+  mimeType?: string;
+  size?: number;
+  metadata?: Record<string, any>;
+}
+
+export interface MessagingIntegration {
+  id: string;
+  organizationId: string;
+  channel: MessagingChannel;
+  type?: MessagingIntegrationType; // 'bot' или 'user_account', по умолчанию 'bot'
+  displayName: string;
+  status: MessagingIntegrationStatus;
+  credentials: Record<string, any>;
+  webhookUrl?: string | null;
+  webhookSecret?: string | null;
+  lastError?: string | null;
+  meta?: Record<string, any>;
+  createdBy?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MessengerConversation {
+  id: string;
+  organizationId: string;
+  integrationId: string;
+  clientId?: string | null;
+  client?: Client | null;
+  channel: MessagingChannel;
+  externalChatId: string;
+  channelAddress?: string | null;
+  title?: string | null;
+  lastMessagePreview?: string | null;
+  unreadCount: number;
+  lastMessageAt?: string | null;
+  metadata?: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MessengerMessage {
+  id: string;
+  organizationId: string;
+  conversationId: string;
+  integrationId: string;
+  direction: MessengerMessageDirection;
+  status: MessengerMessageStatus;
+  externalMessageId?: string | null;
+  senderName?: string | null;
+  senderMeta?: Record<string, any>;
+  body: string;
+  attachments: MessengerAttachment[];
+  rawPayload?: Record<string, any> | null;
+  deliveredAt?: string | null;
+  readAt?: string | null;
+  sentAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ConnectIntegrationRequest {
+  organizationId: string;
+  channel: MessagingChannel;
+  displayName: string;
+  credentials: Record<string, any>;
+  webhookUrl?: string;
+  webhookSecret?: string;
+}
+
+export interface CreateConversationRequest {
+  organizationId: string;
+  integrationId: string;
+  clientId?: string;
+  channel: MessagingChannel;
+  externalChatId: string;
+  channelAddress?: string;
+  title?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface SendMessengerMessageRequest {
+  conversationId: string;
+  integrationId: string;
+  organizationId: string;
+  body: string;
+  attachments?: MessengerAttachment[];
+  channelOverride?: MessagingChannel;
+}
+
 export interface DashboardKPIs {
   ordersInProgress: number;
   shopLoadPercent: number;

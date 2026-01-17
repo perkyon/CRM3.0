@@ -5,14 +5,13 @@ import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { 
   MoreHorizontal, 
-  Plus, 
-  GripVertical,
+  Plus,
   Edit2,
   Trash2,
   X
 } from 'lucide-react';
 import { KanbanColumn, KanbanTask } from '../../types';
-import { ModernKanbanCard, AddTaskCard } from './ModernKanbanCard';
+import { ModernKanbanCard } from './ModernKanbanCard';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -23,6 +22,7 @@ import {
 
 interface ModernKanbanColumnProps {
   column: KanbanColumn;
+  columnIndex: number;
   tasks: KanbanTask[];
   onAddTask: (title: string, description?: string) => void;
   onUpdateColumn: (updates: Partial<KanbanColumn>) => void;
@@ -37,6 +37,7 @@ interface ModernKanbanColumnProps {
 
 export function ModernKanbanColumn({
   column,
+  columnIndex,
   tasks,
   onAddTask,
   onUpdateColumn,
@@ -51,6 +52,7 @@ export function ModernKanbanColumn({
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [newTitle, setNewTitle] = useState(column.title);
+  const { accentColor, backgroundColor } = getColumnColors(column.color, columnIndex);
 
   const handleSaveTitle = () => {
     if (newTitle.trim() && newTitle !== column.title) {
@@ -70,94 +72,113 @@ export function ModernKanbanColumn({
 
   return (
     <div 
-      className={`flex-shrink-0 w-80 transition-all duration-200 ${
-        isDragOver ? 'bg-blue-50 rounded-lg' : ''
+      className={`flex-shrink-0 w-[296px] min-w-[296px] max-w-[296px] transition-all duration-200 ${
+        isDragOver ? 'ring-2 ring-offset-2 ring-sky-400/60 ring-offset-slate-100 rounded-[16px]' : ''
       }`}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
-      <Card className="bg-gray-50 border-0 shadow-sm">
-        <CardHeader className="p-4 pb-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 flex-1">
-              <GripVertical className="size-4 text-gray-400 cursor-grab" />
-              
-              {isEditingTitle ? (
-                <Input
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  onBlur={handleSaveTitle}
-                  onKeyDown={handleKeyDown}
-                  className="font-medium text-base bg-white border-2 border-blue-500"
-                  autoFocus
+      <Card className="bg-transparent border-none shadow-none">
+        <div
+          className="flex h-full flex-col rounded-[16px] border border-slate-200/80 bg-white shadow-[0_6px_16px_rgba(16,24,40,0.12)] overflow-hidden"
+          style={{ backgroundColor }}
+        >
+          <div
+            className="w-full rounded-t-[16px]"
+            style={{ backgroundColor: accentColor, height: '9px' }}
+          />
+          <CardHeader
+            className="px-3 pt-3 pb-2 border-b border-slate-200/60 rounded-t-2xl"
+            style={{ backgroundColor: hexToRgba(accentColor, 0.12) }}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-start gap-2 flex-1 min-w-0">
+                <div
+                  className="mt-1 size-2.5 rounded-full shrink-0"
+                  style={{ backgroundColor: accentColor }}
                 />
-              ) : (
-                <h3 
-                  className="font-medium text-base text-gray-900 cursor-pointer hover:text-blue-600 transition-colors flex-1"
-                  onClick={() => setIsEditingTitle(true)}
-                >
-                  {column.title}
-                </h3>
-              )}
+                
+                {isEditingTitle ? (
+                  <Input
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    onBlur={handleSaveTitle}
+                    onKeyDown={handleKeyDown}
+                    className="font-semibold text-[15px] bg-white border border-sky-300 h-9"
+                    autoFocus
+                  />
+                ) : (
+                  <h3 
+                    className="font-semibold text-[15px] leading-5 text-slate-900 cursor-pointer hover:text-sky-700 transition-colors flex-1 break-words"
+                    onClick={() => setIsEditingTitle(true)}
+                  >
+                    {column.title}
+                  </h3>
+                )}
 
-              <div className="bg-white px-2 py-0.5 rounded-full">
-                <span className="text-sm font-medium text-gray-600">
+                <div className="px-2 py-0.5 rounded-full bg-white/90 border border-slate-200 text-xs font-semibold text-slate-700 leading-none">
                   {tasks.length}
-                </span>
+                </div>
               </div>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="size-8 p-0 text-slate-500 hover:text-slate-700"
+                  >
+                    <MoreHorizontal className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setIsEditingTitle(true)}>
+                    <Edit2 className="size-4 mr-2" />
+                    Переименовать
+                  </DropdownMenuItem>
+                  {!column.isDefault && (
+                    <DropdownMenuItem 
+                      onClick={onDeleteColumn}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="size-4 mr-2" />
+                      Удалить колонку
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="size-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <MoreHorizontal className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setIsEditingTitle(true)}>
-                  <Edit2 className="size-4 mr-2" />
-                  Переименовать
-                </DropdownMenuItem>
-                {!column.isDefault && (
-                  <DropdownMenuItem 
-                    onClick={onDeleteColumn}
-                    className="text-red-600 focus:text-red-600"
-                  >
-                    <Trash2 className="size-4 mr-2" />
-                    Удалить колонку
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </CardHeader>
+            <button
+              className="mt-3 text-base text-[#2f64e1] hover:text-[#1f4fb8] font-semibold inline-flex items-center gap-2"
+              onClick={() => setIsAddingTask(true)}
+            >
+              <Plus className="size-4" />
+              Добавить задачу
+            </button>
+          </CardHeader>
 
-        <CardContent className="p-4 pt-0">
-          <div className="space-y-3 max-h-[70vh] overflow-y-auto">
-            {tasks.map((task) => (
-              <ModernKanbanCard
-                key={task.id}
-                task={task}
-                onClick={() => onTaskClick(task)}
-                onDragStart={(e) => onDragStart(e, { type: 'task', data: task, sourceColumnId: column.id })}
-              />
-            ))}
+          <CardContent className="px-3 pt-2 pb-4 flex-1 flex flex-col">
+          <div className="space-y-3 max-h-[calc(100vh-260px)] overflow-y-auto pr-1">
+              {tasks.map((task) => (
+                <ModernKanbanCard
+                  key={task.id}
+                  task={task}
+                  onClick={() => onTaskClick(task)}
+                  onDragStart={(e) => onDragStart(e, { type: 'task', data: task, sourceColumnId: column.id })}
+                />
+              ))}
 
-            {isAddingTask ? (
-              <AddTaskForm
-                onAddTask={onAddTask}
-                onCancel={() => setIsAddingTask(false)}
-              />
-            ) : (
-              <AddTaskCard onAddTask={() => setIsAddingTask(true)} />
-            )}
-          </div>
-        </CardContent>
+              {isAddingTask && (
+                <AddTaskForm
+                  onAddTask={onAddTask}
+                  onCancel={() => setIsAddingTask(false)}
+                />
+              )}
+            </div>
+          </CardContent>
+        </div>
       </Card>
     </div>
   );
@@ -193,14 +214,14 @@ function AddTaskForm({
   };
 
   return (
-    <Card className="border-2 border-blue-500 shadow-md">
+    <Card className="border border-sky-200 shadow-[0_10px_20px_rgba(56,189,248,0.08)] bg-white/90">
       <CardContent className="p-3 space-y-3">
         <Input
           placeholder="Введите название задачи..."
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="border-0 text-base font-medium focus:ring-0 focus:border-0 p-0"
+          className="border text-base font-medium focus:ring-2 focus:ring-sky-300"
           autoFocus
         />
         
@@ -209,7 +230,7 @@ function AddTaskForm({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={2}
-          className="border-0 text-sm resize-none focus:ring-0 focus:border-0 p-0"
+          className="border text-sm resize-none focus:ring-2 focus:ring-sky-300"
         />
         
         <div className="flex gap-2 pt-2">
@@ -217,7 +238,7 @@ function AddTaskForm({
             size="sm" 
             onClick={handleSubmit} 
             disabled={!title.trim()}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-sky-700 hover:bg-sky-800"
           >
             Добавить карточку
           </Button>
@@ -263,15 +284,15 @@ export function AddColumnCard({
 
   if (isAdding) {
     return (
-      <div className="flex-shrink-0 w-80">
-        <Card className="bg-gray-50 border-2 border-blue-500">
-          <CardContent className="p-4">
+      <div className="flex-shrink-0 w-[296px]">
+        <Card className="bg-white border border-dashed border-slate-300 shadow-sm rounded-2xl">
+          <CardContent className="p-4 space-y-3">
             <Input
               placeholder="Введите название колонки"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="mb-3 text-base font-medium"
+              className="text-base font-medium"
               autoFocus
             />
             <div className="flex gap-2">
@@ -279,7 +300,7 @@ export function AddColumnCard({
                 size="sm" 
                 onClick={handleSubmit} 
                 disabled={!title.trim()}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-sky-700 hover:bg-sky-800"
               >
                 Добавить колонку
               </Button>
@@ -302,16 +323,46 @@ export function AddColumnCard({
   }
 
   return (
-    <div className="flex-shrink-0 w-80">
+    <div className="flex-shrink-0 w-[296px] min-w-[296px] max-w-[296px]">
       <Card 
-        className="bg-gray-50 border-2 border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-100 transition-colors cursor-pointer"
+        className="h-full min-h-[180px] border border-dashed border-slate-300 bg-white/60 hover:border-slate-400 transition-colors cursor-pointer rounded-2xl shadow-none"
         onClick={() => setIsAdding(true)}
       >
-        <CardContent className="p-4 flex items-center justify-center text-gray-600 hover:text-gray-800">
-          <Plus className="size-4 mr-2" />
-          <span className="font-medium">Добавить ещё одну колонку</span>
+        <CardContent className="p-4 flex items-start justify-start text-slate-600 hover:text-slate-800">
+          <Plus className="size-4 mr-2 mt-1" />
+          <span className="font-semibold">Добавить колонку</span>
         </CardContent>
       </Card>
     </div>
   );
+}
+
+const accentPalette = ['#7B869E', '#E8A24F', '#FCE258', '#49C5BC', '#8CACFF'];
+const bgPalette = ['#E3E4EE', '#ECE7E0', '#EBEBE0', '#E0ECEB', '#E0E8EC'];
+
+function hexToRgba(hex: string, alpha = 0.12) {
+  if (!hex) return `rgba(148, 163, 184, ${alpha})`;
+  const cleaned = hex.replace('#', '');
+  const normalized = cleaned.length === 3
+    ? cleaned.split('').map(char => char + char).join('')
+    : cleaned;
+
+  const r = parseInt(normalized.substring(0, 2), 16);
+  const g = parseInt(normalized.substring(2, 4), 16);
+  const b = parseInt(normalized.substring(4, 6), 16);
+
+  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) {
+    return `rgba(148, 163, 184, ${alpha})`;
+  }
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function getColumnColors(color?: string, index = 0) {
+  const accentColor = color || accentPalette[index % accentPalette.length];
+  const backgroundColor = bgPalette[index % bgPalette.length] || hexToRgba(accentColor, 0.16);
+  return {
+    accentColor,
+    backgroundColor
+  };
 }

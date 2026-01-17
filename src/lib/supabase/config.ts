@@ -65,6 +65,9 @@ export const TABLES = {
   CHECKLIST_ITEMS: 'checklist_items',
   ACTIVITIES: 'activities',
   INTEGRATIONS: 'integrations',
+  MESSENGER_INTEGRATIONS: 'messenger_integrations',
+  MESSENGER_CONVERSATIONS: 'messenger_conversations',
+  MESSENGER_MESSAGES: 'messenger_messages',
 } as const;
 
 // RLS (Row Level Security) policies

@@ -8,7 +8,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '../ui/collapsible';
-import { Plus, ChevronDown, ChevronRight, Image as ImageIcon, Loader2, MoreVertical, Edit, Trash2, Upload, Eye } from 'lucide-react';
+import { Plus, ChevronDown, ChevronRight, Image as ImageIcon, Loader2, MoreVertical, Edit, Trash2, Eye, FileText, ExternalLink } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { 
   ProductionItem,
@@ -296,17 +296,23 @@ export function ItemDetailsPanel({ item, onEdit, onDelete, onComponentAdd, onCom
     setIsMaterialDetailsOpen(true);
   };
 
-  // Handle load documents from client
-  const handleLoadClientDocuments = async (componentId: string) => {
+  const parseTechnicalNotes = (value?: string | null) => {
+    if (!value) return null;
     try {
-      // TODO: Add API call to load client documents
-      toast.info('Загрузка документов из данных клиента скоро будет доступна');
-      console.log('Loading documents for component:', componentId);
-    } catch (error) {
-      console.error('Error loading documents:', error);
-      toast.error('Ошибка при загрузке документов');
+      const parsed = JSON.parse(value);
+      if (parsed && typeof parsed === 'object') {
+        return parsed as { name?: string; url?: string };
+      }
+    } catch {
+      // ignore
     }
+    return {
+      name: value,
+      url: /^https?:\/\//i.test(value) ? value : undefined,
+    };
   };
+
+  const itemTechnicalInfo = parseTechnicalNotes((item as any).technical_notes ?? (item as any).technicalNotes);
 
   return (
     <div className="h-full flex flex-col">
@@ -325,6 +331,43 @@ export function ItemDetailsPanel({ item, onEdit, onDelete, onComponentAdd, onCom
             <Plus className="h-4 w-4" />
             Добавить компонент
           </Button>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-dashed border-border/70 bg-muted/30 px-4 py-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Техническое задание
+            </p>
+            {itemTechnicalInfo ? (
+              <p className="font-medium text-foreground truncate">{itemTechnicalInfo.name || 'Документ'}</p>
+            ) : (
+              <p className="text-sm text-muted-foreground">ТЗ не прикреплено</p>
+            )}
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {itemTechnicalInfo?.url && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1"
+                onClick={() => window.open(itemTechnicalInfo.url!, '_blank')}
+              >
+                <ExternalLink className="h-4 w-4" />
+                Открыть
+              </Button>
+            )}
+            {!itemTechnicalInfo && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+                onClick={() => onEdit(item)}
+              >
+                Добавить ТЗ
+              </Button>
+            )}
+          </div>
         </div>
 
       </div>
@@ -361,59 +404,6 @@ export function ItemDetailsPanel({ item, onEdit, onDelete, onComponentAdd, onCom
               )}
             >
               <Collapsible open={isOpen} onOpenChange={() => toggleComponent(component.id)}>
-                  {/* Action buttons + toggle */}
-                  <div className="absolute top-2 right-2 z-10 flex flex-col items-center gap-2">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                          }}
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onComponentEdit?.(component);
-                          }}
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          Редактировать
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onComponentDelete?.(component);
-                          }}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Удалить
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        toggleComponent(component.id);
-                      }}
-                    >
-                      {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                    </Button>
-                  </div>
-
                   <CollapsibleTrigger asChild>
                     <div className="w-full cursor-pointer">
                       <CardContent className="p-4 space-y-3">
@@ -454,7 +444,57 @@ export function ItemDetailsPanel({ item, onEdit, onDelete, onComponentAdd, onCom
                             <div className="text-xs text-gray-400">Не начато</div>
                           )}
                         </div>
-                        
+                        <div className="flex items-center gap-2">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 w-8 p-0"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                }}
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onComponentEdit?.(component);
+                                }}
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Редактировать
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onComponentDelete?.(component);
+                                }}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Удалить
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              toggleComponent(component.id);
+                            }}
+                          >
+                            {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                          </Button>
+                        </div>
                       </div>
                     </div>
 
@@ -667,47 +707,6 @@ export function ItemDetailsPanel({ item, onEdit, onDelete, onComponentAdd, onCom
                       </div>
                         )}
                     </div>
-
-                      {/* Section 2: Technical Project / Documents */}
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="text-xs font-semibold text-muted-foreground">
-                            2. ТЕХНИЧЕСКИЙ ПРОЕКТ
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-7 w-7 p-0 rounded-full"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleLoadClientDocuments(component.id);
-                              }}
-                              title="Загрузить из документов клиента"
-                            >
-                              <Upload className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-6 text-xs"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toast.info('Добавление документов скоро будет доступно');
-                              }}
-                            >
-                              <Plus className="h-3 w-3 mr-1" />
-                              Добавить
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="text-xs text-muted-foreground italic">
-                          Документы не прикреплены
-                            </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          Можно подгрузить из документов клиента
-                        </div>
-                      </div>
 
                     {/* Parts/Details */}
                       {component.parts && component.parts.length > 0 && (
