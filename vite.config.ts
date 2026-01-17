@@ -2,11 +2,24 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
+import fs from 'fs';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 
-  export default defineConfig({
-  envDir: path.resolve(__dirname, 'env'),
+const localEnvDir = path.resolve(__dirname, 'env');
+let envDir: string | undefined;
+
+try {
+  fs.accessSync(localEnvDir, fs.constants.R_OK);
+  envDir = localEnvDir;
+} catch {
+  envDir = undefined;
+}
+
+const shouldUseEnvDir = envDir && !process.env.CI && !process.env.VERCEL;
+
+export default defineConfig({
+  ...(shouldUseEnvDir ? { envDir } : {}),
     plugins: [
       react(),
       visualizer({
