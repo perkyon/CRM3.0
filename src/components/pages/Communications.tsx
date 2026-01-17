@@ -341,8 +341,7 @@ export function Communications() {
       return `${baseWebhookUrl}/api/messaging/${channel}/webhook?integrationId={integrationId}`;
     }
 
-    const secretSuffix = integration.webhookSecret ? `&secret=${integration.webhookSecret}` : '';
-    return `${baseWebhookUrl}/api/messaging/${channel}/webhook?integrationId=${integration.id}${secretSuffix}`;
+    return `${baseWebhookUrl}/api/messaging/${channel}/webhook?integrationId=${integration.id}`;
   };
 
   const renderInstructions = () => {
@@ -393,13 +392,15 @@ export function Communications() {
                     <Label className="text-xs">Выполни эту команду в терминале или браузере:</Label>
                     <div className="mt-1 rounded-md border bg-background p-2">
                       <code className="break-all text-xs">
-                        {`https://api.telegram.org/bot${integration.credentials?.botToken || '[ТВОЙ_ТОКЕН]'}/setWebhook?url=${encodeURIComponent(webhookUrl)}`}
+                        {`https://api.telegram.org/bot${integration.credentials?.botToken || '[ТВОЙ_ТОКЕН]'}/setWebhook?url=${encodeURIComponent(webhookUrl)}${
+                          integration.webhookSecret ? `&secret_token=${integration.webhookSecret}` : ''
+                        }`}
                       </code>
                     </div>
                   </div>
                   {integration.webhookSecret && (
                     <div className="rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
-                      <AlertCircle className="mb-1 inline size-3" /> Если указан Secret token, добавь заголовок:
+                      <AlertCircle className="mb-1 inline size-3" /> Secret token установлен — Telegram будет присылать заголовок:
                       <code className="ml-1 rounded bg-amber-100 px-1 dark:bg-amber-900">
                         X-Telegram-Bot-Api-Secret-Token: {integration.webhookSecret}
                       </code>
